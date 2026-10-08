@@ -1,0 +1,1333 @@
+{
+    "users": [
+        {
+            "name": "James Wilson",
+            "email": "james@pttracker.test",
+            "password": "$2y$12$examplehashedpassword1",
+            "role": "coach",
+            "date_of_birth": "1990-04-12",
+            "phone": "07111111111",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Sarah Thompson",
+            "email": "sarah@pttracker.test",
+            "password": "$2y$12$examplehashedpassword2",
+            "role": "coach",
+            "date_of_birth": "1993-08-25",
+            "phone": "07222222222",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Daniel Murphy",
+            "email": "daniel@pttracker.test",
+            "password": "$2y$12$examplehashedpassword3",
+            "role": "coach",
+            "date_of_birth": "1988-02-16",
+            "phone": "07333333333",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Adam Brown",
+            "email": "adam@example.com",
+            "password": "$2y$12$examplehashedpassword4",
+            "role": "client",
+            "date_of_birth": "2000-06-14",
+            "phone": "07444444444",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Emily Smith",
+            "email": "emily@example.com",
+            "password": "$2y$12$examplehashedpassword5",
+            "role": "client",
+            "date_of_birth": "1998-11-03",
+            "phone": "07555555555",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Ryan Campbell",
+            "email": "ryan@example.com",
+            "password": "$2y$12$examplehashedpassword6",
+            "role": "client",
+            "date_of_birth": "2002-01-19",
+            "phone": "07666666666",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Chloe Martin",
+            "email": "chloe@example.com",
+            "password": "$2y$12$examplehashedpassword7",
+            "role": "client",
+            "date_of_birth": "2001-09-27",
+            "phone": "07777777777",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "name": "Luke Kelly",
+            "email": "luke@example.com",
+            "password": "$2y$12$examplehashedpassword8",
+            "role": "client",
+            "date_of_birth": "1997-05-08",
+            "phone": "07888888888",
+            "is_active": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "trainer_clients": [
+        {
+            "trainer_id": 1,
+            "client_id": 4,
+            "start_date": "2026-09-01",
+            "status": "active",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "trainer_id": 1,
+            "client_id": 5,
+            "start_date": "2026-09-10",
+            "status": "active",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "trainer_id": 2,
+            "client_id": 6,
+            "start_date": "2026-08-15",
+            "status": "active",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "trainer_id": 2,
+            "client_id": 7,
+            "start_date": "2026-09-20",
+            "status": "active",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "trainer_id": 3,
+            "client_id": 8,
+            "start_date": "2026-07-01",
+            "status": "active",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "daily_check_ins": [
+        {
+            "client_id": 4,
+            "check_in_date": "2026-10-05",
+            "bodyweight": 82.4,
+            "sleep_hours": 7.5,
+            "sleep_quality": 4,
+            "energy_level": 4,
+            "stress_level": 2,
+            "steps": 10500,
+            "water_litres": 3.2,
+            "notes": "Feeling good today.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "check_in_date": "2026-10-05",
+            "bodyweight": 64.2,
+            "sleep_hours": 8,
+            "sleep_quality": 5,
+            "energy_level": 5,
+            "stress_level": 2,
+            "steps": 9200,
+            "water_litres": 2.7,
+            "notes": "Good sleep and energy.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 6,
+            "check_in_date": "2026-10-05",
+            "bodyweight": 91.7,
+            "sleep_hours": 6.5,
+            "sleep_quality": 3,
+            "energy_level": 3,
+            "stress_level": 4,
+            "steps": 7500,
+            "water_litres": 2.4,
+            "notes": "Slightly tired after training.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 7,
+            "check_in_date": "2026-10-05",
+            "bodyweight": 58.8,
+            "sleep_hours": 7.25,
+            "sleep_quality": 4,
+            "energy_level": 4,
+            "stress_level": 3,
+            "steps": 11000,
+            "water_litres": 3,
+            "notes": "Recovery feels good.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 8,
+            "check_in_date": "2026-10-05",
+            "bodyweight": 76.5,
+            "sleep_hours": 8.25,
+            "sleep_quality": 5,
+            "energy_level": 5,
+            "stress_level": 1,
+            "steps": 12500,
+            "water_litres": 3.5,
+            "notes": "Very good day.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 4,
+            "check_in_date": "2026-10-06",
+            "bodyweight": 82.1,
+            "sleep_hours": 7.75,
+            "sleep_quality": 4,
+            "energy_level": 4,
+            "stress_level": 2,
+            "steps": 9800,
+            "water_litres": 3,
+            "notes": "Weight slightly down.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "check_in_date": "2026-10-06",
+            "bodyweight": 64,
+            "sleep_hours": 7.5,
+            "sleep_quality": 4,
+            "energy_level": 4,
+            "stress_level": 2,
+            "steps": 10100,
+            "water_litres": 2.8,
+            "notes": "Training later today.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "meals": [
+        {
+            "client_id": 4,
+            "meal_date": "2026-10-06",
+            "meal_type": "breakfast",
+            "notes": "Breakfast before work.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 4,
+            "meal_date": "2026-10-06",
+            "meal_type": "lunch",
+            "notes": "Meal prep lunch.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 4,
+            "meal_date": "2026-10-06",
+            "meal_type": "dinner",
+            "notes": "Post-training dinner.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "meal_date": "2026-10-06",
+            "meal_type": "breakfast",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "meal_date": "2026-10-06",
+            "meal_type": "lunch",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 6,
+            "meal_date": "2026-10-06",
+            "meal_type": "breakfast",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 6,
+            "meal_date": "2026-10-06",
+            "meal_type": "dinner",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "meal_items": [
+        {
+            "meal_id": 1,
+            "food_name": "Oats",
+            "quantity": 80,
+            "unit": "g",
+            "calories": 304,
+            "protein": 10,
+            "carbohydrates": 54,
+            "fat": 6,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 1,
+            "food_name": "Banana",
+            "quantity": 1,
+            "unit": "banana",
+            "calories": 105,
+            "protein": 1.3,
+            "carbohydrates": 27,
+            "fat": 0.3,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 1,
+            "food_name": "Whey Protein",
+            "quantity": 30,
+            "unit": "g",
+            "calories": 120,
+            "protein": 24,
+            "carbohydrates": 3,
+            "fat": 2,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 2,
+            "food_name": "Chicken Breast",
+            "quantity": 200,
+            "unit": "g",
+            "calories": 330,
+            "protein": 62,
+            "carbohydrates": 0,
+            "fat": 7,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 2,
+            "food_name": "Rice",
+            "quantity": 250,
+            "unit": "g",
+            "calories": 325,
+            "protein": 6,
+            "carbohydrates": 70,
+            "fat": 1,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 2,
+            "food_name": "Broccoli",
+            "quantity": 100,
+            "unit": "g",
+            "calories": 35,
+            "protein": 2.4,
+            "carbohydrates": 7,
+            "fat": 0.4,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 3,
+            "food_name": "Lean Beef",
+            "quantity": 180,
+            "unit": "g",
+            "calories": 360,
+            "protein": 47,
+            "carbohydrates": 0,
+            "fat": 18,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 3,
+            "food_name": "Potatoes",
+            "quantity": 300,
+            "unit": "g",
+            "calories": 231,
+            "protein": 6,
+            "carbohydrates": 51,
+            "fat": 0.3,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 4,
+            "food_name": "Greek Yogurt",
+            "quantity": 250,
+            "unit": "g",
+            "calories": 180,
+            "protein": 25,
+            "carbohydrates": 12,
+            "fat": 3,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 4,
+            "food_name": "Blueberries",
+            "quantity": 100,
+            "unit": "g",
+            "calories": 57,
+            "protein": 0.7,
+            "carbohydrates": 14,
+            "fat": 0.3,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 5,
+            "food_name": "Turkey",
+            "quantity": 150,
+            "unit": "g",
+            "calories": 200,
+            "protein": 43,
+            "carbohydrates": 0,
+            "fat": 3,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 5,
+            "food_name": "Pasta",
+            "quantity": 200,
+            "unit": "g",
+            "calories": 310,
+            "protein": 11,
+            "carbohydrates": 62,
+            "fat": 2,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 6,
+            "food_name": "Eggs",
+            "quantity": 4,
+            "unit": "eggs",
+            "calories": 288,
+            "protein": 25,
+            "carbohydrates": 2,
+            "fat": 20,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 6,
+            "food_name": "Toast",
+            "quantity": 2,
+            "unit": "slices",
+            "calories": 190,
+            "protein": 7,
+            "carbohydrates": 34,
+            "fat": 2,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 7,
+            "food_name": "Salmon",
+            "quantity": 180,
+            "unit": "g",
+            "calories": 374,
+            "protein": 40,
+            "carbohydrates": 0,
+            "fat": 23,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "meal_id": 7,
+            "food_name": "Rice",
+            "quantity": 200,
+            "unit": "g",
+            "calories": 260,
+            "protein": 5,
+            "carbohydrates": 56,
+            "fat": 1,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "exercises": [
+        {
+            "exercise_name": "Barbell Bench Press",
+            "muscle_group": "Chest",
+            "description": "Barbell pressing movement for the chest.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Incline Dumbbell Press",
+            "muscle_group": "Chest",
+            "description": "Incline pressing movement using dumbbells.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Lat Pulldown",
+            "muscle_group": "Back",
+            "description": "Vertical pulling movement for the back.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Barbell Row",
+            "muscle_group": "Back",
+            "description": "Horizontal barbell pulling movement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Back Squat",
+            "muscle_group": "Legs",
+            "description": "Barbell squat movement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Leg Press",
+            "muscle_group": "Legs",
+            "description": "Machine-based leg pressing movement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Romanian Deadlift",
+            "muscle_group": "Hamstrings",
+            "description": "Hip hinge movement targeting hamstrings.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Leg Curl",
+            "muscle_group": "Hamstrings",
+            "description": "Knee flexion exercise for hamstrings.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Shoulder Press",
+            "muscle_group": "Shoulders",
+            "description": "Overhead pressing movement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Lateral Raise",
+            "muscle_group": "Shoulders",
+            "description": "Shoulder isolation exercise.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Bicep Curl",
+            "muscle_group": "Biceps",
+            "description": "Elbow flexion exercise.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "exercise_name": "Tricep Pushdown",
+            "muscle_group": "Triceps",
+            "description": "Cable tricep isolation exercise.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "workouts": [
+        {
+            "client_id": 4,
+            "trainer_id": 1,
+            "workout_name": "Push Day",
+            "workout_date": "2026-10-06",
+            "notes": "Focus on controlled reps and good technique.",
+            "completed": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "trainer_id": 1,
+            "workout_name": "Lower Body",
+            "workout_date": "2026-10-06",
+            "notes": "Keep two reps in reserve on compounds.",
+            "completed": true,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 6,
+            "trainer_id": 2,
+            "workout_name": "Pull Day",
+            "workout_date": "2026-10-06",
+            "notes": "Focus on back contraction.",
+            "completed": false,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 7,
+            "trainer_id": 2,
+            "workout_name": "Upper Body",
+            "workout_date": "2026-10-07",
+            "notes": "Moderate volume session.",
+            "completed": false,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 8,
+            "trainer_id": 3,
+            "workout_name": "Leg Day",
+            "workout_date": "2026-10-07",
+            "notes": "Progress weight where possible.",
+            "completed": false,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "workout_exercises": [
+        {
+            "workout_id": 1,
+            "exercise_id": 1,
+            "exercise_order": 1,
+            "notes": "Main pressing movement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 1,
+            "exercise_id": 2,
+            "exercise_order": 2,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 1,
+            "exercise_id": 10,
+            "exercise_order": 3,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 1,
+            "exercise_id": 12,
+            "exercise_order": 4,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 2,
+            "exercise_id": 5,
+            "exercise_order": 1,
+            "notes": "Warm up properly before working sets.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 2,
+            "exercise_id": 6,
+            "exercise_order": 2,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 2,
+            "exercise_id": 7,
+            "exercise_order": 3,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 2,
+            "exercise_id": 8,
+            "exercise_order": 4,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 3,
+            "exercise_id": 3,
+            "exercise_order": 1,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 3,
+            "exercise_id": 4,
+            "exercise_order": 2,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 3,
+            "exercise_id": 11,
+            "exercise_order": 3,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 4,
+            "exercise_id": 1,
+            "exercise_order": 1,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 4,
+            "exercise_id": 3,
+            "exercise_order": 2,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 4,
+            "exercise_id": 9,
+            "exercise_order": 3,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 5,
+            "exercise_id": 5,
+            "exercise_order": 1,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 5,
+            "exercise_id": 6,
+            "exercise_order": 2,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_id": 5,
+            "exercise_id": 7,
+            "exercise_order": 3,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "exercise_sets": [
+        {
+            "workout_exercise_id": 1,
+            "set_number": 1,
+            "reps": 10,
+            "weight": 70,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 1,
+            "set_number": 2,
+            "reps": 9,
+            "weight": 70,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 1,
+            "set_number": 3,
+            "reps": 8,
+            "weight": 70,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 2,
+            "set_number": 1,
+            "reps": 10,
+            "weight": 26,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 2,
+            "set_number": 2,
+            "reps": 9,
+            "weight": 26,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 2,
+            "set_number": 3,
+            "reps": 8,
+            "weight": 26,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 3,
+            "set_number": 1,
+            "reps": 15,
+            "weight": 8,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 3,
+            "set_number": 2,
+            "reps": 14,
+            "weight": 8,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 3,
+            "set_number": 3,
+            "reps": 12,
+            "weight": 8,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 4,
+            "set_number": 1,
+            "reps": 12,
+            "weight": 30,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 4,
+            "set_number": 2,
+            "reps": 11,
+            "weight": 30,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 4,
+            "set_number": 3,
+            "reps": 10,
+            "weight": 30,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 5,
+            "set_number": 1,
+            "reps": 8,
+            "weight": 80,
+            "rir": 3,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 5,
+            "set_number": 2,
+            "reps": 8,
+            "weight": 85,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 5,
+            "set_number": 3,
+            "reps": 7,
+            "weight": 85,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 6,
+            "set_number": 1,
+            "reps": 12,
+            "weight": 140,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 6,
+            "set_number": 2,
+            "reps": 11,
+            "weight": 140,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 6,
+            "set_number": 3,
+            "reps": 10,
+            "weight": 140,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 7,
+            "set_number": 1,
+            "reps": 10,
+            "weight": 60,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 7,
+            "set_number": 2,
+            "reps": 10,
+            "weight": 60,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 7,
+            "set_number": 3,
+            "reps": 9,
+            "weight": 60,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 8,
+            "set_number": 1,
+            "reps": 12,
+            "weight": 35,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 8,
+            "set_number": 2,
+            "reps": 11,
+            "weight": 35,
+            "rir": 2,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 8,
+            "set_number": 3,
+            "reps": 10,
+            "weight": 35,
+            "rir": 1,
+            "completed": true,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 9,
+            "set_number": 1,
+            "reps": 12,
+            "weight": 60,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 9,
+            "set_number": 2,
+            "reps": 12,
+            "weight": 60,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 9,
+            "set_number": 3,
+            "reps": 10,
+            "weight": 65,
+            "rir": 1,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 10,
+            "set_number": 1,
+            "reps": 10,
+            "weight": 60,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 10,
+            "set_number": 2,
+            "reps": 10,
+            "weight": 60,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 10,
+            "set_number": 3,
+            "reps": 8,
+            "weight": 65,
+            "rir": 1,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 11,
+            "set_number": 1,
+            "reps": 12,
+            "weight": 15,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 11,
+            "set_number": 2,
+            "reps": 12,
+            "weight": 15,
+            "rir": 2,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "workout_exercise_id": 11,
+            "set_number": 3,
+            "reps": 10,
+            "weight": 15,
+            "rir": 1,
+            "completed": false,
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "supplements": [
+        {
+            "supplement_name": "Creatine Monohydrate",
+            "description": "Common sports nutrition supplement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "supplement_name": "Whey Protein",
+            "description": "Protein supplement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "supplement_name": "Vitamin D",
+            "description": "Vitamin D supplement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "supplement_name": "Fish Oil",
+            "description": "Omega-3 supplement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "supplement_name": "Electrolytes",
+            "description": "Electrolyte supplement.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "supplement_logs": [
+        {
+            "client_id": 4,
+            "supplement_id": 1,
+            "taken_at": "2026-10-06 08:00:00",
+            "amount": 5,
+            "unit": "g",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 4,
+            "supplement_id": 2,
+            "taken_at": "2026-10-06 18:30:00",
+            "amount": 30,
+            "unit": "g",
+            "notes": "After training.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "supplement_id": 1,
+            "taken_at": "2026-10-06 09:00:00",
+            "amount": 5,
+            "unit": "g",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "supplement_id": 3,
+            "taken_at": "2026-10-06 09:00:00",
+            "amount": 1,
+            "unit": "tablet",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 6,
+            "supplement_id": 4,
+            "taken_at": "2026-10-06 08:30:00",
+            "amount": 2,
+            "unit": "capsules",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 7,
+            "supplement_id": 1,
+            "taken_at": "2026-10-06 10:00:00",
+            "amount": 5,
+            "unit": "g",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 8,
+            "supplement_id": 5,
+            "taken_at": "2026-10-06 16:00:00",
+            "amount": 1,
+            "unit": "serving",
+            "notes": "Before training.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "phases": [
+        {
+            "client_id": 4,
+            "phase_name": "Strength Block",
+            "start_date": "2026-09-01",
+            "end_date": "2026-10-26",
+            "notes": "Eight-week strength-focused training block.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "phase_name": "Fat Loss Phase",
+            "start_date": "2026-09-15",
+            "end_date": "2026-11-30",
+            "notes": "Controlled calorie deficit phase.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 8,
+            "phase_name": "Competition Preparation",
+            "start_date": "2026-08-01",
+            "end_date": "2026-11-14",
+            "notes": "Preparation phase leading into competition.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "cycle_entries": [
+        {
+            "cycle_id": 1,
+            "substance": "Creatine Monohydrate",
+            "taken_at": "2026-10-06 08:00:00",
+            "amount": 5,
+            "unit": "g",
+            "route": "oral",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "cycle_id": 2,
+            "substance": "Whey Protein",
+            "taken_at": "2026-10-06 10:00:00",
+            "amount": 30,
+            "unit": "g",
+            "route": "oral",
+            "notes": null,
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "cycle_id": 3,
+            "substance": "Electrolytes",
+            "taken_at": "2026-10-06 15:00:00",
+            "amount": 1,
+            "unit": "serving",
+            "route": "oral",
+            "notes": "Pre-training.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ],
+    "competitions": [
+        {
+            "client_id": 8,
+            "competition_name": "Northern Strength Classic",
+            "competition_date": "2026-11-14",
+            "location": "Belfast",
+            "category": "Mens Open",
+            "target_weight": 75,
+            "placing": null,
+            "notes": "Main competition for current preparation phase.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 4,
+            "competition_name": "Winter Powerlifting Meet",
+            "competition_date": "2026-12-05",
+            "location": "Belfast",
+            "category": "Mens 83kg",
+            "target_weight": 83,
+            "placing": null,
+            "notes": "First powerlifting competition.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        },
+        {
+            "client_id": 5,
+            "competition_name": "Spring Fitness Competition",
+            "competition_date": "2027-03-20",
+            "location": "Lisburn",
+            "category": "Womens Open",
+            "target_weight": 62,
+            "placing": null,
+            "notes": "Planned competition for next year.",
+            "created_at": "__NOW__",
+            "updated_at": "__NOW__"
+        }
+    ]
+}

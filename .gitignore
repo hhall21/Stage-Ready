@@ -1,0 +1,17 @@
+# Local environment, credentials, and client databases.
+.env
+.env.*
+!.env.example
+!.env.staging.example
+/*.txt
+/pt-tracker/database/*.sqlite
+/pt-tracker/database/*.sqlite-*
+/pt-tracker/database/*.db
+
+# Runtime data stays local; retain Laravel's directory placeholder files.
+/pt-tracker/storage/**
+!/pt-tracker/storage/**/
+!/pt-tracker/storage/**/.gitignore
+
+# Installed dependencies, build output, and generated routes are also ignored
+# by pt-tracker/.gitignore.
