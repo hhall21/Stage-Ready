@@ -110,13 +110,19 @@ composer install
 npm install
 cp .env.example .env
 php artisan key:generate
-php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+php -r "file_exists('database/database.sqlite') || copy('database/demo.sqlite', 'database/database.sqlite');"
 php artisan migrate
 npm run build
 php artisan serve
 ```
 
-These instructions assume a fresh clone and a new, empty database. Keep an existing
+The repository includes [`database/demo.sqlite`](database/demo.sqlite), a verified
+SQLite database containing all migrations and development sample data. Setup
+copies it to your private working database without overwriting an existing one.
+You can inspect the demo file with any SQLite database viewer. Keep the tracked
+demo file unchanged while running the website; local databases remain ignored.
+
+Keep an existing
 `.env` when updating an installed project. For a database previously created from
 the supplied SQL, read [the migration notes](database/MIGRATIONS.md) before running
 migrations.
@@ -134,7 +140,8 @@ Laravel server is running.
 
 ### Sample accounts
 
-On a new development database, load the sample data:
+The included demo database already contains the accounts below. If you chose to
+create an empty database instead, run migrations and load the sample data:
 
 ```sh
 php artisan db:seed

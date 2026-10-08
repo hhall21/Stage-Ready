@@ -1,4 +1,11 @@
-# PT tracker migrations
+# Stage-Ready migrations
+
+`demo.sqlite` is the shared development database, generated from the migrations
+and `PtTrackerSeeder` sample records, with no local sessions or enquiries.
+Copy it to `database.sqlite` for local use (see the application README), then run
+`php artisan migrate` to apply any newer migrations. Never copy over an existing
+working database that contains records you want to keep. Do not run `db:seed`
+on the already-seeded copy.
 
 The migrations translate the table definitions in `../../CREATE AND INSERTS.sql`.
 They include column lengths, decimal precision, nullability, defaults, named foreign
