@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
@@ -11,7 +12,17 @@ class PtTrackerSeeder extends Seeder
 {
     public function run(): void
     {
-        $tables = json_decode(file_get_contents(__DIR__.'/sample-data.json'), true, 512, JSON_THROW_ON_ERROR);
+        $sampleData = json_decode(File::get(__DIR__.'/sample-data.json'), true, 512, JSON_THROW_ON_ERROR);
+        if (! is_array($sampleData)) {
+            throw new RuntimeException('Sample data must contain tables keyed by name.');
+        }
+        $tables = [];
+        foreach ($sampleData as $table => $rows) {
+            if (! is_string($table) || ! is_array($rows)) {
+                throw new RuntimeException('Sample data must contain tables keyed by name.');
+            }
+            $tables[$table] = $rows;
+        }
 
         // The sample relationships use IDs assigned from 1 on an empty database.
         foreach (array_keys($tables) as $table) {

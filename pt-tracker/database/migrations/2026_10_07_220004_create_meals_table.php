@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('client_id');
             $table->date('meal_date');
-            $table->enum('meal_type', [ 'breakfast', 'lunch', 'dinner', 'snack', 'pre_workout', 'post_workout', 'other' ]);
+            $table->enum('meal_type', ['breakfast', 'lunch', 'dinner', 'snack', 'pre_workout', 'post_workout', 'other']);
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->foreign('client_id', 'fk_meals_client')->references('id')->on('users')->onDelete('cascade');

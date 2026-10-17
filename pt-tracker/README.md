@@ -51,11 +51,11 @@ sets per exercise, and a date range of up to one year.
 
 Each client can record one check-in per date, with optional:
 
-| Training and recovery | Daily habits |
-| --- | --- |
-| Bodyweight | Steps |
+| Training and recovery      | Daily habits |
+| -------------------------- | ------------ |
+| Bodyweight                 | Steps        |
 | Sleep duration and quality | Water intake |
-| Energy and stress ratings | Notes |
+| Energy and stress ratings  | Notes        |
 
 Sleep quality, energy, and stress use a 1–5 rating scale.
 
@@ -89,13 +89,13 @@ privacy consent, a honeypot field, and a limit of five requests per minute per I
 
 ## Technology
 
-| Layer | Stack |
-| --- | --- |
-| Backend | Laravel 13, PHP, Eloquent |
-| Frontend | Vue 3, TypeScript, Inertia.js 3 |
-| Styling | Tailwind CSS 4 and custom CSS |
-| Build tools | Vite / Vite Plus |
-| Database | SQLite for local development; MySQL-compatible tracker schema |
+| Layer          | Stack                                                                           |
+| -------------- | ------------------------------------------------------------------------------- |
+| Backend        | Laravel 13, PHP, Eloquent                                                       |
+| Frontend       | Vue 3, TypeScript, Inertia.js 3                                                 |
+| Styling        | Tailwind CSS 4 and custom CSS                                                   |
+| Build tools    | Vite / Vite Plus                                                                |
+| Database       | SQLite for local development; MySQL-compatible tracker schema                   |
 | Quality checks | Pest, PHPStan / Larastan, Laravel Pint, Vue TypeScript and frontend lint checks |
 
 ## Local setup
@@ -107,7 +107,7 @@ Run the following from the Laravel application directory, `pt-tracker`:
 
 ```sh
 composer install
-npm install
+npm ci
 cp .env.example .env
 php artisan key:generate
 php -r "file_exists('database/database.sqlite') || copy('database/demo.sqlite', 'database/database.sqlite');"
@@ -129,10 +129,10 @@ migrations.
 
 Open **http://localhost:8000**.
 
-| Page | URL |
-| --- | --- |
-| Public website | `/` |
-| Member login | `/login` |
+| Page                      | URL          |
+| ------------------------- | ------------ |
+| Public website            | `/`          |
+| Member login              | `/login`     |
 | Client or coach dashboard | `/dashboard` |
 
 For live frontend development, run `npm run dev` in a second terminal while the
@@ -150,10 +150,10 @@ php artisan db:seed
 The sample seeder requires its target tables to be empty. It includes coaches,
 clients, assignments, check-ins, workouts, and related tracker records.
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Coach | `james@pttracker.test` | `password` |
-| Client | `adam@example.com` | `password` |
+| Role   | Email                  | Password   |
+| ------ | ---------------------- | ---------- |
+| Coach  | `james@pttracker.test` | `password` |
+| Client | `adam@example.com`     | `password` |
 
 These are development-only accounts. Do not seed them into production.
 
@@ -195,7 +195,7 @@ soft edge fades and background blending to avoid visible rectangular borders.
 ```sh
 php artisan test
 php vendor/bin/pint --test
-php vendor/bin/phpstan analyse app routes --no-progress
+php vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 npm run types:check
 npm run check
 npm run build
@@ -205,9 +205,10 @@ Tests cover authentication, inactive accounts, record ownership, coach assignmen
 model relationships, repeating schedules, preservation of logged history, exercise
 limits, and rolling bodyweight calculations.
 
-Full-project PHPStan analysis also includes the database seeders; two existing
-typing issues in the sample-data seeder remain outside the checked application
-and route paths.
+PHPStan checks the application, configuration, database scripts and seeders, and
+routes. Run `composer ci:check` for the frontend checks, PHP formatting and static
+analysis, and application tests. GitHub runs these checks and a production asset
+build using the workflow in the repository root's `.github/workflows/` directory.
 
 ## Current scope
 
@@ -232,7 +233,7 @@ request examples, validation rules, and record-replacement behaviour.
 
 1. Configure `.env` using `.env.staging.example`, with a unique application key,
    the staging URL, and database credentials.
-2. Run `composer install --no-dev --optimize-autoloader`, `npm install`, and
+2. Run `composer install --no-dev --optimize-autoloader`, `npm ci`, and
    `npm run build` with development build dependencies available.
 3. Run `php artisan migrate --force` and `php artisan optimize`.
 4. Point the web server at `public/` and allow writes to `storage/` and
