@@ -11,3 +11,16 @@
   to future unlogged sessions and preserve past, completed, and logged history.
 - Bodyweight trends use a rolling seven-day average from recorded weigh-ins
   only, with reading counts and comparison to seven days earlier.
+
+## Local storage on Haydy's computer
+
+- These storage paths apply only to Haydy's Windows computer with the Seagate
+  Portable Drive connected as D:. Collaborators and CI should use their own
+  available storage and normal temporary/cache locations; the app does not
+  require a D: drive.
+- On Haydy's computer, C: has very little free space. Prefer the Seagate (D:)
+  for temporary files, dependency caches, large downloads, and clean-install checks.
+- Use `D:\Stage-Ready-Work\Temp` for `TEMP` and `TMP`,
+  `D:\Stage-Ready-Work\npm-cache` for `npm_config_cache`, and
+  `D:\Stage-Ready-Work\composer-cache` for `COMPOSER_CACHE_DIR` during local work.
+  Put disposable verification copies under `D:\Stage-Ready-Work\Checks`.
