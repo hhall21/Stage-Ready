@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/** @property-read Carbon $workout_date */
 #[Fillable(['client_id', 'trainer_id', 'workout_name', 'workout_date', 'notes', 'completed', 'mesocycle_id', 'template_slot'])]
 class Workout extends Model
 {
