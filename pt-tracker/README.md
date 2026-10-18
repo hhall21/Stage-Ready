@@ -54,6 +54,30 @@ sets per exercise, and a date range of up to one year.
 - Add an extra workout outside the repeating plan.
 - Create, edit, and delete personal daily check-ins.
 
+### Meal plans, daily prescriptions and written reviews
+
+- Coaches publish separate training-day and rest-day meal plans with independent
+  meal times, foods/portions, and optional calories/macros. Copying training meals
+  to rest days applies an adjustable delay (60 minutes by default).
+- The client's scheduled workout suggests the day type, while both meal plans
+  remain available to view. Plans can start today or on a future date.
+- Daily prescriptions repeat Monday to Sunday: cardio type, minutes and intensity;
+  rounds of mandatory poses and hold time per pose; vacuum sets and hold time.
+- Coaches can schedule later plan versions with more posing rounds closer to the
+  optional show date. Increases are explicitly prescribed, never automatic.
+- Published plans retain their history. Future versions can be cancelled by their
+  author. Today's changes create another version rather than rewriting old plans.
+- Coaches publish written check-in feedback and next steps every seven days in
+  prep, or every fourteen days in the off-season. Each coach sets the current phase;
+  changing phase starts a new interval today. Review status appears on the overview.
+- Reviews include a recent summary of recorded weights, steps, and completed
+  workouts. Missing readings are excluded from averages. This summary is separate
+  from the existing rolling seven-day bodyweight chart.
+- Clients can read their plans and review history after coaching ends. Former
+  coaches lose access; clients cannot write prescriptions or coach reviews.
+
+Existing installations require `php artisan migrate` for these features.
+
 ### Weekly health monitoring
 
 Coaches enable weekly monitoring per client in **Weekly health**, for clients

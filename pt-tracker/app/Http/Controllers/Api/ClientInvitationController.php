@@ -112,7 +112,7 @@ class ClientInvitationController extends Controller
                 $client->forceFill(['role' => 'client', 'is_active' => true, 'email_verified_at' => now()])->save();
             }
             TrainerClient::updateOrCreate(['trainer_id' => $coach->id, 'client_id' => $client->id],
-                ['status' => 'active', 'start_date' => today()->toDateString(), 'end_date' => null]);
+                ['status' => 'active', 'start_date' => today()->toDateString(), 'end_date' => null, 'review_phase' => 'offseason', 'review_started_on' => today()->toDateString()]);
             $invite->update(['accepted_at' => now()]);
 
             return $client;

@@ -5,8 +5,11 @@ import AthleteVisual from '@/components/AthleteVisual.vue';
 import BodyweightTrend from '@/components/BodyweightTrend.vue';
 import CheckInPosing from '@/components/CheckInPosing.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
+import CoachingReviews from '@/components/CoachingReviews.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
 import MesocyclePanel from '@/components/MesocyclePanel.vue';
+import NutritionPlans from '@/components/NutritionPlans.vue';
+import PracticePlans from '@/components/PracticePlans.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import WeeklyHealth from '@/components/WeeklyHealth.vue';
 import { athleteImages } from '@/lib/athlete-images';
@@ -35,6 +38,9 @@ type DashboardTab =
     | 'workouts'
     | 'progress'
     | 'health'
+    | 'nutrition'
+    | 'practice'
+    | 'reviews'
     | 'clients';
 const tab = ref<DashboardTab>('overview');
 const navigation = computed<
@@ -45,8 +51,11 @@ const navigation = computed<
     { id: 'workouts', label: 'Workouts', number: '03' },
     { id: 'progress', label: 'Exercise progress', number: '04' },
     { id: 'health', label: 'Weekly health', number: '05' },
+    { id: 'nutrition', label: 'Meal plans', number: '06' },
+    { id: 'practice', label: 'Cardio and practice', number: '07' },
+    { id: 'reviews', label: 'Coach reviews', number: '08' },
     ...(user.value?.role === 'coach'
-        ? [{ id: 'clients' as const, label: 'Clients', number: '06' }]
+        ? [{ id: 'clients' as const, label: 'Clients', number: '09' }]
         : []),
 ]);
 const loading = ref(true);
@@ -469,13 +478,19 @@ onMounted(() => {
                                 ? 'Let’s get to work.'
                                 : tab === 'checkins'
                                   ? 'Check in. Move forward.'
-                                  : tab === 'health'
-                                    ? 'Your health readings.'
-                                    : tab === 'clients'
-                                      ? 'Your coaching roster.'
-                                      : tab === 'progress'
-                                        ? 'See your progress.'
-                                        : 'Train with intent.'
+                                  : tab === 'nutrition'
+                                    ? 'Fuel your progress.'
+                                    : tab === 'practice'
+                                      ? 'Your daily prescriptions.'
+                                      : tab === 'reviews'
+                                        ? 'Review. Adjust. Progress.'
+                                        : tab === 'health'
+                                          ? 'Your health readings.'
+                                          : tab === 'clients'
+                                            ? 'Your coaching roster.'
+                                            : tab === 'progress'
+                                              ? 'See your progress.'
+                                              : 'Train with intent.'
                         }}
                     </h1>
                     <p>
@@ -557,6 +572,32 @@ onMounted(() => {
                 </button>
             </div>
             <template v-else>
+                <NutritionPlans
+                    v-if="tab === 'nutrition' && selected"
+                    :key="'nutrition-' + selected"
+                    :client-id="selected"
+                    :coach-id="user?.role === 'coach' ? user.id : null"
+                />
+                <PracticePlans
+                    v-if="tab === 'practice' && selected"
+                    :key="'practice-' + selected"
+                    :client-id="selected"
+                    :coach-id="user?.role === 'coach' ? user.id : null"
+                />
+                <CoachingReviews
+                    v-if="tab === 'reviews' && selected"
+                    :key="'reviews-' + selected"
+                    :client-id="selected"
+                    :coach-id="user?.role === 'coach' ? user.id : null"
+                />
+                <CoachingReviews
+                    v-if="tab === 'overview' && selected"
+                    :key="'review-summary-' + selected"
+                    :client-id="selected"
+                    :coach-id="user?.role === 'coach' ? user.id : null"
+                    compact
+                    @open="selectTab('reviews')"
+                />
                 <WeeklyHealth
                     v-if="tab === 'health' && selected"
                     :key="'health-' + selected"

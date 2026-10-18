@@ -1,4 +1,36 @@
 @import 'tailwindcss';
+
+.coaching-fields {
+    border: 0;
+    padding: 0;
+    margin: 20px 0 0;
+    min-width: 0;
+}
+.meal-prescription,
+.practice-editor {
+    padding: 20px 0;
+    border-bottom: 1px solid #444;
+}
+.practice-editor summary,
+.meal-prescription summary {
+    cursor: pointer;
+    padding: 12px 0;
+}
+.practice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 24px 0;
+}
+.practice-grid article {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+    .practice-grid {
+        grid-template-columns: 1fr;
+    }
+}
 .logged-set-grid {
     display: grid;
     grid-template-columns: 45px repeat(3, minmax(0, 1fr)) 55px 90px;

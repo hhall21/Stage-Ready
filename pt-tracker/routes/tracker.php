@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\BodyweightTrendController;
 use App\Http\Controllers\Api\CheckInPosingController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientInvitationController;
+use App\Http\Controllers\Api\CoachingPlanController;
+use App\Http\Controllers\Api\CoachingReviewController;
 use App\Http\Controllers\Api\DailyCheckInController;
 use App\Http\Controllers\Api\ExerciseProgressController;
 use App\Http\Controllers\Api\MesocycleController;
@@ -33,6 +35,15 @@ Route::prefix('api')->group(function () {
         Route::get('daily-check-in-photos/{photo}', [CheckInPosingController::class, 'photo'])->whereNumber('photo');
         Route::prefix('clients/{client}')->whereNumber('client')->group(function () {
             Route::delete('coaching', [ClientController::class, 'destroy']);
+            Route::get('nutrition-plans', [CoachingPlanController::class, 'nutrition']);
+            Route::post('nutrition-plans', [CoachingPlanController::class, 'storeNutrition']);
+            Route::delete('nutrition-plans/{plan}', [CoachingPlanController::class, 'cancelNutrition'])->whereNumber('plan');
+            Route::get('practice-plans', [CoachingPlanController::class, 'practice']);
+            Route::post('practice-plans', [CoachingPlanController::class, 'storePractice']);
+            Route::delete('practice-plans/{plan}', [CoachingPlanController::class, 'cancelPractice'])->whereNumber('plan');
+            Route::get('coaching-reviews', [CoachingReviewController::class, 'index']);
+            Route::patch('coaching-reviews/schedule', [CoachingReviewController::class, 'schedule']);
+            Route::post('coaching-reviews', [CoachingReviewController::class, 'store']);
             Route::get('weekly-health', [WeeklyHealthController::class, 'index']);
             Route::patch('weekly-health/settings', [WeeklyHealthController::class, 'settings']);
             Route::post('weekly-health/readings', [WeeklyHealthController::class, 'store']);

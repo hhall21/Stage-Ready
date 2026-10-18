@@ -1,5 +1,10 @@
 # Stage-Ready migrations
 
+The coaching-prescriptions migration adds versioned nutrition plans, daily cardio/
+posing/vacuum schedules, coach-written reviews, and review phase/start fields on
+coaching assignments. Existing assignments default to fortnightly off-season
+reviews; plans and reviews start empty. Apply with `php artisan migrate`.
+
 The weekly-health migration adds an optional monitoring start timestamp to coaching
 assignments and a separate health-reading table. Run `php artisan migrate` on an
 existing installation. Monitoring starts disabled; existing records are preserved.

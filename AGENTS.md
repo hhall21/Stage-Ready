@@ -18,6 +18,12 @@
   pose before submission. Coaches provide a 1-10 posing rating and feedback;
   competition-prep reviews can include separate 1-10 flatness and fullness ratings.
   Photos are private. Changed photos require a fresh submission and review.
+- Diet prescriptions have separate training-day and rest-day meals with independent
+  times. Rest-day copying defaults to a 60-minute delay and is coach-adjustable.
+- Coaches prescribe daily cardio, mandatory posing rounds and vacuum sets/holds.
+  Future-dated versions allow planned posing increases approaching a show.
+- Written coach check-in reviews are weekly in prep and fortnightly off-season.
+  Plans and reviews remain available to clients when coaching ends.
 
 ## Local storage on Haydy's computer
 

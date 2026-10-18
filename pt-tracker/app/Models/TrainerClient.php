@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['trainer_id', 'client_id', 'start_date', 'end_date', 'status'])]
+#[Fillable(['trainer_id', 'client_id', 'start_date', 'end_date', 'status', 'review_phase', 'review_started_on'])]
 class TrainerClient extends Model
 {
     /** @return array<string, string> */
@@ -16,6 +16,7 @@ class TrainerClient extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'health_monitoring_enabled_at' => 'datetime',
+            'review_started_on' => 'date',
         ];
     }
 

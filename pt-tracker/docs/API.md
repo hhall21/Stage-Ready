@@ -79,6 +79,57 @@ Deleting a check-in also cleans up its named-pose photo files after commit;
 cleanup of unrelated legacy progress-photo paths or training-clip files is outside
 these endpoints.
 
+## Nutrition and practice prescriptions
+
+Under `/api/clients/{client}`:
+
+- `GET /nutrition-plans?date=YYYY-MM-DD&page=1` and `GET /practice-plans?...`
+  return `date`, workout-derived `day_type` (`training`/`rest`), ISO `weekday`,
+  `current` (latest uncancelled plan effective on that date, or null), and
+  `versions` (12 per page). Same-day ties use the latest plan ID.
+- `POST /nutrition-plans`: assigned coach only. Requires `effective_from`
+  (today or later), `training_meals` and `rest_meals`, each with 1-12 meals.
+  Each meal requires `name`, `time` (HH:mm), and `foods` (food amounts and
+  preparation instructions). Optional numeric `calories`, `protein`,
+  `carbohydrates`, and `fat` are nonnegative; macros use grams. Optional plan
+  `notes` supports 5,000 characters. Food logging tables are not changed.
+- `POST /practice-plans`: assigned coach only. Requires `effective_from`,
+  optional `show_date` on/after that date, optional `notes`, and exactly seven
+  `days`. Each ISO weekday 1-7 appears exactly once. Each day has `cardio_mode`,
+  integer `cardio_minutes` (0-300), optional `cardio_intensity`, integer
+  `posing_rounds` (0-100), `pose_hold_seconds` (1-300), `vacuum_sets` (0-100),
+  `vacuum_hold_seconds` (1-300), and optional `notes`. Zero minutes/rounds/sets
+  means no prescription for that activity. One posing round covers all mandatory
+  poses. Dated versions support planned increases as the show approaches.
+- `DELETE /nutrition-plans/{plan}` or `/practice-plans/{plan}` cancels a future
+  version authored by the current assigned coach. Active/historical versions
+  cannot be cancelled or edited. Publish a new version for changes. Cancelled
+  versions remain in history and are excluded when choosing the effective plan.
+
+Client and coach IDs cannot be set in request bodies. Current assigned coaches
+may read their client's plan history; the client retains read access after coaching
+ends. Dates and totals are descriptive; the app does not generate diet prescriptions.
+
+## Written coaching reviews
+
+- `GET /api/clients/{client}/coaching-reviews?page=1`: returns active-coach
+  `schedules`, recent `summary`, and paginated `reviews` with author names.
+- `PATCH .../coaching-reviews/schedule`: assigned coach only; `{ "phase": "prep" }`
+  or `{ "phase": "offseason" }`. Each coach controls their own schedule. Prep
+  has a seven-day interval; off-season has fourteen. Changing phase starts a new
+  interval today; saving an already-initialised unchanged phase preserves its anchor.
+- `POST .../coaching-reviews`: assigned coach only; requires `review_date`
+  (not future or before the current phase began), written `feedback` (max 10,000),
+  and optional `next_steps` (max 5,000). One review per coach/client/date. Author
+  and phase are server-assigned. Reviews are published records, not editable drafts.
+
+The next due date is the latest review date in the current phase plus the interval,
+or the phase/assignment start plus that interval when no review exists. Backdated
+reviews cannot move a later due date backwards. Summary averages exclude missing
+values and use the seven/fourteen calendar days ending today. Clients with any
+active prep coach see a seven-day summary. Historical reviews remain accessible
+to the client after coaching ends, while former coaches lose access.
+
 ## Weekly health monitoring
 
 Routes under `/api/clients/{client}/weekly-health`:

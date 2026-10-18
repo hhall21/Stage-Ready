@@ -9,6 +9,13 @@ their schedule and record their progress.
 
 ## Features
 
+- **Meal plans:** separate training/rest-day foods and timings, with adjustable
+  later rest-day meals and dated plan versions.
+- **Daily prescriptions:** coach-set cardio, mandatory posing rounds and vacuum
+  practice, including scheduled increases nearer a show.
+- **Written coach reviews:** weekly in prep and fortnightly in the off-season,
+  with due dates, recent check-in summaries, feedback and next steps.
+
 - **Coach and client dashboards:** separate workflows with access restricted to
   the client's own records or the coach's current assigned clients.
 - **Client onboarding:** coaches invite clients by email for immediate access on
