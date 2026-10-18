@@ -36,10 +36,37 @@ type Response = {
         average_steps: number | null;
         workouts_planned: number;
         workouts_completed: number;
+        nutrition: {
+            hunger_level: { average: number | null; readings: number };
+            appetite_level: { average: number | null; readings: number };
+            digestive_discomfort: { average: number | null; readings: number };
+            reports: {
+                date: string;
+                digestion_notes: string | null;
+                dietary_difficulties: string | null;
+            }[];
+        };
     };
     reviews: Page<Review>;
 };
 const state = ref<Response | null>(null);
+const nutritionMetrics = [
+    {
+        key: 'hunger_level' as const,
+        label: 'Hunger',
+        scale: '1 = not hungry; 5 = very hungry',
+    },
+    {
+        key: 'appetite_level' as const,
+        label: 'Appetite',
+        scale: '1 = very low; 5 = very high',
+    },
+    {
+        key: 'digestive_discomfort' as const,
+        label: 'Digestive discomfort',
+        scale: '1 = none; 5 = severe',
+    },
+];
 const ownSchedule = computed(() =>
     state.value?.schedules.find(
         (schedule) => schedule.coach_id === props.coachId,
@@ -259,6 +286,68 @@ onMounted(load);
                             </p>
                         </article>
                     </div>
+                </div>
+                <div class="panel">
+                    <h2>Nutrition check-in summary</h2>
+                    <p class="form-help">
+                        For the same review window above. Averages use recorded
+                        responses only.
+                    </p>
+                    <div class="practice-grid">
+                        <article
+                            v-for="metric in nutritionMetrics"
+                            :key="metric.key"
+                        >
+                            <h3>{{ metric.label }}</h3>
+                            <p>
+                                {{
+                                    state.summary.nutrition[metric.key]
+                                        .average === null
+                                        ? 'Not recorded'
+                                        : Number(
+                                              state.summary.nutrition[
+                                                  metric.key
+                                              ].average,
+                                          ).toFixed(1) + ' / 5 average'
+                                }}
+                            </p>
+                            <p class="form-help">
+                                {{
+                                    state.summary.nutrition[metric.key].readings
+                                }}
+                                responses · {{ metric.scale }}
+                            </p>
+                        </article>
+                    </div>
+                    <details v-if="state.summary.nutrition.reports.length" open>
+                        <summary>
+                            Digestion notes and dietary difficulties
+                        </summary>
+                        <article
+                            v-for="report in state.summary.nutrition.reports"
+                            :key="report.date"
+                            class="meal-prescription"
+                        >
+                            <h3>{{ displayDate(report.date) }}</h3>
+                            <p
+                                v-if="report.digestion_notes"
+                                class="record-notes"
+                            >
+                                Digestion: {{ report.digestion_notes }}
+                            </p>
+                            <p
+                                v-if="report.dietary_difficulties"
+                                class="record-notes"
+                            >
+                                Dietary difficulties:
+                                {{ report.dietary_difficulties }}
+                            </p>
+                        </article>
+                    </details>
+                    <p v-else class="form-help">
+                        No digestion notes or dietary difficulties reported in
+                        this review window.
+                    </p>
                 </div>
                 <form
                     v-if="coachId && ownSchedule"

@@ -1,5 +1,10 @@
 # Stage-Ready migrations
 
+The nutrition-check-in migration adds five nullable columns to daily check-ins:
+hunger, appetite, digestive discomfort, digestion notes, and dietary difficulties.
+Run `php artisan migrate`; existing records retain their values and start with
+no nutrition responses. No posing or review history is replaced.
+
 The coaching-prescriptions migration adds versioned nutrition plans, daily cardio/
 posing/vacuum schedules, coach-written reviews, and review phase/start fields on
 coaching assignments. Existing assignments default to fortnightly off-season

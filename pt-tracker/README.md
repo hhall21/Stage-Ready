@@ -93,6 +93,13 @@ installations (`php artisan migrate`).
 
 ### Daily check-ins
 
+Optional nutrition responses include hunger and appetite (separate 1-5 ratings),
+digestive discomfort (1 = none, 5 = severe), digestion notes, and dietary difficulties
+such as trouble finishing meals, cravings, or food access. Clients can save these
+before uploading posing photos. Current coaches can read the responses in daily
+history and the seven/fourteen-day review summary. Missing ratings are excluded
+from averages, with response counts shown. Existing check-ins remain unchanged.
+
 Each client can record one check-in per date, with optional:
 
 | Training and recovery      | Daily habits |

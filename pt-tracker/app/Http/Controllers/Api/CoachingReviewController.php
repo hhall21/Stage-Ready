@@ -38,6 +38,17 @@ class CoachingReviewController extends Controller
         $from = today()->subDays($days - 1)->toDateString();
         $checks = $client->dailyCheckIns()->whereDate('check_in_date', '>=', $from)->whereDate('check_in_date', '<=', today()->toDateString())->get();
         $workouts = $client->workouts()->whereDate('workout_date', '>=', $from)->whereDate('workout_date', '<=', today()->toDateString())->get();
+        $nutrition = [];
+        foreach (['hunger_level', 'appetite_level', 'digestive_discomfort'] as $field) {
+            $recorded = $checks->whereNotNull($field);
+            $nutrition[$field] = ['average' => $recorded->avg($field), 'readings' => $recorded->count()];
+        }
+        $nutrition['reports'] = $checks->filter(fn ($check) => filled($check->digestion_notes) || filled($check->dietary_difficulties))
+            ->sortByDesc('check_in_date')->map(fn ($check) => [
+                'date' => $check->check_in_date->toDateString(),
+                'digestion_notes' => $check->digestion_notes,
+                'dietary_difficulties' => $check->dietary_difficulties,
+            ])->values();
 
         return response()->json([
             'schedules' => $schedules,
@@ -45,7 +56,8 @@ class CoachingReviewController extends Controller
                 'weigh_ins' => $checks->whereNotNull('bodyweight')->count(),
                 'average_bodyweight' => $checks->whereNotNull('bodyweight')->avg('bodyweight'),
                 'average_steps' => $checks->whereNotNull('steps')->avg('steps'),
-                'workouts_planned' => $workouts->count(), 'workouts_completed' => $workouts->where('completed', true)->count()],
+                'workouts_planned' => $workouts->count(), 'workouts_completed' => $workouts->where('completed', true)->count(),
+                'nutrition' => $nutrition],
             'reviews' => CoachingReview::where('client_id', $client->id)->with('coach:id,name')->orderByDesc('review_date')->orderByDesc('id')->paginate(12),
         ]);
     }

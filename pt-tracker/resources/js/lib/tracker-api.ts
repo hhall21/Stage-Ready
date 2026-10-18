@@ -21,6 +21,11 @@ export type CheckIn = {
     steps: number | null;
     water_litres: string | null;
     notes: string | null;
+    hunger_level: number | null;
+    appetite_level: number | null;
+    digestive_discomfort: number | null;
+    digestion_notes: string | null;
+    dietary_difficulties: string | null;
     photo_version: number;
     submitted_at: string | null;
     pose_photos_count: number;

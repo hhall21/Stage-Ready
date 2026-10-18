@@ -84,6 +84,11 @@ const checkForm = reactive<Record<string, string | number | null>>({
     stress_level: '',
     steps: '',
     water_litres: '',
+    hunger_level: '',
+    appetite_level: '',
+    digestive_discomfort: '',
+    digestion_notes: '',
+    dietary_difficulties: '',
     notes: '',
 });
 const fields = [
@@ -101,6 +106,32 @@ const fields = [
     { key: 'steps', label: 'Steps', max: 4294967295, step: '1' },
     { key: 'water_litres', label: 'Water (litres)', max: 99.99, step: '0.1' },
 ];
+const nutritionFields = [
+    {
+        key: 'hunger_level',
+        label: 'Hunger',
+        help: 'How hungry did you feel? 1 = not hungry, 5 = very hungry.',
+    },
+    {
+        key: 'appetite_level',
+        label: 'Appetite',
+        help: 'How much did you want to eat? 1 = very low appetite, 5 = very high appetite.',
+    },
+    {
+        key: 'digestive_discomfort',
+        label: 'Digestive discomfort',
+        help: '1 = no discomfort, 5 = severe discomfort.',
+    },
+];
+function hasNutrition(record: CheckIn) {
+    return (
+        nutritionFields.some(
+            ({ key }) => record[key as keyof CheckIn] != null,
+        ) ||
+        !!record.digestion_notes ||
+        !!record.dietary_difficulties
+    );
+}
 type ExerciseRow = {
     key: number;
     exercise_id: number | '';
@@ -715,7 +746,8 @@ onMounted(() => {
                             Your mandatory pose photos are your daily check-in.
                             Choose the date, then upload all eight poses for
                             your coach. Bodyweight, recovery and notes are
-                            optional.
+                            optional. Nutrition responses can be saved with your
+                            daily details before adding pose photos.
                         </p>
                         <div class="form-grid">
                             <label
@@ -725,6 +757,47 @@ onMounted(() => {
                                     required
                             /></label>
                         </div>
+                        <details class="checkin-optional" open>
+                            <summary>
+                                Nutrition: hunger, appetite and digestion
+                            </summary>
+                            <p class="form-help">
+                                Optional daily ratings. Leave a field blank if
+                                you did not record it.
+                            </p>
+                            <div class="form-grid">
+                                <label
+                                    v-for="field in nutritionFields"
+                                    :key="field.key"
+                                    >{{ field.label }} (1–5)<input
+                                        v-model.number="checkForm[field.key]"
+                                        type="number"
+                                        min="1"
+                                        max="5"
+                                        step="1"
+                                        placeholder="Not recorded"
+                                    /><span class="form-help">{{
+                                        field.help
+                                    }}</span></label
+                                >
+                                <label class="full-width"
+                                    >Digestion notes<textarea
+                                        v-model="checkForm.digestion_notes"
+                                        rows="2"
+                                        maxlength="5000"
+                                        placeholder="Bloating, bowel regularity, discomfort, or foods that were difficult to tolerate."
+                                    />
+                                </label>
+                                <label class="full-width"
+                                    >Dietary difficulties<textarea
+                                        v-model="checkForm.dietary_difficulties"
+                                        rows="2"
+                                        maxlength="5000"
+                                        placeholder="Trouble finishing meals, missed meals, cravings, food access, or anything that made the plan difficult."
+                                    />
+                                </label>
+                            </div>
+                        </details>
                         <details class="checkin-optional" :open="!!editCheck">
                             <summary>
                                 Optional bodyweight, recovery and notes
@@ -903,6 +976,39 @@ onMounted(() => {
                             <p v-if="record.notes" class="record-notes">
                                 {{ record.notes }}
                             </p>
+                        </details>
+                        <details
+                            v-if="hasNutrition(record)"
+                            class="checkin-optional"
+                            open
+                        >
+                            <summary>Nutrition check-in</summary>
+                            <div class="checkin-values">
+                                <span
+                                    v-for="field in nutritionFields"
+                                    :key="field.key"
+                                    >{{ field.label
+                                    }}<strong
+                                        >{{
+                                            record[
+                                                field.key as keyof CheckIn
+                                            ] ?? '—'
+                                        }}/5</strong
+                                    ></span
+                                >
+                            </div>
+                            <template v-if="record.digestion_notes"
+                                ><h3>Digestion notes</h3>
+                                <p class="record-notes">
+                                    {{ record.digestion_notes }}
+                                </p></template
+                            >
+                            <template v-if="record.dietary_difficulties"
+                                ><h3>Dietary difficulties</h3>
+                                <p class="record-notes">
+                                    {{ record.dietary_difficulties }}
+                                </p></template
+                            >
                         </details>
                     </div>
                     <div v-if="checkLast > 1" class="pagination">

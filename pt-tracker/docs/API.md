@@ -112,6 +112,18 @@ ends. Dates and totals are descriptive; the app does not generate diet prescript
 
 ## Written coaching reviews
 
+Daily check-in POST/PATCH payloads also accept nullable integer `hunger_level`,
+`appetite_level`, and `digestive_discomfort` (1-5), plus nullable `digestion_notes`
+and `dietary_difficulties` (strings up to 5,000 characters). Hunger/appetite increase
+from low to high; digestive discomfort increases from none to severe. Omitted
+PATCH fields are preserved; explicit null clears a response. These fields use
+the existing client-only check-in write permissions and do not submit pose photos.
+
+Review `summary.nutrition` provides `{ average, readings }` for each numeric field
+and dated `reports` containing digestion notes/dietary difficulties, newest first.
+It uses the same seven/fourteen-day window as the review summary, excludes missing
+ratings from averages, and returns null averages when nothing was recorded.
+
 - `GET /api/clients/{client}/coaching-reviews?page=1`: returns active-coach
   `schedules`, recent `summary`, and paginated `reviews` with author names.
 - `PATCH .../coaching-reviews/schedule`: assigned coach only; `{ "phase": "prep" }`

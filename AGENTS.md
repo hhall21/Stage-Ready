@@ -24,6 +24,9 @@
   Future-dated versions allow planned posing increases approaching a show.
 - Written coach check-in reviews are weekly in prep and fortnightly off-season.
   Plans and reviews remain available to clients when coaching ends.
+- Nutrition check-ins record optional hunger, appetite and digestive discomfort
+  ratings (1-5), digestion notes and dietary difficulties. Coach review summaries
+  exclude missing responses from averages and show reading counts.
 
 ## Local storage on Haydy's computer
 
