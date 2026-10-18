@@ -123,7 +123,13 @@ export async function api<T>(
             data.errors,
         );
     }
-    if (url === '/api/login' || url === '/api/logout') csrf = '';
+    if (
+        url === '/api/login' ||
+        url === '/api/logout' ||
+        url === '/api/reset-password' ||
+        /^\/api\/invitations\/[A-Za-z0-9]{64}\/accept$/.test(url)
+    )
+        csrf = '';
     return data as T;
 }
 export function message(error: unknown): string {

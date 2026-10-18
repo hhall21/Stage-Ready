@@ -3,6 +3,8 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, onMounted, reactive, ref } from 'vue';
 import AthleteVisual from '@/components/AthleteVisual.vue';
 import BodyweightTrend from '@/components/BodyweightTrend.vue';
+import ClientManagement from '@/components/ClientManagement.vue';
+import ExerciseProgress from '@/components/ExerciseProgress.vue';
 import MesocyclePanel from '@/components/MesocyclePanel.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
@@ -25,7 +27,24 @@ import type {
 const user = ref<TrackerUser | null>(null);
 const clients = ref<TrackerUser[]>([]);
 const selected = ref<number | null>(null);
-const tab = ref<'overview' | 'checkins' | 'workouts'>('overview');
+type DashboardTab =
+    | 'overview'
+    | 'checkins'
+    | 'workouts'
+    | 'progress'
+    | 'clients';
+const tab = ref<DashboardTab>('overview');
+const navigation = computed<
+    { id: DashboardTab; label: string; number: string }[]
+>(() => [
+    { id: 'overview', label: 'Overview', number: '01' },
+    { id: 'checkins', label: 'Daily check-ins', number: '02' },
+    { id: 'workouts', label: 'Workouts', number: '03' },
+    { id: 'progress', label: 'Exercise progress', number: '04' },
+    ...(user.value?.role === 'coach'
+        ? [{ id: 'clients' as const, label: 'Clients', number: '05' }]
+        : []),
+]);
 const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
@@ -178,7 +197,18 @@ async function selectClient() {
     await loadRecords();
 }
 
-async function selectTab(next: 'overview' | 'checkins' | 'workouts') {
+async function refreshClients() {
+    error.value = '';
+    try {
+        clients.value = await allPages<TrackerUser>('/api/clients');
+        if (!clients.value.some((client) => client.id === selected.value))
+            selected.value = clients.value[0]?.id ?? null;
+        await selectClient();
+    } catch (cause) {
+        handleError(cause);
+    }
+}
+async function selectTab(next: DashboardTab) {
     tab.value = next;
     if (
         next === 'overview' &&
@@ -380,15 +410,7 @@ onMounted(() => {
             <p class="eyebrow">YOUR WORKSPACE</p>
             <nav aria-label="Dashboard navigation">
                 <button
-                    v-for="item in [
-                        { id: 'overview', label: 'Overview', number: '01' },
-                        {
-                            id: 'checkins',
-                            label: 'Daily check-ins',
-                            number: '02',
-                        },
-                        { id: 'workouts', label: 'Workouts', number: '03' },
-                    ] as const"
+                    v-for="item in navigation"
                     :key="item.id"
                     :class="{ active: tab === item.id }"
                     :aria-current="tab === item.id ? 'page' : undefined"
@@ -419,7 +441,11 @@ onMounted(() => {
                                 ? 'Let’s get to work.'
                                 : tab === 'checkins'
                                   ? 'Check in. Move forward.'
-                                  : 'Train with intent.'
+                                  : tab === 'clients'
+                                    ? 'Your coaching roster.'
+                                    : tab === 'progress'
+                                      ? 'See your progress.'
+                                      : 'Train with intent.'
                         }}
                     </h1>
                     <p>
@@ -445,7 +471,10 @@ onMounted(() => {
                 </button>
             </p>
             <p v-if="success" class="notice" role="status">{{ success }}</p>
-            <div v-if="user?.role === 'coach'" class="client-picker">
+            <div
+                v-if="user?.role === 'coach' && tab !== 'clients'"
+                class="client-picker"
+            >
                 <label for="client-select">Assigned client</label
                 ><select
                     id="client-select"
@@ -468,7 +497,12 @@ onMounted(() => {
                     {{ clients.length === 1 ? 'client' : 'clients' }}</span
                 >
             </div>
-            <p v-if="loading" class="loading-message" role="status">
+            <ClientManagement
+                v-if="user?.role === 'coach' && tab === 'clients'"
+                :clients="clients"
+                @changed="refreshClients"
+            />
+            <p v-else-if="loading" class="loading-message" role="status">
                 Loading your records…
             </p>
             <div v-else-if="!selected" class="empty-state">
@@ -476,12 +510,23 @@ onMounted(() => {
                 <p>
                     {{
                         user?.role === 'coach'
-                            ? 'Your clients will appear here once they have an active coaching assignment.'
+                            ? 'Invite your first client to start coaching. Their access begins as soon as they join.'
                             : 'Sign in to access your training records.'
                     }}
                 </p>
+                <button
+                    v-if="user?.role === 'coach'"
+                    class="button button-small"
+                    @click="selectTab('clients')"
+                >
+                    Manage clients ↗
+                </button>
             </div>
             <template v-else>
+                <ExerciseProgress
+                    v-if="tab === 'progress' && selected"
+                    :client-id="selected"
+                />
                 <section v-if="tab === 'overview'">
                     <div class="dashboard-banner">
                         <div>

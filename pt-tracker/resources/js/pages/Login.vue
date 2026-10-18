@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AthleteVisual from '@/components/AthleteVisual.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
 import { api, message } from '@/lib/tracker-api';
+const props = withDefaults(
+    defineProps<{ next?: string; passwordReset?: boolean }>(),
+    { next: '/dashboard', passwordReset: false },
+);
 const email = ref('');
 const password = ref('');
 const busy = ref(false);
@@ -18,7 +22,7 @@ async function login() {
             password: password.value,
         });
         password.value = '';
-        router.visit('/dashboard');
+        router.visit(props.next);
     } catch (cause) {
         error.value = message(cause);
     } finally {
@@ -37,6 +41,9 @@ async function login() {
                 Pick up where you left off.<br />Your next step is waiting.
             </p>
             <form class="login-form" @submit.prevent="login">
+                <p v-if="passwordReset" class="notice" role="status">
+                    Password updated. Sign in with your new password.
+                </p>
                 <p v-if="error" class="notice" role="alert">{{ error }}</p>
                 <label
                     >Email address<input
@@ -58,6 +65,11 @@ async function login() {
                     {{ busy ? 'Signing in…' : 'Sign in' }}
                     <span aria-hidden="true">↗</span>
                 </button>
+                <p class="form-help">
+                    <Link href="/forgot-password" class="text-link"
+                        >Forgot your password?</Link
+                    >
+                </p>
                 <p class="form-help">
                     Need access or help with your account? Contact your coach.
                 </p>

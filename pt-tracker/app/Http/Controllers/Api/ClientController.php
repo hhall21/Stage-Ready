@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\TrainerClient;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ClientController extends Controller
 {
@@ -23,5 +27,20 @@ class ClientController extends Controller
             ->orderBy('users.name')
             ->paginate(30)
             ->through(fn ($client) => $client->only(['id', 'name', 'email', 'role'])));
+    }
+
+    public function destroy(Request $request, User $client): JsonResponse
+    {
+        $coach = $request->user();
+        abort_unless($coach && $coach->role === 'coach', 403);
+        DB::transaction(function () use ($coach, $client): void {
+            User::whereKey($coach->id)->lockForUpdate()->firstOrFail();
+            User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::authorize('viewTracker', $client);
+            TrainerClient::where('trainer_id', $coach->id)->where('client_id', $client->id)
+                ->update(['status' => 'inactive', 'end_date' => today()->toDateString()]);
+        });
+
+        return response()->json(['message' => 'Coaching ended. The client keeps their training and check-in history.']);
     }
 }
