@@ -26,6 +26,7 @@ export type CheckIn = {
     digestive_discomfort: number | null;
     digestion_notes: string | null;
     dietary_difficulties: string | null;
+    nutrition_completed_at: string | null;
     photo_version: number;
     submitted_at: string | null;
     pose_photos_count: number;

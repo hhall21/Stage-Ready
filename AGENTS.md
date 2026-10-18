@@ -30,6 +30,8 @@
 - Nutrition check-ins record optional hunger, appetite and digestive discomfort
   ratings (1-5), digestion notes and dietary difficulties. Coach review summaries
   exclude missing responses from averages and show reading counts.
+- Clients complete nutrition at the end of the day, independently of posing.
+  Saving evening responses preserves existing daily numbers and posing submissions.
 
 ## Local storage on Haydy's computer
 

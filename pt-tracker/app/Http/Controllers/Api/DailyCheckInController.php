@@ -60,6 +60,9 @@ class DailyCheckInController extends Controller
                 $record->forceFill(['photo_version' => $record->photo_version + 1, 'submitted_at' => null]);
             }
             $record->fill($data)->save();
+            if (array_intersect(array_keys($data), ['hunger_level', 'appetite_level', 'digestive_discomfort', 'digestion_notes', 'dietary_difficulties']) !== []) {
+                $record->forceFill(['nutrition_completed_at' => null])->save();
+            }
 
             return $record;
         });

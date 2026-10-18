@@ -32,6 +32,7 @@ class SaveDailyCheckInRequest extends FormRequest
             'client_id' => ['prohibited'],
             'photo_version' => ['prohibited'],
             'submitted_at' => ['prohibited'],
+            'nutrition_completed_at' => ['prohibited'],
             'posing_rating' => ['prohibited'],
             'feedback' => ['prohibited'],
             'is_competition_prep' => ['prohibited'],

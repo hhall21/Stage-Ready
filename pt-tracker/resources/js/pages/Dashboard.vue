@@ -6,6 +6,7 @@ import BodyweightTrend from '@/components/BodyweightTrend.vue';
 import CheckInPosing from '@/components/CheckInPosing.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
+import EndOfDayNutrition from '@/components/EndOfDayNutrition.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
 import MesocyclePanel from '@/components/MesocyclePanel.vue';
 import NutritionPlans from '@/components/NutritionPlans.vue';
@@ -84,11 +85,6 @@ const checkForm = reactive<Record<string, string | number | null>>({
     stress_level: '',
     steps: '',
     water_litres: '',
-    hunger_level: '',
-    appetite_level: '',
-    digestive_discomfort: '',
-    digestion_notes: '',
-    dietary_difficulties: '',
     notes: '',
 });
 const fields = [
@@ -736,6 +732,13 @@ onMounted(() => {
                     </article>
                 </section>
                 <section v-show="tab === 'checkins'">
+                    <EndOfDayNutrition
+                        v-if="selected"
+                        :key="'nutrition-check-in-' + selected"
+                        :client-id="selected"
+                        :can-edit="canCheckIn"
+                        @saved="loadRecords"
+                    />
                     <form
                         v-if="canCheckIn"
                         id="check-form"
@@ -756,8 +759,8 @@ onMounted(() => {
                             Your mandatory pose photos are your daily check-in.
                             Choose the date, then upload all eight poses for
                             your coach. Bodyweight, recovery and notes are
-                            optional. Nutrition responses can be saved with your
-                            daily details before adding pose photos.
+                            optional. Complete the separate nutrition check-in
+                            above at the end of your day.
                         </p>
                         <div class="form-grid">
                             <label
@@ -767,47 +770,6 @@ onMounted(() => {
                                     required
                             /></label>
                         </div>
-                        <details class="checkin-optional" open>
-                            <summary>
-                                Nutrition: hunger, appetite and digestion
-                            </summary>
-                            <p class="form-help">
-                                Optional daily ratings. Leave a field blank if
-                                you did not record it.
-                            </p>
-                            <div class="form-grid">
-                                <label
-                                    v-for="field in nutritionFields"
-                                    :key="field.key"
-                                    >{{ field.label }} (1–5)<input
-                                        v-model.number="checkForm[field.key]"
-                                        type="number"
-                                        min="1"
-                                        max="5"
-                                        step="1"
-                                        placeholder="Not recorded"
-                                    /><span class="form-help">{{
-                                        field.help
-                                    }}</span></label
-                                >
-                                <label class="full-width"
-                                    >Digestion notes<textarea
-                                        v-model="checkForm.digestion_notes"
-                                        rows="2"
-                                        maxlength="5000"
-                                        placeholder="Bloating, bowel regularity, discomfort, or foods that were difficult to tolerate."
-                                    />
-                                </label>
-                                <label class="full-width"
-                                    >Dietary difficulties<textarea
-                                        v-model="checkForm.dietary_difficulties"
-                                        rows="2"
-                                        maxlength="5000"
-                                        placeholder="Trouble finishing meals, missed meals, cravings, food access, or anything that made the plan difficult."
-                                    />
-                                </label>
-                            </div>
-                        </details>
                         <details class="checkin-optional" :open="!!editCheck">
                             <summary>
                                 Optional bodyweight, recovery and notes
@@ -992,7 +954,7 @@ onMounted(() => {
                             class="checkin-optional"
                             open
                         >
-                            <summary>Nutrition check-in</summary>
+                            <summary>End-of-day nutrition responses</summary>
                             <div class="checkin-values">
                                 <span
                                     v-for="field in nutritionFields"

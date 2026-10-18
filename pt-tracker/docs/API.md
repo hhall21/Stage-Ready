@@ -112,6 +112,17 @@ ends. Dates and totals are descriptive; the app does not generate diet prescript
 
 ## Written coaching reviews
 
+End-of-day nutrition is completed by the client independently of posing:
+`GET /api/clients/{client}/end-of-day-nutrition?date=YYYY-MM-DD` reads that day's
+responses and `nutrition_completed_at`, or null when no check-in exists.
+`PUT` to the same URL accepts `check_in_date` and the five nutrition fields.
+Today/past dates are allowed. Missing fields preserve existing responses; explicit
+null clears them. Saving responses sets the server-controlled completion timestamp;
+clearing every response removes completion. Blank saves do not create empty days.
+The client alone can save; currently assigned coaches can read. A save reuses the
+existing daily record and preserves bodyweight, photos, posing submission/version
+and coach feedback. No fixed evening hour is imposed.
+
 Daily check-in POST/PATCH payloads also accept nullable integer `hunger_level`,
 `appetite_level`, and `digestive_discomfort` (1-5), plus nullable `digestion_notes`
 and `dietary_difficulties` (strings up to 5,000 characters). Hunger/appetite increase

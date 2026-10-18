@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ClientInvitationController;
 use App\Http\Controllers\Api\CoachingPlanController;
 use App\Http\Controllers\Api\CoachingReviewController;
 use App\Http\Controllers\Api\DailyCheckInController;
+use App\Http\Controllers\Api\EndOfDayNutritionController;
 use App\Http\Controllers\Api\ExerciseProgressController;
 use App\Http\Controllers\Api\MesocycleController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -54,6 +55,8 @@ Route::prefix('api')->group(function () {
             Route::post('mesocycles', [MesocycleController::class, 'store']);
             Route::put('mesocycles/{mesocycle}', [MesocycleController::class, 'update'])->whereNumber('mesocycle');
             Route::get('daily-check-ins', [DailyCheckInController::class, 'index']);
+            Route::get('end-of-day-nutrition', [EndOfDayNutritionController::class, 'show']);
+            Route::put('end-of-day-nutrition', [EndOfDayNutritionController::class, 'store']);
             Route::post('daily-check-ins', [DailyCheckInController::class, 'store']);
             Route::get('daily-check-ins/{checkIn}', [DailyCheckInController::class, 'show'])->whereNumber('checkIn');
             Route::patch('daily-check-ins/{checkIn}', [DailyCheckInController::class, 'update'])->whereNumber('checkIn');

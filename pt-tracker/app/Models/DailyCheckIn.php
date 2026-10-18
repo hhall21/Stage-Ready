@@ -30,6 +30,7 @@ class DailyCheckIn extends Model
             'hunger_level' => 'integer',
             'appetite_level' => 'integer',
             'digestive_discomfort' => 'integer',
+            'nutrition_completed_at' => 'datetime',
             'submitted_at' => 'datetime',
             'photo_version' => 'integer',
         ];

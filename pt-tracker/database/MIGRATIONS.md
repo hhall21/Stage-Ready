@@ -1,5 +1,9 @@
 # Stage-Ready migrations
 
+The end-of-day nutrition migration adds a nullable completion timestamp. Existing
+responses are preserved; completion is recorded when clients save the separate
+end-of-day form. Apply with `php artisan migrate`.
+
 The nutrition-check-in migration adds five nullable columns to daily check-ins:
 hunger, appetite, digestive discomfort, digestion notes, and dietary difficulties.
 Run `php artisan migrate`; existing records retain their values and start with
