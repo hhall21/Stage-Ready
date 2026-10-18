@@ -36,7 +36,7 @@ acceptance, and coaches do not enter assignment dates.
 The posing-check-in migration adds submission/version fields, named pose metadata
 on progress photos, and a coach-review table. Run `php artisan migrate` to enable
 the workflow on an existing installation. Existing numbers and photo records are
-preserved. Legacy photos have no pose key and do not satisfy the new eight-pose
+preserved. Legacy photos have no pose key and do not satisfy the named-pose
 submission requirement. Existing check-ins start as drafts. Named pose keys are
 unique per check-in; legacy records with a null pose key may still coexist.
 

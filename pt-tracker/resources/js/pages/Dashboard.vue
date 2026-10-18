@@ -331,7 +331,7 @@ async function saveCheck() {
             : result.data;
         success.value = result.data.submitted_at
             ? 'Check-in details saved. Your submitted pose photos and coach feedback are below.'
-            : 'Add all eight mandatory pose photos below, then submit your daily check-in for your coach to review.';
+            : 'Add all twelve required pose photos below, including the four relaxed views, then submit your daily check-in. The favourite classic pose is optional.';
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -757,10 +757,10 @@ onMounted(() => {
                         </div>
                         <p class="form-help checkin-form-help">
                             Your mandatory pose photos are your daily check-in.
-                            Choose the date, then upload all eight poses for
-                            your coach. Bodyweight, recovery and notes are
-                            optional. Complete the separate nutrition check-in
-                            above at the end of your day.
+                            Choose the date, then upload all twelve required
+                            poses for your coach. Bodyweight, recovery and notes
+                            are optional. Complete the separate nutrition
+                            check-in above at the end of your day.
                         </p>
                         <div class="form-grid">
                             <label

@@ -21,6 +21,7 @@ class PosingCheckInTest extends TestCase
     private const POSES = [
         'front_double_biceps', 'front_lat_spread', 'side_chest', 'back_double_biceps',
         'back_lat_spread', 'side_triceps', 'abdominals_and_thighs', 'most_muscular',
+        'front_relaxed', 'rear_relaxed', 'left_side_relaxed', 'right_side_relaxed',
     ];
 
     private string $photoStorageRoot;
@@ -76,7 +77,8 @@ class PosingCheckInTest extends TestCase
             ->assertJsonPath('data.check_in_id', $checkIn->id)
             ->assertJsonPath('data.photo_version', 0)->assertJsonPath('data.submitted_at', null)
             ->assertJsonCount(0, 'data.photos')->assertJsonCount(0, 'data.reviews')
-            ->assertJsonCount(8, 'data.required_poses');
+            ->assertJsonCount(12, 'data.required_poses')->assertJsonCount(1, 'data.optional_poses')
+            ->assertJsonPath('data.optional_poses.0.key', 'favourite_classic_pose');
         $this->assertSame(self::POSES, array_column($response->json('data.required_poses'), 'key'));
         foreach ($response->json('data.required_poses') as $pose) {
             $this->assertNotEmpty($pose['label']);
@@ -84,27 +86,63 @@ class PosingCheckInTest extends TestCase
         }
         $this->assertDatabaseCount('check_in_posing_reviews', 0);
         $this->completePhotos($client, $checkIn);
-        $this->submit($client, $checkIn)->assertJsonCount(8, 'data.photos');
+        $this->submit($client, $checkIn)->assertJsonCount(12, 'data.photos');
         $this->assertNull($checkIn->fresh()->bodyweight);
     }
 
-    public function test_submission_requires_each_of_the_eight_distinct_poses(): void
+    public function test_submission_requires_each_of_the_twelve_distinct_poses(): void
     {
         [$client, $checkIn] = $this->clientCheckIn();
         $this->actingAs($client)->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 0])
             ->assertUnprocessable();
-        foreach (array_slice(self::POSES, 0, 7) as $pose) {
+        foreach (array_slice(self::POSES, 0, 11) as $pose) {
             $this->upload($client, $checkIn, $pose)->assertSuccessful();
         }
-        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 7])->assertUnprocessable();
+        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 11])->assertUnprocessable();
         $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
-        $this->assertSame(7, $checkIn->progressPhotos()->count());
-        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 8])->assertUnprocessable();
-        $this->upload($client, $checkIn, self::POSES[7])->assertSuccessful();
-        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 9])->assertOk()
-            ->assertJsonCount(8, 'data.photos')->assertJsonPath('data.photo_version', 9);
+        $this->assertSame(11, $checkIn->progressPhotos()->count());
+        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])->assertUnprocessable();
+        $this->upload($client, $checkIn, self::POSES[11])->assertSuccessful();
+        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 13])->assertOk()
+            ->assertJsonCount(12, 'data.photos')->assertJsonPath('data.photo_version', 13);
         $this->assertNotNull($checkIn->fresh()->getAttribute('submitted_at'));
-        $this->assertCount(8, Storage::disk('checkin_photos')->allFiles());
+        $this->assertCount(12, Storage::disk('checkin_photos')->allFiles());
+    }
+
+    public function test_optional_classic_photo_never_replaces_a_required_relaxed_view(): void
+    {
+        [$client, $checkIn] = $this->clientCheckIn();
+        foreach (array_slice(self::POSES, 0, 11) as $pose) {
+            $this->upload($client, $checkIn, $pose)->assertSuccessful();
+        }
+        $this->upload($client, $checkIn, 'favourite_classic_pose')->assertSuccessful();
+        $this->actingAs($client)->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])
+            ->assertUnprocessable()->assertJsonValidationErrors('photos');
+        $this->upload($client, $checkIn, 'right_side_relaxed')->assertSuccessful();
+        $this->submit($client, $checkIn)->assertJsonCount(13, 'data.photos');
+        $this->deleteJson($this->base($client, $checkIn).'/photos/favourite_classic_pose', ['photo_version' => 13])->assertOk()->assertJsonPath('data.submitted_at', null);
+        $this->submit($client, $checkIn)->assertJsonCount(12, 'data.photos');
+        $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'front_relaxed', 'photo_type' => 'front']);
+        $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'rear_relaxed', 'photo_type' => 'back']);
+        $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'left_side_relaxed', 'photo_type' => 'side']);
+        $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'right_side_relaxed', 'photo_type' => 'side']);
+    }
+
+    public function test_adding_optional_photo_invalidates_an_existing_review_and_remains_private(): void
+    {
+        [$client, $checkIn] = $this->clientCheckIn();
+        $coach = $this->coachFor($client);
+        $this->completePhotos($client, $checkIn);
+        $this->submit($client, $checkIn);
+        $base = $this->base($client, $checkIn);
+        $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn))->assertOk();
+        $response = $this->upload($client, $checkIn, 'favourite_classic_pose')->assertSuccessful()
+            ->assertJsonPath('data.submitted_at', null)->assertJsonPath('data.reviews.0.is_current', false);
+        $url = collect($response->json('data.photos'))->firstWhere('pose_key', 'favourite_classic_pose')['url'];
+        $this->get($url)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs(User::factory()->create())->get($url)->assertForbidden();
+        $this->submit($client, $checkIn);
+        $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn))->assertOk()->assertJsonPath('data.reviews.0.is_current', true);
     }
 
     public function test_posing_records_are_scoped_and_coaches_cannot_change_client_photos(): void
@@ -275,22 +313,22 @@ class PosingCheckInTest extends TestCase
         $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn))->assertOk();
         $oldPhoto = $checkIn->progressPhotos()->where('pose_key', self::POSES[0])->firstOrFail();
         $oldPath = $oldPhoto->file_path;
-        $this->upload($client, $checkIn, self::POSES[0], 8)->assertSuccessful()
-            ->assertJsonPath('data.photo_version', 9)->assertJsonPath('data.submitted_at', null)
-            ->assertJsonPath('data.reviews.0.photo_version', 8)->assertJsonPath('data.reviews.0.is_current', false);
+        $this->upload($client, $checkIn, self::POSES[0], 12)->assertSuccessful()
+            ->assertJsonPath('data.photo_version', 13)->assertJsonPath('data.submitted_at', null)
+            ->assertJsonPath('data.reviews.0.photo_version', 12)->assertJsonPath('data.reviews.0.is_current', false);
         Storage::disk('checkin_photos')->assertMissing($oldPath);
         $files = Storage::disk('checkin_photos')->allFiles();
-        $this->upload($client, $checkIn, self::POSES[1], 8)->assertConflict();
-        $this->deleteJson($base.'/photos/'.self::POSES[1], ['photo_version' => 8])->assertConflict();
-        $this->postJson($base.'/submit', ['photo_version' => 8])->assertConflict();
-        $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn, ['photo_version' => 8]))
+        $this->upload($client, $checkIn, self::POSES[1], 12)->assertConflict();
+        $this->deleteJson($base.'/photos/'.self::POSES[1], ['photo_version' => 12])->assertConflict();
+        $this->postJson($base.'/submit', ['photo_version' => 12])->assertConflict();
+        $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn, ['photo_version' => 12]))
             ->assertConflict();
         $this->assertSame($files, Storage::disk('checkin_photos')->allFiles());
         $this->submit($client, $checkIn);
-        $this->deleteJson($base.'/photos/'.self::POSES[0], ['photo_version' => 9])->assertOk()
-            ->assertJsonPath('data.photo_version', 10)->assertJsonPath('data.submitted_at', null)
-            ->assertJsonCount(7, 'data.photos')->assertJsonCount(1, 'data.reviews');
-        $this->assertCount(7, Storage::disk('checkin_photos')->allFiles());
+        $this->deleteJson($base.'/photos/'.self::POSES[0], ['photo_version' => 13])->assertOk()
+            ->assertJsonPath('data.photo_version', 14)->assertJsonPath('data.submitted_at', null)
+            ->assertJsonCount(11, 'data.photos')->assertJsonCount(1, 'data.reviews');
+        $this->assertCount(11, Storage::disk('checkin_photos')->allFiles());
     }
 
     public function test_photo_mutations_require_an_explicit_current_version(): void
@@ -322,11 +360,11 @@ class PosingCheckInTest extends TestCase
         $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn))->assertOk();
         $metrics = '/api/clients/'.$client->id.'/daily-check-ins/'.$checkIn->id;
         $this->actingAs($client)->patchJson($metrics, ['notes' => 'A correction to my notes.'])->assertOk();
-        $this->getJson($base)->assertOk()->assertJsonPath('data.photo_version', 8)
+        $this->getJson($base)->assertOk()->assertJsonPath('data.photo_version', 12)
             ->assertJsonPath('data.reviews.0.is_current', true);
         $this->assertNotNull($checkIn->fresh()->getAttribute('submitted_at'));
         $this->patchJson($metrics, ['check_in_date' => today()->subDay()->toDateString()])->assertOk();
-        $this->getJson($base)->assertOk()->assertJsonPath('data.photo_version', 9)
+        $this->getJson($base)->assertOk()->assertJsonPath('data.photo_version', 13)
             ->assertJsonPath('data.submitted_at', null)->assertJsonPath('data.reviews.0.is_current', false);
     }
 

@@ -31,7 +31,8 @@ their schedule and record their progress.
 - **Workout logging:** clients record actual reps, weight, RIR, set completion,
   and workout completion. Each workout supports up to ten exercises.
 - **Daily check-ins:** track bodyweight, sleep, energy, stress, steps, water, and notes.
-- **Posing check-ins:** submit all eight men's bodybuilding poses privately, then
+- **Posing check-ins:** submit eight bodybuilding poses plus four relaxed views
+  privately, with an optional favourite classic pose, then
   receive coach ratings and feedback, with flatness and fullness scores during prep.
 - **Rolling bodyweight averages:** a seven-day average based on recorded
   weigh-ins, reading counts, comparison with seven days earlier, and a 56-day chart.

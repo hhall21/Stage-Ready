@@ -180,8 +180,8 @@ class CheckInPosingController extends Controller
     private function assertComplete(DailyCheckIn $record): void
     {
         $present = $record->posePhotos()->pluck('pose_key')->all();
-        if (array_diff(BodybuildingPoses::keys(), $present) !== []) {
-            throw ValidationException::withMessages(['photos' => 'Upload all eight required poses before submitting or reviewing this check-in.']);
+        if (array_diff(array_column(BodybuildingPoses::required(), 'key'), $present) !== []) {
+            throw ValidationException::withMessages(['photos' => 'Upload all twelve required poses before submitting or reviewing this check-in. The favourite classic pose is optional.']);
         }
     }
 
@@ -196,7 +196,8 @@ class CheckInPosingController extends Controller
             'check_in_id' => $record->id,
             'photo_version' => $record->photo_version,
             'submitted_at' => $record->submitted_at?->toISOString(),
-            'required_poses' => BodybuildingPoses::all(),
+            'required_poses' => BodybuildingPoses::required(),
+            'optional_poses' => BodybuildingPoses::optional(),
             'photos' => $record->posePhotos()->orderBy('id')->get()->map(fn (ProgressPhoto $photo): array => [
                 'id' => $photo->id,
                 'pose_key' => $photo->pose_key,

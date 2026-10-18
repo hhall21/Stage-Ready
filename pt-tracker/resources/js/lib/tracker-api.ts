@@ -49,6 +49,7 @@ export type CheckInPosing = {
     photo_version: number;
     submitted_at: string | null;
     required_poses: { key: string; label: string; photo_type: string }[];
+    optional_poses: { key: string; label: string; photo_type: string }[];
     photos: { id: number; pose_key: string; url: string; updated_at: string }[];
     reviews: PosingReview[];
 };

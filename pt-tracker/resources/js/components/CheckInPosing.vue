@@ -47,6 +47,16 @@ const base = computed(
         '/posing',
 );
 const isClient = computed(() => props.user.role === 'client');
+const poses = computed(() => [
+    ...(data.value?.required_poses ?? []).map((pose) => ({
+        ...pose,
+        optional: false,
+    })),
+    ...(data.value?.optional_poses ?? []).map((pose) => ({
+        ...pose,
+        optional: true,
+    })),
+]);
 const missing = computed(
     () =>
         data.value?.required_poses.filter(
@@ -352,8 +362,16 @@ onBeforeUnmount(() => {
             <div>
                 <span class="status-pill">{{ status }}</span>
                 <span class="posing-count"
-                    >{{ photoCount }} /
-                    {{ data?.required_poses.length ?? 8 }} mandatory poses</span
+                    ><template v-if="data"
+                        >{{ data.required_poses.length - missing.length }} /
+                        {{ data.required_poses.length }} required poses ·
+                        {{
+                            data.optional_poses.filter((pose) =>
+                                photoFor(pose.key),
+                            ).length
+                        }}
+                        optional</template
+                    ><template v-else>{{ photoCount }} photos</template></span
                 >
             </div>
             <button
@@ -387,16 +405,18 @@ onBeforeUnmount(() => {
             <template v-if="data">
                 <div class="section-bar posing-intro">
                     <div>
-                        <h4>Mandatory bodybuilding poses</h4>
+                        <h4>Bodybuilding and relaxed poses</h4>
                         <p class="form-help">
                             One clear, full-body photo for each pose. Choose
                             JPEG, PNG or WebP photos up to 20 MB each. Photos
                             are resized for clear check-ins and smaller uploads.
                         </p>
                         <p v-if="isClient" class="form-help">
-                            Upload all eight poses, then submit the set.
-                            Replacing or removing a photo requires a new
-                            submission and review.
+                            Upload all {{ data.required_poses.length }} required
+                            poses, including front, rear and both sides relaxed.
+                            Add a favourite classic pose if you wish, then
+                            submit the set. Replacing or removing a photo
+                            requires a new submission and review.
                         </p>
                     </div>
                     <button
@@ -414,11 +434,14 @@ onBeforeUnmount(() => {
                 </p>
                 <div class="posing-grid">
                     <article
-                        v-for="pose in data.required_poses"
+                        v-for="pose in poses"
                         :key="pose.key"
                         class="pose-card"
                     >
                         <h5>{{ pose.label }}</h5>
+                        <span class="form-help">{{
+                            pose.optional ? 'Optional photo' : 'Required photo'
+                        }}</span>
                         <template v-if="photoFor(pose.key)">
                             <a
                                 :href="imageUrl(photoFor(pose.key)!)"
@@ -437,7 +460,13 @@ onBeforeUnmount(() => {
                             </a>
                             <span class="form-help">Uploaded</span>
                         </template>
-                        <p v-else class="pose-placeholder">Photo needed</p>
+                        <p v-else class="pose-placeholder">
+                            {{
+                                pose.optional
+                                    ? 'Optional — add if you wish'
+                                    : 'Photo needed'
+                            }}
+                        </p>
                         <template v-if="isClient">
                             <label class="pose-file-label"
                                 >{{
@@ -570,7 +599,7 @@ onBeforeUnmount(() => {
                         {{
                             data.submitted_at
                                 ? 'This photo set is ready for your coach to review.'
-                                : 'Complete and submit the eight poses to request a review.'
+                                : 'Complete and submit all required poses to request a review. The favourite classic pose is optional.'
                         }}
                     </p>
                     <p

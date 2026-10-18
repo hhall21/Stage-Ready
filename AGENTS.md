@@ -21,6 +21,9 @@
   pose before submission. Coaches provide a 1-10 posing rating and feedback;
   competition-prep reviews can include separate 1-10 flatness and fullness ratings.
   Photos are private. Changed photos require a fresh submission and review.
+- Posing check-ins require the original eight poses plus front relaxed, rear
+  relaxed, left side relaxed and right side relaxed. Favourite classic pose is
+  an optional thirteenth photo and never blocks submission.
 - Diet prescriptions have separate training-day and rest-day meals with independent
   times. Rest-day copying defaults to a 60-minute delay and is coach-adjustable.
 - Coaches prescribe daily cardio, mandatory posing rounds and vacuum sets/holds.

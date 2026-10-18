@@ -181,9 +181,12 @@ automated clinical classifications in this feature.
 
 ## Daily posing check-ins
 
-Saving daily numbers creates or edits a draft. Submission requires all eight
-named poses in the [NPC men's bodybuilding rules](https://npcnewsonline.com/official-bodybuilding-rules/).
-The pose catalogue is returned in `required_poses`; use its stable keys for uploads.
+Saving daily numbers creates or edits a draft. Submission requires the original
+eight bodybuilding poses plus `front_relaxed`, `rear_relaxed`, `left_side_relaxed`
+and `right_side_relaxed`: twelve required images. `favourite_classic_pose` is an
+optional thirteenth image. Catalogues are returned separately as `required_poses`
+and `optional_poses`; use their stable keys for uploads. An optional image cannot
+replace a missing required pose.
 
 The following routes extend
 `/api/clients/{client}/daily-check-ins/{checkIn}`:
@@ -193,11 +196,11 @@ The following routes extend
 | GET    | `/posing`               | Photo set, required poses, submission state and coach reviews           |
 | POST   | `/posing/photos/{pose}` | Upload or replace one pose, using multipart `photo` and `photo_version` |
 | DELETE | `/posing/photos/{pose}` | Remove one pose, with JSON `photo_version`                              |
-| POST   | `/posing/submit`        | Submit all eight photos, with JSON `photo_version`                      |
+| POST   | `/posing/submit`        | Submit all twelve required photos, with JSON `photo_version`            |
 | PUT    | `/posing/review`        | Save the signed-in coach's review of the submitted photo version        |
 
 All responses wrap the posing snapshot in `data`. It contains `check_in_id`,
-`photo_version`, `submitted_at`, `required_poses`, `photos`, and `reviews`. Each
+`photo_version`, `submitted_at`, `required_poses`, `optional_poses`, `photos`, and `reviews`. Each
 photo includes its ID, `pose_key`, authenticated `url`, and `updated_at`; private
 filesystem paths are never returned. The main check-in list also includes
 `photo_version`, `submitted_at`, and `pose_photos_count` for submission status.
@@ -228,7 +231,11 @@ They remain readable by the client after coaching ends. A client cannot submit
 coach feedback or score fields through the metrics endpoint.
 
 The migration preserves legacy front/side/back/other progress-photo records.
-Only new, named-pose photos count towards the eight-photo submission requirement.
+Only named required-pose photos count towards the twelve-photo submission requirement.
+Adding, replacing or deleting the optional classic photo also invalidates the
+submission and review version. Submission remains possible after removing it
+when all twelve required images are present. Existing photos and review history
+are preserved; new submissions and new reviews require all twelve required poses.
 Failed filesystem cleanup is retried through the application's queue.
 
 ## Client onboarding and coaching management

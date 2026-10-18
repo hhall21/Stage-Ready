@@ -117,7 +117,10 @@ Sleep quality, energy, and stress use a 1–5 rating scale.
 
 Clients can save their daily numbers as a draft, then add the eight poses in the
 [NPC men's bodybuilding pose set](https://npcnewsonline.com/official-bodybuilding-rules/).
-Every pose needs a photo before the check-in can be submitted for review.
+The check-in also requires front relaxed, rear relaxed, left side relaxed and
+right side relaxed: twelve required photos in total. An additional **Favourite
+classic pose** photo is optional and never blocks submission. Required and optional
+photos are labelled separately; the progress count includes required photos only.
 
 - Photos upload individually and stay private to the client and currently assigned
   coaches. They are not placed on the public storage disk.
@@ -132,7 +135,8 @@ Every pose needs a photo before the check-in can be submitted for review.
   A coach cannot save a review against a photo set that changed while being viewed.
 
 Existing check-ins and their recorded numbers remain available. Check-ins without
-the full photo set stay drafts until all eight poses have been supplied.
+the required photo set stay drafts until all twelve required poses have been supplied.
+Previously submitted photos and review history remain available.
 
 The browser prepares JPEG uploads at a maximum 2,000-pixel long edge to keep daily
 uploads smaller. The server accepts JPEG, PNG, and WebP images up to 5 MB and
