@@ -34,7 +34,7 @@ class ExerciseProgressTest extends TestCase
         $this->actingAs($client)->getJson('/api/clients/'.$client->id.'/exercise-progress')->assertOk()
             ->assertJsonCount(1, 'data')->assertJsonCount(1, 'exercises')->assertJsonPath('exercise_id', $exercise->id)
             ->assertJsonPath('data.0.workout_id', $workout->id)->assertJsonPath('data.0.max_weight_kg', 100)
-            ->assertJsonPath('data.0.max_reps', 12)->assertJsonPath('data.0.logged_sets', 2)->assertJsonPath('data.0.volume_kg', 1460);
+            ->assertJsonPath('data.0.max_reps', 30)->assertJsonPath('data.0.working_sets', 3)->assertJsonMissingPath('data.0.volume_kg');
     }
 
     public function test_access_is_limited_to_the_client_and_their_current_coach(): void
@@ -59,6 +59,22 @@ class ExerciseProgressTest extends TestCase
         }
         $this->actingAs($client)->getJson('/api/clients/'.$client->id.'/exercise-progress?exercise_id='.$exercise->id)->assertOk()
             ->assertJsonCount(60, 'data')->assertJsonPath('data.0.date', today()->subDays(59)->toDateString())->assertJsonPath('data.59.date', today()->toDateString());
+    }
+
+    public function test_bodyweight_sets_count_as_working_sets_without_a_recorded_load(): void
+    {
+        $client = User::factory()->create();
+        $exercise = Exercise::create(['exercise_name' => 'Pull-up']);
+        $workout = $client->workouts()->create(['workout_name' => 'Bodyweight training', 'workout_date' => today()]);
+        $entry = $workout->workoutExercises()->create(['exercise_id' => $exercise->id, 'exercise_order' => 1]);
+        $entry->sets()->create(['set_number' => 1, 'weight' => null, 'reps' => 8, 'completed' => true]);
+        $entry->sets()->create(['set_number' => 2, 'weight' => 0, 'reps' => 6, 'completed' => true]);
+        $entry->sets()->create(['set_number' => 3, 'weight' => null, 'reps' => 6, 'completed' => false]);
+        $entry->sets()->create(['set_number' => 4, 'weight' => null, 'reps' => null, 'completed' => true]);
+        $url = '/api/clients/'.$client->id.'/exercise-progress';
+        $this->actingAs($client)->getJson($url)->assertOk()->assertJsonPath('data.0.working_sets', 2)->assertJsonPath('data.0.max_weight_kg', 0);
+        $entry->sets()->where('set_number', 2)->update(['weight' => null]);
+        $this->getJson($url)->assertJsonPath('data.0.working_sets', 2)->assertJsonPath('data.0.max_weight_kg', null);
     }
 
     private function loggedWorkout(User $client, Exercise $exercise, string $date): Workout

@@ -23,7 +23,7 @@ their schedule and record their progress.
 - **Password reset:** emailed, expiring reset links with request throttling and
   existing-session invalidation.
 - **Exercise progress:** weight and rep charts from completed logged sets, with
-  session readings and training volume.
+  session readings and training volume measured in working sets.
 - **Repeating mesocycles:** enter a training period and weekly workouts; dated
   sessions are generated automatically throughout the block.
 - **Editable programming:** change exercises, sets, reps, weights, RIR, and notes

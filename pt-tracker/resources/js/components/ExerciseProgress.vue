@@ -7,10 +7,9 @@ type Point = {
     workout_id: number;
     date: string;
     workout_name: string;
-    max_weight_kg: number;
+    max_weight_kg: number | null;
     max_reps: number;
-    logged_sets: number;
-    volume_kg: number;
+    working_sets: number;
 };
 type Result = {
     exercises: Exercise[];
@@ -22,16 +21,25 @@ const exercises = ref<Exercise[]>([]),
 const selected = ref<number | null>(null),
     error = ref('');
 const loading = ref(true);
-const metric = ref<'max_weight_kg' | 'max_reps'>('max_weight_kg');
+const metric = ref<'max_weight_kg' | 'max_reps' | 'working_sets'>(
+    'max_weight_kg',
+);
 let version = 0;
 const label = computed(() =>
     metric.value === 'max_weight_kg'
         ? 'Heaviest set (kg)'
-        : 'Most reps in a set',
+        : metric.value === 'max_reps'
+          ? 'Most reps in a set'
+          : 'Volume (working sets)',
+);
+const chartPoints = computed(() =>
+    points.value.filter((point) => point[metric.value] !== null),
 );
 const latest = computed(() => points.value.at(-1));
 const scale = computed(() => {
-    const values = points.value.map((point) => point[metric.value]);
+    const values = chartPoints.value.map(
+        (point) => point[metric.value] as number,
+    );
     return values.length
         ? {
               low: Math.max(0, Math.min(...values) - 1),
@@ -41,10 +49,10 @@ const scale = computed(() => {
 });
 const coordinates = computed(() => {
     const { low, high } = scale.value;
-    return points.value.map((point, index) => ({
+    return chartPoints.value.map((point, index) => ({
         ...point,
-        x: 45 + (index / Math.max(1, points.value.length - 1)) * 610,
-        y: 170 - ((point[metric.value] - low) / (high - low)) * 130,
+        x: 45 + (index / Math.max(1, chartPoints.value.length - 1)) * 610,
+        y: 170 - (((point[metric.value] as number) - low) / (high - low)) * 130,
     }));
 });
 const line = computed(() =>
@@ -120,7 +128,8 @@ watch(
                 <div>
                     <span>Latest heaviest set</span
                     ><strong
-                        >{{ latest?.max_weight_kg }} <small>kg</small></strong
+                        >{{ latest?.max_weight_kg ?? '—' }}
+                        <small>kg</small></strong
                     >
                 </div>
                 <div>
@@ -128,8 +137,11 @@ watch(
                     ><strong>{{ latest?.max_reps }} <small>reps</small></strong>
                 </div>
                 <div>
-                    <span>Sessions shown</span
-                    ><strong>{{ points.length }}</strong>
+                    <span>Latest volume</span
+                    ><strong
+                        >{{ latest?.working_sets }}
+                        <small>working sets</small></strong
+                    >
                 </div>
             </div>
             <div
@@ -152,16 +164,25 @@ watch(
                 >
                     Reps
                 </button>
+                <button
+                    class="button button-small"
+                    :class="{ 'button-secondary': metric !== 'working_sets' }"
+                    :aria-pressed="metric === 'working_sets'"
+                    @click="metric = 'working_sets'"
+                >
+                    Working sets
+                </button>
             </div>
             <p class="form-help">{{ label }}</p>
             <svg
+                v-if="chartPoints.length"
                 class="exercise-chart"
                 viewBox="0 0 700 210"
                 role="img"
                 :aria-label="
                     label +
                     ' across ' +
-                    points.length +
+                    chartPoints.length +
                     ' logged sessions. The table below contains each reading.'
                 "
             >
@@ -195,12 +216,18 @@ watch(
                     <circle :cx="point.x" :cy="point.y" r="4" fill="white">
                         <title>
                             {{ displayDate(point.date) }}: {{ point[metric] }}
-                            {{ metric === 'max_weight_kg' ? 'kg' : 'reps' }}
+                            {{
+                                metric === 'max_weight_kg'
+                                    ? 'kg'
+                                    : metric === 'max_reps'
+                                      ? 'reps'
+                                      : 'working sets'
+                            }}
                         </title>
                     </circle>
                 </g>
                 <text x="45" y="202" fill="white" font-size="11">
-                    {{ displayDate(points[0].date) }}
+                    {{ displayDate(chartPoints[0].date) }}
                 </text>
                 <text
                     x="655"
@@ -209,13 +236,18 @@ watch(
                     font-size="11"
                     text-anchor="end"
                 >
-                    {{ displayDate(latest!.date) }}
+                    {{ displayDate(chartPoints[chartPoints.length - 1].date) }}
                 </text>
             </svg>
+            <p v-else class="form-help">
+                No recorded weights for these sessions. Choose reps or working
+                sets to see progress.
+            </p>
             <p class="form-help">
                 Up to 60 logged sessions, ordered from oldest to newest. Only
-                completed sets with a recorded weight and at least one rep are
-                included. Weight and rep records can come from different sets.
+                completed working sets with at least one rep are included. A
+                recorded weight is optional. Weight and rep records can come
+                from different sets.
             </p>
             <details class="progress-history">
                 <summary>View session readings</summary>
@@ -232,8 +264,7 @@ watch(
                                 <th scope="col">Session</th>
                                 <th scope="col">Heaviest set</th>
                                 <th scope="col">Most reps</th>
-                                <th scope="col">Logged sets</th>
-                                <th scope="col">Volume</th>
+                                <th scope="col">Volume (working sets)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -245,26 +276,28 @@ watch(
                                     {{ displayDate(point.date)
                                     }}<span>{{ point.workout_name }}</span>
                                 </th>
-                                <td>{{ point.max_weight_kg }} kg</td>
-                                <td>{{ point.max_reps }}</td>
-                                <td>{{ point.logged_sets }}</td>
                                 <td>
                                     {{
-                                        point.volume_kg.toLocaleString('en-GB')
+                                        point.max_weight_kg === null
+                                            ? '—'
+                                            : point.max_weight_kg + ' kg'
                                     }}
-                                    kg
                                 </td>
+                                <td>{{ point.max_reps }}</td>
+                                <td>{{ point.working_sets }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <p class="form-help">
-                    Volume is the sum of weight × reps across the included sets.
+                    Volume is the number of completed working sets for this
+                    exercise in each session. Programmed sets are working sets;
+                    uncompleted and zero-rep sets are excluded.
                 </p>
             </details>
         </template>
         <p v-else-if="!error" class="empty-state">
-            No exercise history yet. Complete a set with its weight and reps to
+            No exercise history yet. Complete a working set with its reps to
             start tracking progress. Future sessions are shown here once their
             training date arrives.
         </p>

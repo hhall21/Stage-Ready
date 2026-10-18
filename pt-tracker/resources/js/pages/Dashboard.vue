@@ -158,6 +158,16 @@ const latest = computed(() =>
 );
 const canCheckIn = computed(() => user.value?.role === 'client');
 const base = computed(() => '/api/clients/' + selected.value);
+function workingSets(workout: Workout, completed = false) {
+    return workout.workout_exercises.reduce(
+        (total, exercise) =>
+            total +
+            exercise.sets.filter(
+                (set) => !completed || (set.completed && (set.reps ?? 0) > 0),
+            ).length,
+        0,
+    );
+}
 
 function handleError(cause: unknown) {
     error.value = message(cause);
@@ -1190,6 +1200,10 @@ onMounted(() => {
                                 workout.completed ? 'Completed' : 'Planned'
                             }}</span>
                         </div>
+                        <p class="form-help">
+                            {{ workingSets(workout) }} working sets planned ·
+                            {{ workingSets(workout, true) }} completed
+                        </p>
                         <p v-if="workout.notes" class="record-notes">
                             {{ workout.notes }}
                         </p>

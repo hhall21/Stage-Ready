@@ -170,13 +170,15 @@ direction of bodyweight over time.
 
 ### Exercise progress
 
-The Exercise Progress section shows weight and rep charts for a selected exercise
+The Exercise Progress section shows weight, rep and working-set charts for a selected exercise
 across the latest 60 logged sessions, plus an accessible table of readings.
 
-- Only completed sets with a recorded weight and at least one rep are included.
+- Completed working sets with at least one rep are included, even without a recorded weight.
 - Future sessions and planned or incomplete sets are excluded.
-- Each session shows its heaviest set, highest rep count, number of included sets,
-  and volume (the sum of weight multiplied by reps).
+- Each session shows its heaviest set, highest rep count, and volume in working sets.
+- Workout cards show planned and completed working-set counts across all exercises.
+- All programmed sets are working sets. Missing weights remain unknown and do
+  not appear as zero on the weight chart; their sets still count towards volume.
 - Weight and rep records may come from different sets in the same session.
 - Clients and their current coaches can view the charts.
 

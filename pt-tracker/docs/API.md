@@ -266,10 +266,13 @@ selector (`exercises`), the selected `exercise_id`, and `data` containing up to 
 recent sessions in chronological order. The exercise parameter is optional.
 
 Each point includes `workout_id`, `date`, `workout_name`, `max_weight_kg`,
-`max_reps`, `logged_sets`, and `volume_kg`. Only completed sets with non-null weight
-and positive reps from sessions dated today or earlier are included. Maximum
-weight and reps are independent records; volume sums weight multiplied by reps
-over the included sets. The client's own access and current-coach access use the
+`max_reps`, and `working_sets` (session volume for that exercise). Completed sets
+with positive reps from sessions dated today or earlier are included. Recorded
+weight is optional, so bodyweight sets count towards volume. `max_weight_kg` is
+null when no included set has a recorded load; a recorded zero remains zero.
+Maximum weight and reps are independent records. Programmed sets are working
+sets. The previous `logged_sets` and `volume_kg` fields are replaced by `working_sets`.
+The client's own access and current-coach access use the
 same policy as other tracker records.
 
 ## Mesocycles and bodyweight trends

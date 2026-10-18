@@ -6,6 +6,9 @@
 - Bodybuilding photographs should blend into the dark page and form backgrounds
   with no visible image borders.
 - Each workout can contain at most 10 exercise entries.
+- Training volume is measured in working sets, not weight multiplied by reps.
+  Programmed sets are working sets. Completed volume counts completed sets with
+  positive reps, including bodyweight sets without a recorded load.
 - Coaches plan repeating weekly workouts in mesocycles with entered start/end
   dates. They can edit the mesocycle for injuries or other changes; updates apply
   to future unlogged sessions and preserve past, completed, and logged history.
