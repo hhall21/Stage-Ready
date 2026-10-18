@@ -11,6 +11,12 @@ their schedule and record their progress.
 
 - **Coach and client dashboards:** separate workflows with access restricted to
   the client's own records or the coach's current assigned clients.
+- **Client onboarding:** coaches invite clients by email for immediate access on
+  acceptance, manage invitations, and end coaching while preserving client history.
+- **Password reset:** emailed, expiring reset links with request throttling and
+  existing-session invalidation.
+- **Exercise progress:** weight and rep charts from completed logged sets, with
+  session readings and training volume.
 - **Repeating mesocycles:** enter a training period and weekly workouts; dated
   sessions are generated automatically throughout the block.
 - **Editable programming:** change exercises, sets, reps, weights, RIR, and notes
@@ -51,8 +57,9 @@ bodyweight trends are implemented.
 
 Database models also cover nutrition, progress photos, training clips and
 feedback, supplements, phases, cycle entries, and competitions. Their full
-interfaces and management endpoints are still to be built. Account provisioning
-and coach/client assignments currently require trusted application code.
+interfaces and management endpoints are still to be built. Coach account
+provisioning currently requires trusted application code; client onboarding and
+coaching management are available in the coach dashboard.
 
 ## Documentation
 

@@ -11,6 +11,9 @@
   to future unlogged sessions and preserve past, completed, and logged history.
 - Bodyweight trends use a rolling seven-day average from recorded weigh-ins
   only, with reading counts and comparison to seven days earlier.
+- Client onboarding starts coaching immediately when an invitation is accepted.
+  Do not add assignment start/end date inputs or an upcoming-clients section.
+  Ending coaching must preserve the client's account and logged history.
 
 ## Local storage on Haydy's computer
 

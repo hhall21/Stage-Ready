@@ -15,6 +15,13 @@ photographs that blend into the page. It adapts to desktop and mobile screens.
 ### Coach workspace
 
 - View clients with a current, active coaching assignment.
+- Invite new clients by name and email from the Clients section, or invite an
+  existing account holder to accept after signing in. Access starts immediately
+  when the invitation is accepted; no coaching dates or upcoming-client list.
+- Resend or cancel invitations. Resending replaces the previous link; links expire
+  after seven days. A copyable link is available if email delivery is unavailable.
+- End coaching to remove the coach's access while preserving the client's account,
+  workouts, check-ins, and logged history.
 - Review each client's check-ins, training sessions, and bodyweight trends.
 - Create mesocycles with a start date and duration or a custom end date.
 - Define weekly workouts that repeat automatically throughout the training block.
@@ -77,10 +84,24 @@ direction of bodyweight over time.
 - Session-based login and logout.
 - CSRF protection on authenticated write requests.
 - Login rate limiting.
+- Password reset by email, with single-use links expiring after 60 minutes,
+  request throttling, and existing-session invalidation after a password change.
 - Clients access their own records.
 - Coaches access clients with an active assignment covering the current date.
 - Inactive accounts cannot sign in or continue accessing protected pages and APIs.
 - Mesocycle creation and editing are restricted to assigned coaches.
+
+### Exercise progress
+
+The Exercise Progress section shows weight and rep charts for a selected exercise
+across the latest 60 logged sessions, plus an accessible table of readings.
+
+- Only completed sets with a recorded weight and at least one rep are included.
+- Future sessions and planned or incomplete sets are excluded.
+- Each session shows its heaviest set, highest rep count, number of included sets,
+  and volume (the sum of weight multiplied by reps).
+- Weight and rep records may come from different sets in the same session.
+- Clients and their current coaches can view the charts.
 
 ### Contact enquiries
 
@@ -137,6 +158,21 @@ Open **http://localhost:8000**.
 
 For live frontend development, run `npm run dev` in a second terminal while the
 Laravel server is running.
+
+### Invitation and password reset emails
+
+Set `APP_URL` to the address clients use to open Stage-Ready. Invitation and reset
+links use that configured address. Invitations create client access immediately
+on acceptance, without scheduling a coaching start or end date. Existing account
+holders must sign in to their own account to accept; their password is unchanged.
+
+Local development defaults to `MAIL_MAILER=log`, so emails appear in
+`storage/logs/laravel.log` rather than an inbox. The invitation form also provides a
+copyable link and reports whether mail delivery succeeded. For real delivery,
+configure an SMTP or supported mail provider using `MAIL_MAILER`, `MAIL_HOST`,
+`MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_FROM_ADDRESS`. Test delivery
+with your own account before inviting clients. Keep credentials in the local
+environment file.
 
 ### Sample accounts
 
@@ -219,10 +255,10 @@ Models and database tables also exist for meals, progress photos, training clips
 clip feedback, supplements, phases, cycle entries, and competitions. Their full
 user interfaces and upload/management endpoints are not yet implemented.
 
-Account provisioning and coach/client assignment management currently require
-trusted application code; public registration, password-reset screens, and an
-administration interface are not included. The contact-enquiry API is available,
-but a public contact form is not yet connected.
+Coach account provisioning still requires trusted application code. Coaches can
+onboard clients through invitations and end coaching from the Clients section.
+Public self-registration and an administration interface are not included. The
+contact-enquiry API is available, but a public contact form is not yet connected.
 
 ## API documentation
 

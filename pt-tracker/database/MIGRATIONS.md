@@ -7,6 +7,12 @@ Copy it to `database.sqlite` for local use (see the application README), then ru
 working database that contains records you want to keep. Do not run `db:seed`
 on the already-seeded copy.
 
+The client-onboarding migration adds the invitation table. Run `php artisan migrate`
+on an existing installation to enable invitations; it preserves existing records.
+Coaching assignments use an automatic current date internally for compatibility
+with existing data. New invitations provide immediate, open-ended access on
+acceptance, and coaches do not enter assignment dates.
+
 The migrations translate the table definitions in `../../CREATE AND INSERTS.sql`.
 They include column lengths, decimal precision, nullability, defaults, named foreign
 keys, delete actions, and composite unique constraints. Laravel's existing users,

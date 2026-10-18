@@ -36,7 +36,7 @@ foreach ($samples as $table => $rows) {
         throw new RuntimeException('Unexpected sample count for '.$table);
     }
 }
-foreach (['sessions', 'contact_enquiries', 'password_reset_tokens', 'jobs', 'failed_jobs', 'cache'] as $table) {
+foreach (['sessions', 'contact_enquiries', 'client_invitations', 'password_reset_tokens', 'jobs', 'failed_jobs', 'cache'] as $table) {
     if ((int) $query('SELECT COUNT(*) FROM "'.$table.'"')->fetchColumn() !== 0) {
         throw new RuntimeException('Runtime data found in '.$table);
     }
