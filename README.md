@@ -65,5 +65,6 @@ coaching management are available in the coach dashboard.
 
 - [Setup, features, and project structure](pt-tracker/README.md)
 - [API and implementation notes](pt-tracker/docs/API.md)
+- [Handover PDF design and notes pagination](pt-tracker/docs/handover/README.md)
 - [Database migration guidance](pt-tracker/database/MIGRATIONS.md)
 - [Project preferences](AGENTS.md)
