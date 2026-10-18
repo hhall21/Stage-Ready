@@ -15,6 +15,7 @@ class TrainerClient extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'health_monitoring_enabled_at' => 'datetime',
         ];
     }
 

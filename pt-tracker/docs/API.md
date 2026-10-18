@@ -74,8 +74,88 @@ omitted fields. Providing `exercises` replaces the whole exercise/set list in a
 transaction; an empty array clears it. Replacement deletes old set records and
 unlinks any training clips attached to those sets. Client/trainer IDs cannot be
 overridden in request bodies. A coach creating a workout is recorded as its trainer.
-Deleting check-ins/workouts cascades to their dependent database records;
-uploaded file cleanup is outside these endpoints.
+Deleting check-ins/workouts cascades to their dependent database records.
+Deleting a check-in also cleans up its named-pose photo files after commit;
+cleanup of unrelated legacy progress-photo paths or training-clip files is outside
+these endpoints.
+
+## Weekly health monitoring
+
+Routes under `/api/clients/{client}/weekly-health`:
+
+- `GET /`: monitoring status, due date, `is_due`, current coach's `coach_enabled`
+  (null for clients), and `readings` paginated by 12, newest measurement date first.
+- `PATCH /settings`: current assigned coach only; body `{ "enabled": true }` or
+  `{ "enabled": false }`. Each coach controls their own assignment's requirement.
+- `POST /readings`: client only, while an active coach has enabled monitoring.
+- `PUT /readings/{reading}`: owning client only; corrects an existing reading,
+  including after monitoring or coaching ends.
+
+Readings require `reading_date` (YYYY-MM-DD, not in the future), integer `systolic`
+(1-400 mmHg), `diastolic` (1-300 mmHg), and `resting_heart_rate` (1-300 bpm).
+Systolic must exceed diastolic. Optional `notes` allows 5,000 characters. These
+are storage validation bounds, not clinical thresholds. One reading per client
+per date; duplicates return 422. Client IDs cannot be supplied in the body.
+
+Monitoring is due immediately when enabled, then seven days after the latest
+reading on or after the monitoring start date. Older backdated entries do not
+postpone the due date. All active monitoring assignments contribute to the client's
+requirement. Disabling one assignment does not disable another coach's requirement.
+Disabled monitoring has no due date. Previous readings are preserved, and former
+coaches lose access when coaching ends. There are no drug/dose recommendations or
+automated clinical classifications in this feature.
+
+## Daily posing check-ins
+
+Saving daily numbers creates or edits a draft. Submission requires all eight
+named poses in the [NPC men's bodybuilding rules](https://npcnewsonline.com/official-bodybuilding-rules/).
+The pose catalogue is returned in `required_poses`; use its stable keys for uploads.
+
+The following routes extend
+`/api/clients/{client}/daily-check-ins/{checkIn}`:
+
+| Method | Suffix                  | Purpose                                                                 |
+| ------ | ----------------------- | ----------------------------------------------------------------------- |
+| GET    | `/posing`               | Photo set, required poses, submission state and coach reviews           |
+| POST   | `/posing/photos/{pose}` | Upload or replace one pose, using multipart `photo` and `photo_version` |
+| DELETE | `/posing/photos/{pose}` | Remove one pose, with JSON `photo_version`                              |
+| POST   | `/posing/submit`        | Submit all eight photos, with JSON `photo_version`                      |
+| PUT    | `/posing/review`        | Save the signed-in coach's review of the submitted photo version        |
+
+All responses wrap the posing snapshot in `data`. It contains `check_in_id`,
+`photo_version`, `submitted_at`, `required_poses`, `photos`, and `reviews`. Each
+photo includes its ID, `pose_key`, authenticated `url`, and `updated_at`; private
+filesystem paths are never returned. The main check-in list also includes
+`photo_version`, `submitted_at`, and `pose_photos_count` for submission status.
+
+`GET /api/daily-check-in-photos/{photo}` serves a private image only to its owner
+or a currently assigned coach. It requires the same authenticated session and
+active-account checks as the other tracker endpoints, and is served with private,
+non-storing cache headers. Do not copy these files into public storage.
+
+Only the client can upload, remove, or submit photos. Uploads accept JPEG, PNG, or
+WebP images, at most 5 MB and 6,000 pixels in either dimension. One image is sent
+per request. Submit the current integer `photo_version` with every mutation;
+stale versions receive HTTP 409. Photo changes and check-in date changes increment
+the version and clear submission. Existing reviews remain visible but are marked
+out of date; unchanged metrics edits do not invalidate a posing review.
+
+Only a currently assigned coach can review a complete, submitted set. The review
+body requires `photo_version`, integer `posing_rating` (1-10), written `feedback`
+(up to 10,000 characters), and boolean `is_competition_prep`. Optional
+`flatness_rating` and `fullness_rating` accept integers 1-10 during prep; send
+`null` or omit them outside prep. The scale directions are explicit in the UI:
+10 means very flat for flatness, and very full for fullness. These are separate
+coach assessments, not automated scores.
+
+Each coach can update only their own review. Reviews include `coach_id`,
+`coach_name`, scores, feedback, `photo_version`, `reviewed_at`, and `is_current`.
+They remain readable by the client after coaching ends. A client cannot submit
+coach feedback or score fields through the metrics endpoint.
+
+The migration preserves legacy front/side/back/other progress-photo records.
+Only new, named-pose photos count towards the eight-photo submission requirement.
+Failed filesystem cleanup is retried through the application's queue.
 
 ## Client onboarding and coaching management
 

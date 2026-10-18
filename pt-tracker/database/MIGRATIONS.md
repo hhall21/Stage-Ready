@@ -1,5 +1,11 @@
 # Stage-Ready migrations
 
+The weekly-health migration adds an optional monitoring start timestamp to coaching
+assignments and a separate health-reading table. Run `php artisan migrate` on an
+existing installation. Monitoring starts disabled; existing records are preserved.
+Ending coaching clears that assignment's monitoring requirement without deleting
+the client's readings.
+
 `demo.sqlite` is the shared development database, generated from the migrations
 and `PtTrackerSeeder` sample records, with no local sessions or enquiries.
 Copy it to `database.sqlite` for local use (see the application README), then run
@@ -12,6 +18,13 @@ on an existing installation to enable invitations; it preserves existing records
 Coaching assignments use an automatic current date internally for compatibility
 with existing data. New invitations provide immediate, open-ended access on
 acceptance, and coaches do not enter assignment dates.
+
+The posing-check-in migration adds submission/version fields, named pose metadata
+on progress photos, and a coach-review table. Run `php artisan migrate` to enable
+the workflow on an existing installation. Existing numbers and photo records are
+preserved. Legacy photos have no pose key and do not satisfy the new eight-pose
+submission requirement. Existing check-ins start as drafts. Named pose keys are
+unique per check-in; legacy records with a null pose key may still coexist.
 
 The migrations translate the table definitions in `../../CREATE AND INSERTS.sql`.
 They include column lengths, decimal precision, nullability, defaults, named foreign

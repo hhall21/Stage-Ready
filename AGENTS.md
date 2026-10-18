@@ -14,6 +14,10 @@
 - Client onboarding starts coaching immediately when an invitation is accepted.
   Do not add assignment start/end date inputs or an upcoming-clients section.
   Ending coaching must preserve the client's account and logged history.
+- Daily posing check-ins require a photo for every required men's bodybuilding
+  pose before submission. Coaches provide a 1-10 posing rating and feedback;
+  competition-prep reviews can include separate 1-10 flatness and fullness ratings.
+  Photos are private. Changed photos require a fresh submission and review.
 
 ## Local storage on Haydy's computer
 

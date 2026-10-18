@@ -3,10 +3,12 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, onMounted, reactive, ref } from 'vue';
 import AthleteVisual from '@/components/AthleteVisual.vue';
 import BodyweightTrend from '@/components/BodyweightTrend.vue';
+import CheckInPosing from '@/components/CheckInPosing.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
 import MesocyclePanel from '@/components/MesocyclePanel.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
+import WeeklyHealth from '@/components/WeeklyHealth.vue';
 import { athleteImages } from '@/lib/athlete-images';
 import {
     api,
@@ -32,6 +34,7 @@ type DashboardTab =
     | 'checkins'
     | 'workouts'
     | 'progress'
+    | 'health'
     | 'clients';
 const tab = ref<DashboardTab>('overview');
 const navigation = computed<
@@ -41,8 +44,9 @@ const navigation = computed<
     { id: 'checkins', label: 'Daily check-ins', number: '02' },
     { id: 'workouts', label: 'Workouts', number: '03' },
     { id: 'progress', label: 'Exercise progress', number: '04' },
+    { id: 'health', label: 'Weekly health', number: '05' },
     ...(user.value?.role === 'coach'
-        ? [{ id: 'clients' as const, label: 'Clients', number: '05' }]
+        ? [{ id: 'clients' as const, label: 'Clients', number: '06' }]
         : []),
 ]);
 const loading = ref(true);
@@ -60,6 +64,8 @@ const checkPage = ref(1),
 const checkTotal = ref(0),
     workoutTotal = ref(0);
 const editCheck = ref<number | null>(null);
+const openPosing = ref<number | null>(null);
+const savedPosingCheck = ref<CheckIn | null>(null);
 const checkForm = reactive<Record<string, string | number | null>>({
     check_in_date: localDate(),
     bodyweight: '',
@@ -107,7 +113,9 @@ const activeClient = computed(() =>
         ? user.value
         : clients.value.find((client) => client.id === selected.value),
 );
-const latest = computed(() => checkins.value[0]);
+const latest = computed(() =>
+    checkins.value.find((record) => record.bodyweight !== null),
+);
 const canCheckIn = computed(() => user.value?.role === 'client');
 const base = computed(() => '/api/clients/' + selected.value);
 
@@ -181,6 +189,8 @@ async function loadRecords() {
     }
 }
 async function selectClient() {
+    openPosing.value = null;
+    savedPosingCheck.value = null;
     checkins.value = [];
     workouts.value = [];
     weightPoints.value = [];
@@ -225,7 +235,17 @@ function resetCheck() {
         checkForm[key] = key === 'check_in_date' ? localDate() : '';
     });
 }
+function hasOptionalDetails(record: CheckIn) {
+    return (
+        !!record.notes ||
+        fields.some(({ key }) => {
+            const value = record[key as keyof CheckIn];
+            return value !== null && value !== undefined && value !== '';
+        })
+    );
+}
 function edit(record: CheckIn) {
+    openPosing.value = null;
     editCheck.value = record.id;
     Object.keys(checkForm).forEach((key) => {
         checkForm[key] = record[key as keyof CheckIn] ?? '';
@@ -247,7 +267,7 @@ async function saveCheck() {
         ]),
     );
     try {
-        await api(
+        const result = await api<{ data: CheckIn }>(
             base.value +
                 '/daily-check-ins' +
                 (editCheck.value ? '/' + editCheck.value : ''),
@@ -255,9 +275,17 @@ async function saveCheck() {
             payload,
         );
         resetCheck();
+        openPosing.value = result.data.id;
         checkPage.value = 1;
         await loadRecords();
-        success.value = 'Check-in saved.';
+        savedPosingCheck.value = checkins.value.some(
+            (record) => record.id === result.data.id,
+        )
+            ? null
+            : result.data;
+        success.value = result.data.submitted_at
+            ? 'Check-in details saved. Your submitted pose photos and coach feedback are below.'
+            : 'Add all eight mandatory pose photos below, then submit your daily check-in for your coach to review.';
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -441,11 +469,13 @@ onMounted(() => {
                                 ? 'Let’s get to work.'
                                 : tab === 'checkins'
                                   ? 'Check in. Move forward.'
-                                  : tab === 'clients'
-                                    ? 'Your coaching roster.'
-                                    : tab === 'progress'
-                                      ? 'See your progress.'
-                                      : 'Train with intent.'
+                                  : tab === 'health'
+                                    ? 'Your health readings.'
+                                    : tab === 'clients'
+                                      ? 'Your coaching roster.'
+                                      : tab === 'progress'
+                                        ? 'See your progress.'
+                                        : 'Train with intent.'
                         }}
                     </h1>
                     <p>
@@ -502,7 +532,11 @@ onMounted(() => {
                 :clients="clients"
                 @changed="refreshClients"
             />
-            <p v-else-if="loading" class="loading-message" role="status">
+            <p
+                v-else-if="loading && !checkins.length && !workouts.length"
+                class="loading-message"
+                role="status"
+            >
                 Loading your records…
             </p>
             <div v-else-if="!selected" class="empty-state">
@@ -523,6 +557,20 @@ onMounted(() => {
                 </button>
             </div>
             <template v-else>
+                <WeeklyHealth
+                    v-if="tab === 'health' && selected"
+                    :key="'health-' + selected"
+                    :client-id="selected"
+                    :is-coach="user?.role === 'coach'"
+                />
+                <WeeklyHealth
+                    v-if="tab === 'overview' && selected"
+                    :key="'health-summary-' + selected"
+                    :client-id="selected"
+                    :is-coach="user?.role === 'coach'"
+                    compact
+                    @open="selectTab('health')"
+                />
                 <ExerciseProgress
                     v-if="tab === 'progress' && selected"
                     :client-id="selected"
@@ -543,7 +591,7 @@ onMounted(() => {
                             >
                                 {{
                                     canCheckIn
-                                        ? 'Log your check-in'
+                                        ? 'Upload your daily poses'
                                         : 'Plan a workout'
                                 }}
                                 ↗
@@ -554,9 +602,9 @@ onMounted(() => {
                     <BodyweightTrend :points="weightPoints" />
                     <div class="stats-grid">
                         <article>
-                            <p class="eyebrow">CHECK-INS LOGGED</p>
+                            <p class="eyebrow">POSING CHECK-INS</p>
                             <strong>{{ checkTotal }}</strong
-                            ><span>Daily habits recorded</span>
+                            ><span>Daily entries, including drafts</span>
                         </article>
                         <article>
                             <p class="eyebrow">WORKOUTS</p>
@@ -573,7 +621,7 @@ onMounted(() => {
                             ><span>{{
                                 latest
                                     ? displayDate(latest.check_in_date)
-                                    : 'Add your first check-in'
+                                    : 'Add an optional weigh-in'
                             }}</span>
                         </article>
                     </div>
@@ -605,8 +653,7 @@ onMounted(() => {
                         }}</span>
                     </article>
                 </section>
-                <section v-if="tab === 'checkins'">
-                    <BodyweightTrend :points="weightPoints" />
+                <section v-show="tab === 'checkins'">
                     <form
                         v-if="canCheckIn"
                         id="check-form"
@@ -617,39 +664,59 @@ onMounted(() => {
                             <h2>
                                 {{
                                     editCheck
-                                        ? 'Edit your check-in'
-                                        : 'Your daily check-in'
+                                        ? 'Edit your posing check-in'
+                                        : 'Your daily posing check-in'
                                 }}
                             </h2>
-                            <span class="eyebrow">RECOVERY / HABITS</span>
+                            <span class="eyebrow">EIGHT MANDATORY POSES</span>
                         </div>
+                        <p class="form-help checkin-form-help">
+                            Your mandatory pose photos are your daily check-in.
+                            Choose the date, then upload all eight poses for
+                            your coach. Bodyweight, recovery and notes are
+                            optional.
+                        </p>
                         <div class="form-grid">
                             <label
-                                >Date<input
+                                >Check-in date<input
                                     v-model="checkForm.check_in_date"
                                     type="date"
-                                    required /></label
-                            ><label v-for="field in fields" :key="field.key"
-                                >{{ field.label
-                                }}<input
-                                    v-model.number="checkForm[field.key]"
-                                    type="number"
-                                    :min="field.min ?? 0"
-                                    :max="field.max"
-                                    :step="field.step"
-                                    placeholder="—" /></label
-                            ><label class="full-width"
-                                >Notes<textarea
-                                    v-model="checkForm.notes"
-                                    rows="3"
-                                    maxlength="5000"
-                                    placeholder="How are you feeling today?"
-                                />
-                            </label>
+                                    required
+                            /></label>
                         </div>
+                        <details class="checkin-optional" :open="!!editCheck">
+                            <summary>
+                                Optional bodyweight, recovery and notes
+                            </summary>
+                            <div class="form-grid">
+                                <label v-for="field in fields" :key="field.key"
+                                    >{{ field.label
+                                    }}<input
+                                        v-model.number="checkForm[field.key]"
+                                        type="number"
+                                        :min="field.min ?? 0"
+                                        :max="field.max"
+                                        :step="field.step"
+                                        placeholder="—" /></label
+                                ><label class="full-width"
+                                    >Notes<textarea
+                                        v-model="checkForm.notes"
+                                        rows="3"
+                                        maxlength="5000"
+                                        placeholder="How are you feeling today?"
+                                    />
+                                </label>
+                            </div>
+                        </details>
                         <div class="form-actions">
                             <button class="button" :disabled="saving">
-                                {{ saving ? 'Saving…' : 'Save check-in' }}
+                                {{
+                                    saving
+                                        ? 'Saving…'
+                                        : editCheck
+                                          ? 'Save details and view poses'
+                                          : 'Continue to pose photos'
+                                }}
                                 ↗</button
                             ><button
                                 v-if="editCheck"
@@ -662,12 +729,40 @@ onMounted(() => {
                             </button>
                         </div>
                     </form>
+                    <div
+                        v-if="
+                            savedPosingCheck &&
+                            selected &&
+                            user &&
+                            !checkins.some(
+                                (record) => record.id === savedPosingCheck!.id,
+                            )
+                        "
+                        class="checkin-record"
+                    >
+                        <h3>
+                            Continue your
+                            {{ displayDate(savedPosingCheck.check_in_date) }}
+                            check-in
+                        </h3>
+                        <CheckInPosing
+                            :key="selected + ':saved:' + savedPosingCheck.id"
+                            :client-id="selected"
+                            :check-in="savedPosingCheck"
+                            :user="user"
+                            initially-open
+                            @updated="Object.assign(savedPosingCheck!, $event)"
+                        />
+                    </div>
                     <div class="section-bar">
-                        <h2>Check-in history</h2>
+                        <h2>Posing check-in history</h2>
                         <span class="eyebrow">{{ checkTotal }} ENTRIES</span>
                     </div>
                     <div v-if="!checkins.length" class="empty-state">
-                        <p>No check-ins yet. Daily records will appear here.</p>
+                        <p>
+                            No posing check-ins yet. Your daily pose photos and
+                            coach feedback will appear here.
+                        </p>
                     </div>
                     <div
                         v-for="record in checkins"
@@ -697,47 +792,77 @@ onMounted(() => {
                                 </button>
                             </div>
                         </div>
-                        <div class="checkin-values">
-                            <span
-                                >Weight
-                                <strong
-                                    >{{ record.bodyweight ?? '—' }} kg</strong
-                                ></span
-                            ><span
-                                >Sleep
-                                <strong
-                                    >{{ record.sleep_hours ?? '—' }} h</strong
-                                ></span
-                            ><span
-                                >Steps
-                                <strong>{{
-                                    record.steps?.toLocaleString() ?? '—'
-                                }}</strong></span
-                            ><span
-                                >Water
-                                <strong
-                                    >{{ record.water_litres ?? '—' }} L</strong
-                                ></span
-                            ><span
-                                >Sleep quality
-                                <strong
-                                    >{{ record.sleep_quality ?? '—' }}/5</strong
-                                ></span
-                            ><span
-                                >Energy
-                                <strong
-                                    >{{ record.energy_level ?? '—' }}/5</strong
-                                ></span
-                            ><span
-                                >Stress
-                                <strong
-                                    >{{ record.stress_level ?? '—' }}/5</strong
-                                ></span
-                            >
-                        </div>
-                        <p v-if="record.notes" class="record-notes">
-                            {{ record.notes }}
-                        </p>
+                        <CheckInPosing
+                            v-if="selected && user"
+                            :key="selected + ':' + record.id"
+                            :client-id="selected"
+                            :check-in="record"
+                            :user="user"
+                            :initially-open="openPosing === record.id"
+                            @updated="Object.assign(record, $event)"
+                        />
+                        <details
+                            v-if="hasOptionalDetails(record)"
+                            class="checkin-optional"
+                        >
+                            <summary>Bodyweight, recovery and notes</summary>
+                            <div class="checkin-values">
+                                <span
+                                    >Weight
+                                    <strong
+                                        >{{
+                                            record.bodyweight ?? '—'
+                                        }}
+                                        kg</strong
+                                    ></span
+                                ><span
+                                    >Sleep
+                                    <strong
+                                        >{{
+                                            record.sleep_hours ?? '—'
+                                        }}
+                                        h</strong
+                                    ></span
+                                ><span
+                                    >Steps
+                                    <strong>{{
+                                        record.steps?.toLocaleString() ?? '—'
+                                    }}</strong></span
+                                ><span
+                                    >Water
+                                    <strong
+                                        >{{
+                                            record.water_litres ?? '—'
+                                        }}
+                                        L</strong
+                                    ></span
+                                ><span
+                                    >Sleep quality
+                                    <strong
+                                        >{{
+                                            record.sleep_quality ?? '—'
+                                        }}/5</strong
+                                    ></span
+                                ><span
+                                    >Energy
+                                    <strong
+                                        >{{
+                                            record.energy_level ?? '—'
+                                        }}/5</strong
+                                    ></span
+                                ><span
+                                    >Stress
+                                    <strong
+                                        >{{
+                                            record.stress_level ?? '—'
+                                        }}/5</strong
+                                    ></span
+                                >
+                            </div>
+                            <p v-if="record.notes" class="record-notes">
+                                {{ record.notes }}
+                            </p>
+                        </details>
                     </div>
                     <div v-if="checkLast > 1" class="pagination">
                         <button

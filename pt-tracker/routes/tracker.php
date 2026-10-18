@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BodyweightTrendController;
+use App\Http\Controllers\Api\CheckInPosingController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientInvitationController;
 use App\Http\Controllers\Api\DailyCheckInController;
 use App\Http\Controllers\Api\ExerciseProgressController;
 use App\Http\Controllers\Api\MesocycleController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\WeeklyHealthController;
 use App\Http\Controllers\Api\WorkoutController;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Models\Exercise;
@@ -28,8 +30,13 @@ Route::prefix('api')->group(function () {
         Route::delete('client-invitations/{invitation}', [ClientInvitationController::class, 'destroy'])->whereNumber('invitation');
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('exercises', fn () => response()->json(Exercise::orderBy('exercise_name')->paginate(50)));
+        Route::get('daily-check-in-photos/{photo}', [CheckInPosingController::class, 'photo'])->whereNumber('photo');
         Route::prefix('clients/{client}')->whereNumber('client')->group(function () {
             Route::delete('coaching', [ClientController::class, 'destroy']);
+            Route::get('weekly-health', [WeeklyHealthController::class, 'index']);
+            Route::patch('weekly-health/settings', [WeeklyHealthController::class, 'settings']);
+            Route::post('weekly-health/readings', [WeeklyHealthController::class, 'store']);
+            Route::put('weekly-health/readings/{reading}', [WeeklyHealthController::class, 'update'])->whereNumber('reading');
             Route::get('exercise-progress', ExerciseProgressController::class);
             Route::get('bodyweight-trend', BodyweightTrendController::class);
             Route::get('mesocycles', [MesocycleController::class, 'index']);
@@ -40,6 +47,13 @@ Route::prefix('api')->group(function () {
             Route::get('daily-check-ins/{checkIn}', [DailyCheckInController::class, 'show'])->whereNumber('checkIn');
             Route::patch('daily-check-ins/{checkIn}', [DailyCheckInController::class, 'update'])->whereNumber('checkIn');
             Route::delete('daily-check-ins/{checkIn}', [DailyCheckInController::class, 'destroy'])->whereNumber('checkIn');
+            Route::prefix('daily-check-ins/{checkIn}/posing')->whereNumber('checkIn')->group(function () {
+                Route::get('/', [CheckInPosingController::class, 'show']);
+                Route::post('photos/{pose}', [CheckInPosingController::class, 'storePhoto']);
+                Route::delete('photos/{pose}', [CheckInPosingController::class, 'destroyPhoto']);
+                Route::post('submit', [CheckInPosingController::class, 'submit']);
+                Route::put('review', [CheckInPosingController::class, 'review']);
+            });
             Route::get('workouts', [WorkoutController::class, 'index']);
             Route::post('workouts', [WorkoutController::class, 'store']);
             Route::get('workouts/{workout}', [WorkoutController::class, 'show'])->whereNumber('workout');

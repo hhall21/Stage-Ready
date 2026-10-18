@@ -54,6 +54,19 @@ sets per exercise, and a date range of up to one year.
 - Add an extra workout outside the repeating plan.
 - Create, edit, and delete personal daily check-ins.
 
+### Weekly health monitoring
+
+Coaches enable weekly monitoring per client in **Weekly health**, for clients
+who need blood pressure and resting heart rate recorded during their cycle.
+Clients record a date, systolic/diastolic pressure in mmHg, resting heart rate in
+bpm, and optional notes. The overview shows when a reading is due: immediately
+when monitoring starts, then every seven days after a current reading.
+
+Clients can correct their readings, and current coaches can view the dated
+history. Disabling monitoring or ending coaching preserves readings. Monitoring
+starts disabled and requires the weekly-health database migration on existing
+installations (`php artisan migrate`).
+
 ### Daily check-ins
 
 Each client can record one check-in per date, with optional:
@@ -65,6 +78,39 @@ Each client can record one check-in per date, with optional:
 | Energy and stress ratings  | Notes        |
 
 Sleep quality, energy, and stress use a 1–5 rating scale.
+
+### Posing photos and daily coach reviews
+
+Clients can save their daily numbers as a draft, then add the eight poses in the
+[NPC men's bodybuilding pose set](https://npcnewsonline.com/official-bodybuilding-rules/).
+Every pose needs a photo before the check-in can be submitted for review.
+
+- Photos upload individually and stay private to the client and currently assigned
+  coaches. They are not placed on the public storage disk.
+- Clients can replace a pose photo or remove it before submitting again.
+- Coaches record an overall posing score from 1 to 10 and written feedback.
+- A coach can mark the review as a competition-prep check-in and optionally add
+  separate 1-10 flatness and fullness scores. Flatness increases from not flat to
+  very flat; fullness increases from low fullness to very full.
+- Each coach has a separate review. Clients can read their feedback after coaching
+  ends, while the former coach loses access to the client's photos.
+- Changing a photo marks earlier reviews out of date and requires resubmission.
+  A coach cannot save a review against a photo set that changed while being viewed.
+
+Existing check-ins and their recorded numbers remain available. Check-ins without
+the full photo set stay drafts until all eight poses have been supplied.
+
+The browser prepares JPEG uploads at a maximum 2,000-pixel long edge to keep daily
+uploads smaller. The server accepts JPEG, PNG, and WebP images up to 5 MB and
+6,000 pixels in either dimension. For API uploads above PHP's default limit,
+configure `upload_max_filesize` to at least `6M` and `post_max_size` to at least `8M`.
+
+Photos use the private `checkin_photos` disk, under
+`storage/app/private/check-in-photos` by default. Set `CHECKIN_PHOTOS_ROOT` to use
+another private writable directory. Collaborators can use their own storage; a
+Seagate drive is not required. Replaced and deleted pose files are cleaned up
+after their database transaction commits; filesystem failures are retried through
+the queue, so keep the queue worker running.
 
 ### Bodyweight trends
 
@@ -251,9 +297,10 @@ build using the workflow in the repository root's `.github/workflows/` directory
 The working website includes authentication, coach/client dashboards, check-ins,
 workout and set logging, mesocycles, and bodyweight trends.
 
-Models and database tables also exist for meals, progress photos, training clips,
-clip feedback, supplements, phases, cycle entries, and competitions. Their full
-user interfaces and upload/management endpoints are not yet implemented.
+Models and database tables also exist for meals, training clips, clip feedback,
+supplements, phases, cycle entries, and competitions. Their full user interfaces
+and upload/management endpoints are not yet implemented. Progress photos are
+available through the daily posing check-in workflow.
 
 Coach account provisioning still requires trusted application code. Coaches can
 onboard clients through invitations and end coaching from the Clients section.

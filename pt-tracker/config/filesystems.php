@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        'checkin_photos' => [
+            'driver' => 'local',
+            'root' => env('CHECKIN_PHOTOS_ROOT', storage_path('app/private/check-in-photos')),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

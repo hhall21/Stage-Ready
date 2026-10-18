@@ -1134,6 +1134,159 @@ textarea {
     gap: 20px;
     margin: 30px 0;
 }
+.checkin-form-help {
+    margin-bottom: 24px;
+}
+.checkin-optional {
+    margin-top: 24px;
+}
+.checkin-optional summary {
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 8px 0;
+}
+.checkin-optional[open] summary {
+    margin-bottom: 18px;
+}
+.checkin-posing {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    scroll-margin-top: 28px;
+}
+.checkin-posing h4 {
+    font-size: 17px;
+    font-weight: 500;
+    margin: 0 0 15px;
+}
+.posing-count {
+    display: inline-block;
+    margin: 10px 12px;
+    font-size: 11px;
+}
+.posing-intro {
+    align-items: flex-start;
+    margin-top: 25px;
+}
+.posing-intro > div {
+    flex: 1 1 300px;
+}
+.posing-intro p + p {
+    margin-top: 10px;
+}
+.posing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+    margin: 25px 0;
+}
+.pose-card {
+    min-width: 0;
+}
+.pose-card h5 {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 15px;
+}
+.pose-card img {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    background: #111;
+    border: 0;
+}
+.pose-placeholder {
+    display: grid;
+    min-height: 160px;
+    place-items: center;
+    background: #111;
+    font-size: 12px;
+    margin: 0 0 12px;
+}
+.pose-file-label {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+    font-size: 12px;
+}
+.pose-file-label input {
+    width: 100%;
+    min-width: 0;
+    padding: 10px;
+    font-size: 11px;
+}
+.pose-file-label input::file-selector-button {
+    border: 1px solid var(--line);
+    background: #242424;
+    color: #fff;
+    padding: 8px 10px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+.pose-card .row-actions {
+    gap: 15px;
+    margin-top: 15px;
+}
+.pose-card .pose-pending-preview {
+    max-height: 220px;
+    margin-top: 18px;
+}
+.pose-filename {
+    overflow-wrap: anywhere;
+    margin: 10px 0;
+}
+.pose-remove {
+    display: inline-block;
+    margin-top: 18px;
+}
+.pose-card progress {
+    width: 100%;
+    accent-color: #fff;
+}
+.posing-reviews,
+.posing-review-form {
+    margin-top: 32px;
+}
+.posing-review {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+}
+.posing-review .section-bar {
+    gap: 12px;
+}
+.posing-feedback {
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.posing-prep-option {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    align-self: start;
+    padding-top: 25px;
+}
+.posing-prep-option input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    accent-color: #fff;
+}
+.posing-review-form > .button {
+    margin-top: 24px;
+}
+@media (max-width: 720px) {
+    .posing-grid {
+        grid-template-columns: 1fr;
+    }
+    .posing-prep-option {
+        padding-top: 0;
+    }
+}
 .progress-stats span {
     font-size: 11px;
 }

@@ -25,6 +25,13 @@ class SaveDailyCheckInRequest extends FormRequest
             'water_litres' => ['nullable', 'numeric', 'min:0', 'max:99.99'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'client_id' => ['prohibited'],
+            'photo_version' => ['prohibited'],
+            'submitted_at' => ['prohibited'],
+            'posing_rating' => ['prohibited'],
+            'feedback' => ['prohibited'],
+            'is_competition_prep' => ['prohibited'],
+            'flatness_rating' => ['prohibited'],
+            'fullness_rating' => ['prohibited'],
         ];
     }
 }

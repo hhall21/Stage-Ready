@@ -21,6 +21,30 @@ export type CheckIn = {
     steps: number | null;
     water_litres: string | null;
     notes: string | null;
+    photo_version: number;
+    submitted_at: string | null;
+    pose_photos_count: number;
+};
+export type PosingReview = {
+    id: number;
+    coach_id: number;
+    coach_name: string;
+    photo_version: number;
+    posing_rating: number;
+    feedback: string;
+    is_competition_prep: boolean;
+    flatness_rating: number | null;
+    fullness_rating: number | null;
+    is_current: boolean;
+    reviewed_at: string;
+};
+export type CheckInPosing = {
+    check_in_id: number;
+    photo_version: number;
+    submitted_at: string | null;
+    required_poses: { key: string; label: string; photo_type: string }[];
+    photos: { id: number; pose_key: string; url: string; updated_at: string }[];
+    reviews: PosingReview[];
 };
 export type Exercise = { id: number; exercise_name: string };
 export type PlanSet = {
@@ -104,14 +128,17 @@ export async function api<T>(
         credentials: 'same-origin',
         headers: {
             Accept: 'application/json',
-            ...(method !== 'GET'
-                ? { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf }
+            ...(method !== 'GET' ? { 'X-CSRF-TOKEN': csrf } : {}),
+            ...(body !== undefined && !(body instanceof FormData)
+                ? { 'Content-Type': 'application/json' }
                 : {}),
         },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        ...(body !== undefined
+            ? { body: body instanceof FormData ? body : JSON.stringify(body) }
+            : {}),
     });
     if (response.status === 204) return undefined as T;
-    const data = (await response.json()) as {
+    const data = (await response.json().catch(() => ({}))) as {
         message?: string;
         errors?: Record<string, string[]>;
     };
@@ -119,7 +146,12 @@ export async function api<T>(
         if ([401, 403, 419].includes(response.status)) csrf = '';
         throw new ApiError(
             response.status,
-            data.message ?? 'Something went wrong. Please try again.',
+            data.message ??
+                (response.status === 413
+                    ? 'This upload exceeds the server limit. Choose a smaller photo and try again.'
+                    : response.status === 419
+                      ? 'Your secure session expired. Please refresh and try again.'
+                      : 'Something went wrong. Please try again.'),
             data.errors,
         );
     }

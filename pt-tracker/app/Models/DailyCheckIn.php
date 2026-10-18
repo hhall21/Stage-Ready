@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon $check_in_date
+ * @property Carbon|null $submitted_at
+ */
 #[Fillable(['client_id', 'check_in_date', 'bodyweight', 'sleep_hours', 'sleep_quality', 'energy_level', 'stress_level', 'steps', 'water_litres', 'notes'])]
 class DailyCheckIn extends Model
 {
@@ -22,6 +27,8 @@ class DailyCheckIn extends Model
             'stress_level' => 'integer',
             'steps' => 'integer',
             'water_litres' => 'decimal:2',
+            'submitted_at' => 'datetime',
+            'photo_version' => 'integer',
         ];
     }
 
@@ -35,5 +42,17 @@ class DailyCheckIn extends Model
     public function progressPhotos(): HasMany
     {
         return $this->hasMany(ProgressPhoto::class, 'check_in_id');
+    }
+
+    /** @return HasMany<ProgressPhoto, $this> */
+    public function posePhotos(): HasMany
+    {
+        return $this->progressPhotos()->whereNotNull('pose_key');
+    }
+
+    /** @return HasMany<CheckInPosingReview, $this> */
+    public function posingReviews(): HasMany
+    {
+        return $this->hasMany(CheckInPosingReview::class, 'check_in_id');
     }
 }

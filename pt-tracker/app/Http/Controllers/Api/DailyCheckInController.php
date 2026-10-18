@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveDailyCheckInRequest;
+use App\Models\ProgressPhoto;
 use App\Models\User;
+use App\Support\CheckInPhotoCleanup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -16,14 +18,14 @@ class DailyCheckInController extends Controller
     {
         Gate::authorize('viewTracker', $client);
 
-        return response()->json($client->dailyCheckIns()->orderByDesc('check_in_date')->paginate(30));
+        return response()->json($client->dailyCheckIns()->withCount('posePhotos')->orderByDesc('check_in_date')->paginate(30));
     }
 
     public function show(User $client, int $checkIn): JsonResponse
     {
         Gate::authorize('viewTracker', $client);
 
-        return response()->json(['data' => $client->dailyCheckIns()->findOrFail($checkIn)]);
+        return response()->json(['data' => $client->dailyCheckIns()->withCount('posePhotos')->findOrFail($checkIn)]);
     }
 
     public function store(SaveDailyCheckInRequest $request, User $client): JsonResponse
@@ -31,7 +33,8 @@ class DailyCheckInController extends Controller
         Gate::authorize('manageCheckIns', $client);
         $data = $request->validated();
         $record = DB::transaction(function () use ($client, $data) {
-            User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
             if ($client->dailyCheckIns()->whereDate('check_in_date', $data['check_in_date'])->exists()) {
                 throw ValidationException::withMessages(['check_in_date' => 'A check-in already exists for this date.']);
             }
@@ -39,7 +42,7 @@ class DailyCheckInController extends Controller
             return $client->dailyCheckIns()->create($data);
         });
 
-        return response()->json(['data' => $record], 201);
+        return response()->json(['data' => $record->refresh()->loadCount('posePhotos')], 201);
     }
 
     public function update(SaveDailyCheckInRequest $request, User $client, int $checkIn): JsonResponse
@@ -47,23 +50,34 @@ class DailyCheckInController extends Controller
         Gate::authorize('manageCheckIns', $client);
         $data = $request->validated();
         $record = DB::transaction(function () use ($client, $data, $checkIn) {
-            User::whereKey($client->id)->lockForUpdate()->firstOrFail();
-            $record = $client->dailyCheckIns()->findOrFail($checkIn);
+            $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
+            $record = $client->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
             if (isset($data['check_in_date']) && $client->dailyCheckIns()->whereKeyNot($checkIn)->whereDate('check_in_date', $data['check_in_date'])->exists()) {
                 throw ValidationException::withMessages(['check_in_date' => 'A check-in already exists for this date.']);
             }
-            $record->update($data);
+            if (isset($data['check_in_date']) && $record->check_in_date->toDateString() !== $data['check_in_date']) {
+                $record->forceFill(['photo_version' => $record->photo_version + 1, 'submitted_at' => null]);
+            }
+            $record->fill($data)->save();
 
             return $record;
         });
 
-        return response()->json(['data' => $record]);
+        return response()->json(['data' => $record->loadCount('posePhotos')]);
     }
 
     public function destroy(User $client, int $checkIn): JsonResponse
     {
         Gate::authorize('manageCheckIns', $client);
-        $client->dailyCheckIns()->findOrFail($checkIn)->delete();
+        DB::transaction(function () use ($client, $checkIn): void {
+            $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
+            $record = $client->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
+            $paths = array_values($record->posePhotos()->get()->map(fn (ProgressPhoto $photo): string => $photo->file_path)->all());
+            $record->delete();
+            CheckInPhotoCleanup::afterCommit($paths);
+        });
 
         return response()->json(null, 204);
     }

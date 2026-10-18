@@ -38,7 +38,7 @@ class ClientController extends Controller
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::authorize('viewTracker', $client);
             TrainerClient::where('trainer_id', $coach->id)->where('client_id', $client->id)
-                ->update(['status' => 'inactive', 'end_date' => today()->toDateString()]);
+                ->update(['status' => 'inactive', 'end_date' => today()->toDateString(), 'health_monitoring_enabled_at' => null]);
         });
 
         return response()->json(['message' => 'Coaching ended. The client keeps their training and check-in history.']);
