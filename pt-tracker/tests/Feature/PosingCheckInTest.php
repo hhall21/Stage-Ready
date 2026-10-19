@@ -77,10 +77,10 @@ class PosingCheckInTest extends TestCase
             ->assertJsonPath('data.check_in_id', $checkIn->id)
             ->assertJsonPath('data.photo_version', 0)->assertJsonPath('data.submitted_at', null)
             ->assertJsonCount(0, 'data.photos')->assertJsonCount(0, 'data.reviews')
-            ->assertJsonCount(12, 'data.required_poses')->assertJsonCount(1, 'data.optional_poses')
-            ->assertJsonPath('data.optional_poses.0.key', 'favourite_classic_pose');
-        $this->assertSame(self::POSES, array_column($response->json('data.required_poses'), 'key'));
-        foreach ($response->json('data.required_poses') as $pose) {
+            ->assertJsonCount(12, 'data.standard_poses')->assertJsonCount(1, 'data.additional_poses')
+            ->assertJsonPath('data.additional_poses.0.key', 'favourite_classic_pose');
+        $this->assertSame(self::POSES, array_column($response->json('data.standard_poses'), 'key'));
+        foreach ($response->json('data.standard_poses') as $pose) {
             $this->assertNotEmpty($pose['label']);
             $this->assertContains($pose['photo_type'], ['front', 'side', 'back', 'other']);
         }
@@ -90,18 +90,22 @@ class PosingCheckInTest extends TestCase
         $this->assertNull($checkIn->fresh()->bodyweight);
     }
 
-    public function test_submission_requires_each_of_the_twelve_distinct_poses(): void
+    public function test_clients_can_submit_blank_partial_and_full_pose_check_ins(): void
     {
         [$client, $checkIn] = $this->clientCheckIn();
         $this->actingAs($client)->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 0])
-            ->assertUnprocessable();
+            ->assertOk()->assertJsonCount(0, 'data.photos');
+        $coach = $this->coachFor($client);
+        $this->actingAs($coach)->putJson($this->base($client, $checkIn).'/review', $this->reviewData($checkIn))
+            ->assertOk()->assertJsonPath('data.reviews.0.is_current', true);
         foreach (array_slice(self::POSES, 0, 11) as $pose) {
             $this->upload($client, $checkIn, $pose)->assertSuccessful();
         }
-        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 11])->assertUnprocessable();
+        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 11])->assertOk()
+            ->assertJsonCount(11, 'data.photos')->assertJsonPath('data.reviews.0.is_current', false);
         $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
         $this->assertSame(11, $checkIn->progressPhotos()->count());
-        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])->assertUnprocessable();
+        $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])->assertOk();
         $this->upload($client, $checkIn, self::POSES[11])->assertSuccessful();
         $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 13])->assertOk()
             ->assertJsonCount(12, 'data.photos')->assertJsonPath('data.photo_version', 13);
@@ -109,7 +113,7 @@ class PosingCheckInTest extends TestCase
         $this->assertCount(12, Storage::disk('checkin_photos')->allFiles());
     }
 
-    public function test_optional_classic_photo_never_replaces_a_required_relaxed_view(): void
+    public function test_classic_and_relaxed_photos_can_be_independently_skipped(): void
     {
         [$client, $checkIn] = $this->clientCheckIn();
         foreach (array_slice(self::POSES, 0, 11) as $pose) {
@@ -117,7 +121,7 @@ class PosingCheckInTest extends TestCase
         }
         $this->upload($client, $checkIn, 'favourite_classic_pose')->assertSuccessful();
         $this->actingAs($client)->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])
-            ->assertUnprocessable()->assertJsonValidationErrors('photos');
+            ->assertOk()->assertJsonCount(12, 'data.photos');
         $this->upload($client, $checkIn, 'right_side_relaxed')->assertSuccessful();
         $this->submit($client, $checkIn)->assertJsonCount(13, 'data.photos');
         $this->deleteJson($this->base($client, $checkIn).'/photos/favourite_classic_pose', ['photo_version' => 13])->assertOk()->assertJsonPath('data.submitted_at', null);
@@ -216,13 +220,13 @@ class PosingCheckInTest extends TestCase
         }
     }
 
-    public function test_only_assigned_coaches_can_review_a_complete_submitted_set(): void
+    public function test_only_assigned_coaches_can_review_a_submitted_partial_set(): void
     {
         [$client, $checkIn] = $this->clientCheckIn();
         $coach = $this->coachFor($client);
         $this->actingAs($coach)->putJson($this->base($client, $checkIn).'/review', $this->reviewData($checkIn))
             ->assertUnprocessable();
-        $this->completePhotos($client, $checkIn);
+        $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
         $this->actingAs($coach)->putJson($this->base($client, $checkIn).'/review', $this->reviewData($checkIn))
             ->assertUnprocessable();
         $this->submit($client, $checkIn);
@@ -231,6 +235,7 @@ class PosingCheckInTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'coach']))->putJson($url, $this->reviewData($checkIn))
             ->assertForbidden();
         $this->actingAs($coach)->putJson($url, $this->reviewData($checkIn))->assertOk()
+            ->assertJsonCount(1, 'data.photos')
             ->assertJsonCount(1, 'data.reviews')->assertJsonPath('data.reviews.0.coach_id', $coach->id)
             ->assertJsonPath('data.reviews.0.posing_rating', 7)->assertJsonPath('data.reviews.0.is_current', true);
     }

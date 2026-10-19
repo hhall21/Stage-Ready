@@ -9,21 +9,31 @@
 - Training volume is measured in working sets, not weight multiplied by reps.
   Programmed sets are working sets. Completed volume counts completed sets with
   positive reps, including bodyweight sets without a recorded load.
-- Coaches plan repeating weekly workouts in mesocycles with entered start/end
-  dates. They can edit the mesocycle for injuries or other changes; updates apply
-  to future unlogged sessions and preserve past, completed, and logged history.
+- Coaches build repeating training splits of 1–15 numbered days, including rest
+  days, with a separate prescribed workout for each training day and a start date.
+  Splits repeat until a newer split begins. Clients cannot create or rewrite
+  workouts; they log performance against coach-prescribed sessions.
+- Clients can choose a different split day for special circumstances. Extra rest
+  pauses the split; selecting a training or planned rest day makes tomorrow
+  continue from the following split day. Changes must preserve logged history.
+- Coaches can edit workouts for injuries or other changes; updates apply to
+  unlogged sessions from today onward and preserve past, completed and logged
+  sessions. Changing the start date or length after recorded history requires a
+  new split. Legacy weekly programs and their workout history remain available.
 - Bodyweight trends use a rolling seven-day average from recorded weigh-ins
   only, with reading counts and comparison to seven days earlier.
 - Client onboarding starts coaching immediately when an invitation is accepted.
   Do not add assignment start/end date inputs or an upcoming-clients section.
   Ending coaching must preserve the client's account and logged history.
-- Daily posing check-ins require a photo for every required men's bodybuilding
-  pose before submission. Coaches provide a 1-10 posing rating and feedback;
+- All client check-in measurements, notes and pose photos are optional. Clients
+  can save or submit partial or blank check-ins; coaches are responsible for
+  following up. Missing readings must stay missing, never become zero.
+- Coaches provide a 1-10 posing rating and feedback;
   competition-prep reviews can include separate 1-10 flatness and fullness ratings.
   Photos are private. Changed photos require a fresh submission and review.
-- Posing check-ins require the original eight poses plus front relaxed, rear
+- Posing check-ins offer the original eight poses plus front relaxed, rear
   relaxed, left side relaxed and right side relaxed. Favourite classic pose is
-  an optional thirteenth photo and never blocks submission.
+  a thirteenth option. None of the photos block submission or coach review.
 - Diet prescriptions have separate training-day and rest-day meals with independent
   times. Rest-day copying defaults to a 60-minute delay and is coach-adjustable.
 - Coaches prescribe daily cardio, mandatory posing rounds and vacuum sets/holds.

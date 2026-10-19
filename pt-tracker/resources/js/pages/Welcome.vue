@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AthleteVisual from '@/components/AthleteVisual.vue';
+import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
+import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
 </script>
 <template>
     <Head title="Training with purpose" />
@@ -81,8 +83,11 @@ import { athleteImages } from '@/lib/athlete-images';
                     <AthleteVisual :src="athleteImages.detail" />
                     <AthleteVisual :src="athleteImages.front" />
                 </div>
-                <p class="eyebrow">SHOW UP. PUT IN THE WORK.</p>
-                <h2>Your next chapter<br />starts with today.</h2>
+                <p class="eyebrow">TRAINING PERSPECTIVE</p>
+                <JordanPetersQuote
+                    :quote="jordanPetersQuotes.ownPath"
+                    variant="display"
+                />
                 <Link href="/login" class="button"
                     >Let's get to work <span aria-hidden="true">↗</span></Link
                 >

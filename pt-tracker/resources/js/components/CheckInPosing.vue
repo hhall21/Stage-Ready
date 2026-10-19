@@ -48,26 +48,11 @@ const base = computed(
 );
 const isClient = computed(() => props.user.role === 'client');
 const poses = computed(() => [
-    ...(data.value?.required_poses ?? []).map((pose) => ({
-        ...pose,
-        optional: false,
-    })),
-    ...(data.value?.optional_poses ?? []).map((pose) => ({
-        ...pose,
-        optional: true,
-    })),
+    ...(data.value?.standard_poses ?? []),
+    ...(data.value?.additional_poses ?? []),
 ]);
-const missing = computed(
-    () =>
-        data.value?.required_poses.filter(
-            (pose) =>
-                !data.value?.photos.some(
-                    (photo) => photo.pose_key === pose.key,
-                ),
-        ) ?? [],
-);
-const hasAllPoses = computed(
-    () => !!data.value?.required_poses.length && missing.value.length === 0,
+const missing = computed(() =>
+    poses.value.filter((pose) => !photoFor(pose.key)),
 );
 const hasPending = computed(() => Object.keys(pending).length > 0);
 const currentReviews = computed(
@@ -81,7 +66,7 @@ const status = computed(() => {
         return 'Photos changed — submit again';
     if (data.value ? data.value.submitted_at : props.checkIn.submitted_at)
         return 'Ready for review';
-    return 'Draft — poses required';
+    return 'Draft — submit when ready';
 });
 const photoCount = computed(
     () => data.value?.photos.length ?? props.checkIn.pose_photos_count ?? 0,
@@ -89,7 +74,6 @@ const photoCount = computed(
 const reviewAllowed = computed(
     () =>
         !!data.value?.submitted_at &&
-        hasAllPoses.value &&
         !reviewNeedsReset.value &&
         reviewVersion.value === data.value.photo_version,
 );
@@ -277,7 +261,7 @@ async function upload(key: string) {
         base.value + '/photos/' + key,
         'POST',
         body,
-        'Photo uploaded. Submit the full set when all poses are ready.',
+        'Photo uploaded. You can submit your check-in whenever you are ready.',
     );
     if (!alive) return;
     if (saved) discard(key);
@@ -287,7 +271,7 @@ async function remove(key: string) {
     if (
         !data.value ||
         !window.confirm(
-            'Remove this pose photo? You will need to submit the complete set again.',
+            'Remove this pose photo? Submit your check-in again if you want a fresh review.',
         )
     )
         return;
@@ -300,7 +284,7 @@ async function remove(key: string) {
     );
 }
 async function submit() {
-    if (!data.value || !hasAllPoses.value || hasPending.value) return;
+    if (!data.value || hasPending.value) return;
     await mutate(
         'submit',
         base.value + '/submit',
@@ -362,16 +346,9 @@ onBeforeUnmount(() => {
             <div>
                 <span class="status-pill">{{ status }}</span>
                 <span class="posing-count"
-                    ><template v-if="data"
-                        >{{ data.required_poses.length - missing.length }} /
-                        {{ data.required_poses.length }} required poses ·
-                        {{
-                            data.optional_poses.filter((pose) =>
-                                photoFor(pose.key),
-                            ).length
-                        }}
-                        optional</template
-                    ><template v-else>{{ photoCount }} photos</template></span
+                    >{{ photoCount }} photos<template v-if="data">
+                        · all {{ poses.length }} poses optional</template
+                    ></span
                 >
             </div>
             <button
@@ -412,11 +389,11 @@ onBeforeUnmount(() => {
                             are resized for clear check-ins and smaller uploads.
                         </p>
                         <p v-if="isClient" class="form-help">
-                            Upload all {{ data.required_poses.length }} required
-                            poses, including front, rear and both sides relaxed.
-                            Add a favourite classic pose if you wish, then
-                            submit the set. Replacing or removing a photo
-                            requires a new submission and review.
+                            Every pose is optional. Upload any photos you want
+                            to share, or submit without photos. Your coach can
+                            follow up on anything left blank. Replacing or
+                            removing a photo requires a fresh submission and
+                            review.
                         </p>
                     </div>
                     <button
@@ -429,7 +406,7 @@ onBeforeUnmount(() => {
                     </button>
                 </div>
                 <p v-if="missing.length" class="form-help">
-                    Still needed:
+                    Not uploaded (optional):
                     {{ missing.map((pose) => pose.label).join(', ') }}.
                 </p>
                 <div class="posing-grid">
@@ -439,9 +416,7 @@ onBeforeUnmount(() => {
                         class="pose-card"
                     >
                         <h5>{{ pose.label }}</h5>
-                        <span class="form-help">{{
-                            pose.optional ? 'Optional photo' : 'Required photo'
-                        }}</span>
+                        <span class="form-help">Optional photo</span>
                         <template v-if="photoFor(pose.key)">
                             <a
                                 :href="imageUrl(photoFor(pose.key)!)"
@@ -462,9 +437,9 @@ onBeforeUnmount(() => {
                         </template>
                         <p v-else class="pose-placeholder">
                             {{
-                                pose.optional
+                                isClient
                                     ? 'Optional — add if you wish'
-                                    : 'Photo needed'
+                                    : 'Not uploaded'
                             }}
                         </p>
                         <template v-if="isClient">
@@ -571,7 +546,6 @@ onBeforeUnmount(() => {
                         :disabled="
                             !!busy ||
                             loading ||
-                            !hasAllPoses ||
                             hasPending ||
                             !!data.submitted_at
                         "
@@ -582,7 +556,7 @@ onBeforeUnmount(() => {
                                 ? 'Submitting…'
                                 : data.submitted_at
                                   ? 'Submitted for review'
-                                  : 'Submit complete check-in ↗'
+                                  : 'Submit check-in ↗'
                         }}
                     </button>
                     <p v-if="hasPending" class="form-help">
@@ -599,7 +573,7 @@ onBeforeUnmount(() => {
                         {{
                             data.submitted_at
                                 ? 'This photo set is ready for your coach to review.'
-                                : 'Complete and submit all required poses to request a review. The favourite classic pose is optional.'
+                                : 'Submit whenever you are ready to request a review. Every pose photo is optional.'
                         }}
                     </p>
                     <p
@@ -670,8 +644,8 @@ onBeforeUnmount(() => {
                         </button>
                     </p>
                     <p v-else-if="!data.submitted_at" class="form-help">
-                        The client must submit their complete pose set before
-                        you can save a review.
+                        The client must submit their check-in before you can
+                        save a review.
                     </p>
                     <div class="form-grid">
                         <label

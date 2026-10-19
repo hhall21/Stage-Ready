@@ -12,9 +12,9 @@ const emit = defineEmits<{ open: [] }>();
 type Reading = {
     id: number;
     reading_date: string;
-    systolic: number;
-    diastolic: number;
-    resting_heart_rate: number;
+    systolic: number | null;
+    diastolic: number | null;
+    resting_heart_rate: number | null;
     notes: string | null;
 };
 type Health = {
@@ -84,9 +84,12 @@ function edit(reading: Reading) {
     editing.value = reading.id;
     Object.assign(form, {
         reading_date: reading.reading_date.slice(0, 10),
-        systolic: String(reading.systolic),
-        diastolic: String(reading.diastolic),
-        resting_heart_rate: String(reading.resting_heart_rate),
+        systolic: reading.systolic === null ? '' : String(reading.systolic),
+        diastolic: reading.diastolic === null ? '' : String(reading.diastolic),
+        resting_heart_rate:
+            reading.resting_heart_rate === null
+                ? ''
+                : String(reading.resting_heart_rate),
         notes: reading.notes ?? '',
     });
 }
@@ -163,8 +166,9 @@ onMounted(load);
                         }}</span>
                     </div>
                     <p class="form-help">
-                        Record blood pressure and resting heart rate at least
-                        once every seven days while monitoring is enabled.
+                        Your coach can use this to follow weekly blood pressure
+                        and resting heart rate. Every measurement is optional;
+                        save what you have and agree check-ins with your coach.
                     </p>
                     <p v-if="state.due_on" class="form-help">
                         {{
@@ -217,6 +221,11 @@ onMounted(load);
                                 : 'Record a health reading'
                         }}
                     </h2>
+                    <p class="form-help">
+                        Leave any field blank. A blank date uses today for a new
+                        reading or keeps the original date when editing. Missing
+                        measurements stay marked as not recorded.
+                    </p>
                     <fieldset :disabled="busy" class="health-fields">
                         <div class="form-grid">
                             <label
@@ -224,7 +233,6 @@ onMounted(load);
                                     v-model="form.reading_date"
                                     type="date"
                                     :max="localDate()"
-                                    required
                             /></label>
                             <label
                                 >Systolic pressure (mmHg)<input
@@ -233,7 +241,7 @@ onMounted(load);
                                     min="1"
                                     max="400"
                                     step="1"
-                                    required
+                                    placeholder="Not recorded"
                             /></label>
                             <label
                                 >Diastolic pressure (mmHg)<input
@@ -242,7 +250,7 @@ onMounted(load);
                                     min="1"
                                     max="300"
                                     step="1"
-                                    required
+                                    placeholder="Not recorded"
                             /></label>
                             <label
                                 >Resting heart rate (bpm)<input
@@ -251,7 +259,7 @@ onMounted(load);
                                     min="1"
                                     max="300"
                                     step="1"
-                                    required
+                                    placeholder="Not recorded"
                             /></label>
                         </div>
                         <label class="notes-label"
@@ -305,15 +313,29 @@ onMounted(load);
                     <p>
                         Blood pressure:
                         <strong
-                            >{{ reading.systolic }}/{{
-                                reading.diastolic
+                            v-if="
+                                reading.systolic === null &&
+                                reading.diastolic === null
+                            "
+                            >Not recorded</strong
+                        >
+                        <strong v-else
+                            >{{ reading.systolic ?? '—' }}/{{
+                                reading.diastolic ?? '—'
                             }}
                             mmHg</strong
                         >
                     </p>
                     <p>
                         Resting heart rate:
-                        <strong>{{ reading.resting_heart_rate }} bpm</strong>
+                        <strong
+                            >{{ reading.resting_heart_rate ?? 'Not recorded'
+                            }}{{
+                                reading.resting_heart_rate === null
+                                    ? ''
+                                    : ' bpm'
+                            }}</strong
+                        >
                     </p>
                     <p v-if="reading.notes" class="record-notes">
                         {{ reading.notes }}

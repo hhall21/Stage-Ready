@@ -48,8 +48,8 @@ export type CheckInPosing = {
     check_in_id: number;
     photo_version: number;
     submitted_at: string | null;
-    required_poses: { key: string; label: string; photo_type: string }[];
-    optional_poses: { key: string; label: string; photo_type: string }[];
+    standard_poses: { key: string; label: string; photo_type: string }[];
+    additional_poses: { key: string; label: string; photo_type: string }[];
     photos: { id: number; pose_key: string; url: string; updated_at: string }[];
     reviews: PosingReview[];
 };
@@ -78,6 +78,34 @@ export type Mesocycle = {
     notes: string | null;
     templates: WorkoutTemplate[];
 };
+export type SplitDay = {
+    name: string;
+    is_rest_day: boolean;
+    notes: string | null;
+    exercises: PlanExercise[];
+};
+export type TrainingSplit = {
+    id: number;
+    name: string;
+    start_date: string;
+    notes: string | null;
+    days: SplitDay[];
+};
+export type TrainingSchedule = {
+    date: string;
+    split: TrainingSplit | null;
+    next_split?: TrainingSplit | null;
+    day_number?: number;
+    expected_day?: number;
+    selection?: number | null;
+    is_rest_day?: boolean;
+    is_extra_rest?: boolean;
+    day_name?: string;
+    day_notes?: string | null;
+    history_locked?: boolean;
+    workout: Workout | null;
+    tomorrow?: { day_number: number; name: string; split_name: string } | null;
+};
 export type WeightPoint = {
     date: string;
     average_kg: number | null;
@@ -93,6 +121,7 @@ export type Workout = {
     workout_exercises: {
         id: number;
         exercise: Exercise;
+        notes: string | null;
         sets: {
             id: number;
             reps: number | null;

@@ -52,13 +52,14 @@ async function resetPassword() {
                     type="password"
                     autocomplete="new-password"
                     minlength="12"
-                    maxlength="128"
+                    maxlength="72"
                     required
                     aria-describedby="password-help"
             /></label>
             <p id="password-help" class="form-help">
                 Use at least 12 characters, with uppercase and lowercase letters
-                and a number.
+                and a number. Maximum 72 bytes; accented characters and emoji
+                use more than one byte.
             </p>
             <label
                 >Confirm password<input
@@ -66,7 +67,7 @@ async function resetPassword() {
                     type="password"
                     autocomplete="new-password"
                     minlength="12"
-                    maxlength="128"
+                    maxlength="72"
                     required
             /></label>
             <button class="button" :disabled="busy">

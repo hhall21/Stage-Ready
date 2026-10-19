@@ -7,11 +7,11 @@ class BodybuildingPoses
     /** @return list<array{key: string, label: string, photo_type: string}> */
     public static function all(): array
     {
-        return [...self::required(), ...self::optional()];
+        return [...self::standard(), ...self::additional()];
     }
 
     /** @return list<array{key: string, label: string, photo_type: string}> */
-    public static function required(): array
+    public static function standard(): array
     {
         return [
             ['key' => 'front_double_biceps', 'label' => 'Front double biceps', 'photo_type' => 'front'],
@@ -30,7 +30,7 @@ class BodybuildingPoses
     }
 
     /** @return list<array{key: string, label: string, photo_type: string}> */
-    public static function optional(): array
+    public static function additional(): array
     {
         return [['key' => 'favourite_classic_pose', 'label' => 'Favourite classic pose', 'photo_type' => 'other']];
     }

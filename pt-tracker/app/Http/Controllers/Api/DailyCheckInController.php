@@ -32,6 +32,7 @@ class DailyCheckInController extends Controller
     {
         Gate::authorize('manageCheckIns', $client);
         $data = $request->validated();
+        $data['check_in_date'] ??= today()->toDateString();
         $record = DB::transaction(function () use ($client, $data) {
             $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
@@ -49,6 +50,9 @@ class DailyCheckInController extends Controller
     {
         Gate::authorize('manageCheckIns', $client);
         $data = $request->validated();
+        if (! isset($data['check_in_date'])) {
+            unset($data['check_in_date']);
+        }
         $record = DB::transaction(function () use ($client, $data, $checkIn) {
             $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);

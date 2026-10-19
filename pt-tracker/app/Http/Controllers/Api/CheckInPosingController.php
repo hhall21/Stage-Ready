@@ -97,7 +97,6 @@ class CheckInPosingController extends Controller
             $lockedClient = $this->lockClient($request, $client);
             $record = $lockedClient->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
             $this->assertVersion($request, $record);
-            $this->assertComplete($record);
             if ($record->submitted_at === null) {
                 $record->forceFill(['submitted_at' => now()])->save();
             }
@@ -121,9 +120,8 @@ class CheckInPosingController extends Controller
             Gate::forUser($lockedCoach)->authorize('viewTracker', $lockedClient);
             $record = $lockedClient->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
             $this->assertVersion($request, $record);
-            $this->assertComplete($record);
             if ($record->submitted_at === null) {
-                throw ValidationException::withMessages(['check_in' => 'The client must submit these photos before they can be reviewed.']);
+                throw ValidationException::withMessages(['check_in' => 'The client must submit this check-in before it can be reviewed.']);
             }
             $data = $request->validated();
             $data['flatness_rating'] = $request->boolean('is_competition_prep') ? ($data['flatness_rating'] ?? null) : null;
@@ -177,14 +175,6 @@ class CheckInPosingController extends Controller
         abort_unless($request->integer('photo_version') === $record->photo_version, 409, 'These photos changed. Reload the check-in before trying again.');
     }
 
-    private function assertComplete(DailyCheckIn $record): void
-    {
-        $present = $record->posePhotos()->pluck('pose_key')->all();
-        if (array_diff(array_column(BodybuildingPoses::required(), 'key'), $present) !== []) {
-            throw ValidationException::withMessages(['photos' => 'Upload all twelve required poses before submitting or reviewing this check-in. The favourite classic pose is optional.']);
-        }
-    }
-
     private function invalidate(DailyCheckIn $record): void
     {
         $record->forceFill(['photo_version' => $record->photo_version + 1, 'submitted_at' => null])->save();
@@ -196,8 +186,8 @@ class CheckInPosingController extends Controller
             'check_in_id' => $record->id,
             'photo_version' => $record->photo_version,
             'submitted_at' => $record->submitted_at?->toISOString(),
-            'required_poses' => BodybuildingPoses::required(),
-            'optional_poses' => BodybuildingPoses::optional(),
+            'standard_poses' => BodybuildingPoses::standard(),
+            'additional_poses' => BodybuildingPoses::additional(),
             'photos' => $record->posePhotos()->orderBy('id')->get()->map(fn (ProgressPhoto $photo): array => [
                 'id' => $photo->id,
                 'pose_key' => $photo->pose_key,

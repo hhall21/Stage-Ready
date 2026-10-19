@@ -52,19 +52,46 @@ class WeeklyHealthTest extends TestCase
         $this->getJson($url)->assertJsonPath('is_due', false)->assertJsonPath('due_on', '2026-11-01');
     }
 
-    public function test_validation_rejects_missing_invalid_future_and_duplicate_readings(): void
+    public function test_validation_rejects_invalid_future_and_duplicate_readings(): void
     {
         [$coach, $client] = $this->pair();
         $url = '/api/clients/'.$client->id.'/weekly-health';
         $this->actingAs($coach)->patchJson($url.'/settings', ['enabled' => true]);
-        $this->actingAs($client)->postJson($url.'/readings', [])->assertUnprocessable()->assertJsonValidationErrors(['reading_date', 'systolic', 'diastolic', 'resting_heart_rate']);
-        $this->postJson($url.'/readings', [...$this->reading('2026-10-19'), 'systolic' => 80, 'diastolic' => 120, 'resting_heart_rate' => 0, 'client_id' => $client->id])
+        $this->actingAs($client)->postJson($url.'/readings', [...$this->reading('2026-10-19'), 'systolic' => 80, 'diastolic' => 120, 'resting_heart_rate' => 0, 'client_id' => $client->id])
             ->assertUnprocessable()->assertJsonValidationErrors(['reading_date', 'systolic', 'resting_heart_rate', 'client_id']);
         $this->postJson($url.'/readings', [...$this->reading(), 'systolic' => 120.5, 'diastolic' => -1, 'resting_heart_rate' => 301])
             ->assertUnprocessable()->assertJsonValidationErrors(['systolic', 'diastolic', 'resting_heart_rate']);
         $this->postJson($url.'/readings', $this->reading())->assertCreated();
         $this->postJson($url.'/readings', $this->reading())->assertUnprocessable()->assertJsonValidationErrors('reading_date');
         $this->assertDatabaseCount('weekly_health_readings', 1);
+    }
+
+    public function test_blank_and_partial_readings_can_be_saved_completed_and_cleared_without_inventing_values(): void
+    {
+        [$coach, $client] = $this->pair();
+        $url = '/api/clients/'.$client->id.'/weekly-health';
+        $this->actingAs($coach)->patchJson($url.'/settings', ['enabled' => true])->assertOk();
+        $id = $this->actingAs($client)->postJson($url.'/readings', [])->assertCreated()
+            ->assertJsonPath('data.reading_date', '2026-10-18T00:00:00.000000Z')
+            ->assertJsonPath('data.systolic', null)->assertJsonPath('data.diastolic', null)
+            ->assertJsonPath('data.resting_heart_rate', null)->json('data.id');
+        $this->getJson($url)->assertJsonPath('is_due', true);
+        $this->putJson($url.'/readings/'.$id, ['systolic' => 120, 'notes' => 'Heart rate later.'])->assertOk()
+            ->assertJsonPath('data.systolic', 120)->assertJsonPath('data.diastolic', null);
+        $this->getJson($url)->assertJsonPath('is_due', true);
+        $this->putJson($url.'/readings/'.$id, ['diastolic' => 80, 'resting_heart_rate' => 65])->assertOk()
+            ->assertJsonPath('data.systolic', 120)->assertJsonPath('data.notes', 'Heart rate later.');
+        $this->getJson($url)->assertJsonPath('is_due', false);
+        $this->putJson($url.'/readings/'.$id, ['systolic' => 70])->assertUnprocessable()->assertJsonValidationErrors('systolic');
+        $this->travel(1)->days();
+        $this->putJson($url.'/readings/'.$id, [
+            'reading_date' => '', 'systolic' => '', 'diastolic' => '', 'resting_heart_rate' => '', 'notes' => '',
+        ])->assertOk()->assertJsonPath('data.systolic', null)->assertJsonPath('data.diastolic', null)
+            ->assertJsonPath('data.resting_heart_rate', null)->assertJsonPath('data.notes', null);
+        $this->assertDatabaseHas('weekly_health_readings', ['id' => $id, 'systolic' => null]);
+        $this->assertSame('2026-10-18', WeeklyHealthReading::findOrFail($id)->reading_date->toDateString());
+        $this->actingAs($coach)->getJson($url)->assertJsonPath('is_due', true)
+            ->assertJsonPath('readings.data.0.systolic', null)->assertJsonPath('readings.total', 1);
     }
 
     public function test_only_the_client_can_correct_their_own_readings_and_disabling_keeps_history(): void

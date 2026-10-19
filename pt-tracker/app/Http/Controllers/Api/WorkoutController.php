@@ -7,6 +7,7 @@ use App\Http\Requests\SaveWorkoutRequest;
 use App\Models\ExerciseSet;
 use App\Models\User;
 use App\Models\Workout;
+use App\Services\TrainingSplitScheduler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\Gate;
 
 class WorkoutController extends Controller
 {
-    public function index(User $client): JsonResponse
+    public function index(User $client, TrainingSplitScheduler $scheduler): JsonResponse
     {
         Gate::authorize('viewTracker', $client);
+        $scheduler->state($client, today()->toDateString());
 
         return response()->json($client->workouts()->with('workoutExercises.exercise', 'workoutExercises.sets')
             ->orderByRaw('CASE WHEN workout_date >= ? THEN 0 ELSE 1 END', [today()->toDateString()])
@@ -51,11 +53,16 @@ class WorkoutController extends Controller
 
     public function update(SaveWorkoutRequest $request, User $client, int $workout): JsonResponse
     {
-        Gate::authorize('manageWorkouts', $client);
+        Gate::authorize($request->user()?->role === 'client' ? 'manageCheckIns' : 'manageWorkouts', $client);
         $data = $request->validated();
         $record = DB::transaction(function () use ($client, $data, $workout, $request) {
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::authorize($request->user()?->role === 'client' ? 'manageCheckIns' : 'manageWorkouts', $client);
             $record = $client->workouts()->lockForUpdate()->findOrFail($workout);
+            if ($record->getAttribute('training_split_id') !== null && $record->hasPerformance()
+                && array_intersect(array_keys($data), ['workout_name', 'workout_date', 'exercises']) !== []) {
+                abort(409, 'Logged split workouts keep their original prescription. Edit the split to change future unlogged workouts.');
+            }
             if ((($data['completed'] ?? false) || $request->user()?->role === 'client') && $record->getAttribute('logged_at') === null) {
                 $record->forceFill(['logged_at' => now()]);
             }
@@ -74,7 +81,13 @@ class WorkoutController extends Controller
     public function destroy(User $client, int $workout): JsonResponse
     {
         Gate::authorize('manageWorkouts', $client);
-        $client->workouts()->findOrFail($workout)->delete();
+        DB::transaction(function () use ($client, $workout): void {
+            User::whereKey($client->id)->lockForUpdate()->firstOrFail();
+            Gate::authorize('manageWorkouts', $client);
+            $record = $client->workouts()->lockForUpdate()->findOrFail($workout);
+            abort_if($record->getAttribute('training_split_id') !== null && $record->hasPerformance(), 409, 'Logged split workouts are preserved. Edit the split to change future sessions.');
+            $record->delete();
+        });
 
         return response()->json(null, 204);
     }

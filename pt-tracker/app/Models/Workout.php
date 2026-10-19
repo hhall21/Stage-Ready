@@ -3,16 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /** @property-read Carbon $workout_date */
-#[Fillable(['client_id', 'trainer_id', 'workout_name', 'workout_date', 'notes', 'completed', 'mesocycle_id', 'template_slot'])]
+#[Fillable(['client_id', 'trainer_id', 'workout_name', 'workout_date', 'notes', 'completed', 'mesocycle_id', 'template_slot', 'training_split_id', 'split_day_number'])]
 class Workout extends Model
 {
     public const MAX_EXERCISES = 10;
+
+    /** @param Builder<Workout> $query
+     * @return Builder<Workout>
+     */
+    public function scopeUnlogged(Builder $query): Builder
+    {
+        return $query->where('completed', false)->whereNull('logged_at')
+            ->whereDoesntHave('workoutExercises.sets', fn ($sets) => $sets->where('completed', true))
+            ->whereDoesntHave('workoutExercises.sets.trainingClips');
+    }
+
+    public function hasPerformance(): bool
+    {
+        return $this->completed || $this->getAttribute('logged_at') !== null
+            || $this->workoutExercises()->whereHas('sets', fn ($sets) => $sets->where('completed', true)->orWhereHas('trainingClips'))->exists();
+    }
 
     /** @return array<string, string> */
     protected function casts(): array

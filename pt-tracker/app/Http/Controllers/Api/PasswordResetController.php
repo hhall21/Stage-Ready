@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Rules\SafePassword;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class PasswordResetController extends Controller
     {
         $data = $request->validate([
             'email' => ['required', 'email', 'max:255'], 'token' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'string', 'confirmed', 'max:128', PasswordRule::min(12)->mixedCase()->numbers()],
+            'password' => ['required', 'string', 'confirmed', new SafePassword, PasswordRule::min(12)->mixedCase()->numbers()],
         ]);
         $data['email'] = Str::lower($data['email']);
         $status = Password::reset([...$data, 'is_active' => true], function (User $user, string $password): void {

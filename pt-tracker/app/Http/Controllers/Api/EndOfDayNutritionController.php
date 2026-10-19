@@ -18,7 +18,8 @@ class EndOfDayNutritionController extends Controller
     public function show(Request $request, User $client): JsonResponse
     {
         Gate::authorize('viewTracker', $client);
-        $data = $request->validate(['date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today']]);
+        $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today']]);
+        $data['date'] ??= today()->toDateString();
         $record = $client->dailyCheckIns()->whereDate('check_in_date', $data['date'])->first();
 
         return response()->json(['data' => $record?->only(['check_in_date', 'nutrition_completed_at', ...self::FIELDS])]);
@@ -30,10 +31,11 @@ class EndOfDayNutritionController extends Controller
         $rules = Arr::only((new SaveDailyCheckInRequest)->rules(), self::FIELDS);
         $data = $request->validate([
             ...$rules,
-            'check_in_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'check_in_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'client_id' => ['prohibited'], 'nutrition_completed_at' => ['prohibited'],
             'submitted_at' => ['prohibited'], 'photo_version' => ['prohibited'],
         ]);
+        $data['check_in_date'] ??= today()->toDateString();
         $record = DB::transaction(function () use ($client, $data) {
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::authorize('manageCheckIns', $client);

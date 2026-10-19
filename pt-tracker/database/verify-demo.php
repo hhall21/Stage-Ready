@@ -31,12 +31,64 @@ if ($sampleData === false) {
     throw new RuntimeException('Cannot read demo sample data.');
 }
 $samples = json_decode($sampleData, true, 512, JSON_THROW_ON_ERROR);
+$tableNames = $query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")->fetchAll(PDO::FETCH_COLUMN);
+$matchesValue = static function (mixed $actual, mixed $expected): bool {
+    return match (true) {
+        $expected === null => $actual === null,
+        is_bool($expected) => $actual !== null && (int) $actual === (int) $expected,
+        is_int($expected), is_float($expected) => $actual !== null && is_numeric($actual) && (float) $actual === (float) $expected,
+        default => $actual === $expected,
+    };
+};
 foreach ($samples as $table => $rows) {
-    if ((int) $query('SELECT COUNT(*) FROM "'.$table.'"')->fetchColumn() !== count($rows)) {
+    if (! preg_match('/^[a-z_][a-z0-9_]*$/D', $table) || ! in_array($table, $tableNames, true)) {
+        throw new RuntimeException('Invalid sample table name.');
+    }
+    $records = $query('SELECT * FROM "'.$table.'" ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    if (count($records) !== count($rows)) {
         throw new RuntimeException('Unexpected sample count for '.$table);
     }
+    $columns = $query('PRAGMA table_info("'.$table.'")')->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as $index => $row) {
+        // New nullable/defaulted columns must not conceal private runtime values.
+        foreach ($columns as $column) {
+            $name = $column['name'];
+            if (array_key_exists($name, $row)) {
+                continue;
+            }
+            if ($table === 'users' && $name === 'email_verified_at') {
+                $row[$name] = '__NOW__';
+            } elseif ($name === 'id') {
+                $row[$name] = $index + 1;
+            } else {
+                $default = $column['dflt_value'] === null ? null : trim($column['dflt_value'], "'");
+                $row[$name] = $default === null || strtoupper($default) === 'NULL' ? null
+                    : (is_numeric($default) ? (float) $default : trim($default, "'"));
+            }
+        }
+        foreach ($row as $column => $expected) {
+            $actual = $records[$index][$column];
+            if ($expected === '__NOW__') {
+                if (! is_string($actual) || ! preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D', $actual)) {
+                    throw new RuntimeException('Unexpected sample timestamp.');
+                }
+
+                continue;
+            }
+            if ($table === 'users' && $column === 'password') {
+                continue;
+            }
+            if (! $matchesValue($actual, $expected)) {
+                // Never print record values: this failure may indicate private data.
+                throw new RuntimeException('Non-sample value found in '.$table.'.'.$column);
+            }
+        }
+    }
 }
-foreach (['sessions', 'contact_enquiries', 'client_invitations', 'check_in_posing_reviews', 'weekly_health_readings', 'nutrition_plans', 'practice_plans', 'coaching_reviews', 'password_reset_tokens', 'jobs', 'failed_jobs', 'cache'] as $table) {
+foreach (array_diff($tableNames, array_keys($samples), ['migrations']) as $table) {
+    if (! preg_match('/^[a-z_][a-z0-9_]*$/D', $table)) {
+        throw new RuntimeException('Unexpected database table name.');
+    }
     if ((int) $query('SELECT COUNT(*) FROM "'.$table.'"')->fetchColumn() !== 0) {
         throw new RuntimeException('Runtime data found in '.$table);
     }

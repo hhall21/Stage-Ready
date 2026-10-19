@@ -22,7 +22,9 @@ class WeeklyHealthController extends Controller
         Gate::authorize('viewTracker', $client);
         $assignments = $this->activeAssignments($client)->get();
         $enabledAt = $assignments->pluck('health_monitoring_enabled_at')->filter()->sort()->first();
-        $latest = WeeklyHealthReading::where('client_id', $client->id)->orderByDesc('reading_date')->first();
+        $latest = WeeklyHealthReading::where('client_id', $client->id)
+            ->whereNotNull('systolic')->whereNotNull('diastolic')->whereNotNull('resting_heart_rate')
+            ->orderByDesc('reading_date')->first();
         $dueOn = null;
         if ($enabledAt !== null) {
             $start = Carbon::parse($enabledAt)->startOfDay();
@@ -64,16 +66,18 @@ class WeeklyHealthController extends Controller
     {
         Gate::authorize('manageCheckIns', $client);
         $data = $request->validated();
+        $data['reading_date'] ??= today()->toDateString();
         $record = DB::transaction(function () use ($client, $data) {
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::authorize('manageCheckIns', $client);
             abort_unless($this->activeAssignments($client)->whereNotNull('health_monitoring_enabled_at')->exists(), 403, 'Your coach has not enabled weekly health monitoring.');
             $this->checkDuplicate($client, $data['reading_date']);
+            $this->checkBloodPressure($data);
 
             return WeeklyHealthReading::create(['client_id' => $client->id, ...$data]);
         });
 
-        return response()->json(['data' => $record], 201);
+        return response()->json(['data' => $record->refresh()], 201);
     }
 
     public function update(SaveWeeklyHealthReadingRequest $request, User $client, int $reading): JsonResponse
@@ -84,7 +88,9 @@ class WeeklyHealthController extends Controller
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::authorize('manageCheckIns', $client);
             $record = WeeklyHealthReading::where('client_id', $client->id)->findOrFail($reading);
+            $data['reading_date'] ??= Carbon::parse($record->reading_date)->toDateString();
             $this->checkDuplicate($client, $data['reading_date'], $reading);
+            $this->checkBloodPressure([...$record->only(['systolic', 'diastolic']), ...$data]);
             $record->update($data);
 
             return $record;
@@ -107,6 +113,14 @@ class WeeklyHealthController extends Controller
         if (WeeklyHealthReading::where('client_id', $client->id)->whereDate('reading_date', $date)
             ->when($except !== null, fn ($query) => $query->whereKeyNot($except))->exists()) {
             throw ValidationException::withMessages(['reading_date' => 'A health reading already exists for this date. Edit that reading instead.']);
+        }
+    }
+
+    /** @param array<string, mixed> $data */
+    private function checkBloodPressure(array $data): void
+    {
+        if (isset($data['systolic'], $data['diastolic']) && $data['systolic'] <= $data['diastolic']) {
+            throw ValidationException::withMessages(['systolic' => 'Systolic pressure must be greater than diastolic pressure when both are recorded.']);
         }
     }
 }

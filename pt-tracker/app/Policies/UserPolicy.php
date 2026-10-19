@@ -31,7 +31,7 @@ class UserPolicy
 
     public function manageWorkouts(User $user, User $client): bool
     {
-        return $this->viewTracker($user, $client);
+        return $user->role === 'coach' && $this->viewTracker($user, $client);
     }
 
     public function manageMesocycles(User $user, User $client): bool

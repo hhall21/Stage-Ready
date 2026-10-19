@@ -7,6 +7,7 @@ use App\Models\ClientInvitation;
 use App\Models\TrainerClient;
 use App\Models\User;
 use App\Notifications\ClientInvitationNotification;
+use App\Rules\SafePassword;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -107,7 +108,7 @@ class ClientInvitationController extends Controller
                 abort_unless($client->role === 'client' && $client->is_active && $request->user()?->is($client), 403, 'Sign in to the invited client account to accept.');
             } else {
                 abort_if($request->user() !== null, 403, 'Sign out before setting up this new client account.');
-                $data = $request->validate(['password' => ['required', 'string', 'confirmed', 'max:128', Password::min(12)->mixedCase()->numbers()]]);
+                $data = $request->validate(['password' => ['required', 'string', 'confirmed', new SafePassword, Password::min(12)->mixedCase()->numbers()]]);
                 $client = new User(['name' => $invite->name, 'email' => $invite->email, 'password' => $data['password']]);
                 $client->forceFill(['role' => 'client', 'is_active' => true, 'email_verified_at' => now()])->save();
             }

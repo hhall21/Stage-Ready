@@ -3,8 +3,8 @@
 **A training and progress platform for bodybuilding coaches and their clients.**
 
 Stage-Ready connects repeating training plans, workout logging, daily check-ins,
-and bodyweight trends in one responsive workspace. Coaches create a mesocycle
-once and adjust upcoming training when a client's needs change. Clients follow
+and bodyweight trends in one responsive workspace. Coaches create a repeating split
+of up to 15 training/rest days and adjust upcoming training when a client's needs change. Clients follow
 their schedule and record their progress.
 
 ## Features
@@ -24,15 +24,20 @@ their schedule and record their progress.
   existing-session invalidation.
 - **Exercise progress:** weight and rep charts from completed logged sets, with
   session readings and training volume measured in working sets.
-- **Repeating mesocycles:** enter a training period and weekly workouts; dated
-  sessions are generated automatically throughout the block.
+- **Repeating training splits:** coaches define 1–15 training/rest days and a
+  start date. The correct workout appears automatically and the count wraps.
+- **Flexible scheduling:** clients can select a different prescribed split day;
+  extra rest pauses the split and other choices recalibrate following days.
 - **Editable programming:** change exercises, sets, reps, weights, RIR, and notes
   for injuries or other adjustments while preserving past and logged sessions.
 - **Workout logging:** clients record actual reps, weight, RIR, set completion,
-  and workout completion. Each workout supports up to ten exercises.
-- **Daily check-ins:** track bodyweight, sleep, energy, stress, steps, water, and notes.
+  and workout completion. Clients cannot add workouts or rewrite their coach's
+  plan. Each workout supports up to ten exercises.
+- **Daily check-ins:** optionally track bodyweight, sleep, energy, stress, steps,
+  water, and notes. Clients can leave anything blank; coaches handle follow-up.
 - **Posing check-ins:** submit eight bodybuilding poses plus four relaxed views
-  privately, with an optional favourite classic pose, then
+  privately, plus a favourite classic pose. Every photo is optional; clients can
+  submit with some or no photos and
   receive coach ratings and feedback, with flatness and fullness scores during prep.
 - **Rolling bodyweight averages:** a seven-day average based on recorded
   weigh-ins, reading counts, comparison with seven days earlier, and a 56-day chart.
@@ -60,14 +65,29 @@ sample accounts, development commands, testing, and staging deployment.
 After local setup, the website is available at `http://localhost:8000`, with
 member login at `/login` and the authenticated workspace at `/dashboard`.
 
+### Try the local demo
+
+After following the setup guide, use these fictional sample accounts at `/login`:
+
+| Role   | Email                  | Password   |
+| ------ | ---------------------- | ---------- |
+| Coach  | `james@pttracker.test` | `password` |
+| Client | `adam@example.com`     | `password` |
+
+These credentials are public and only for the local demo. The sample seeder is
+blocked outside `local` and `testing`. Start staging and production with an empty
+database and create real accounts with unique passwords; do not deploy the demo
+database or the reference SQL's sample records.
+
 ## Current scope
 
-Authentication, dashboards, check-ins, workouts, set logging, mesocycles, and
-bodyweight trends are implemented.
+Authentication, dashboards, check-ins, private posing reviews, workouts, set
+logging, mesocycles, bodyweight trends, meal plans, daily practice prescriptions,
+weekly health monitoring and written coach reviews are implemented.
 
-Database models also cover nutrition, progress photos, training clips and
-feedback, supplements, phases, cycle entries, and competitions. Their full
-interfaces and management endpoints are still to be built. Coach account
+Database models also cover individual meal logging, training clips and feedback,
+supplements, phases, cycle entries, and competitions. Their full interfaces and
+management endpoints are still to be built. Coach account
 provisioning currently requires trusted application code; client onboarding and
 coaching management are available in the coach dashboard.
 
@@ -78,3 +98,4 @@ coaching management are available in the coach dashboard.
 - [Handover PDF design and notes pagination](pt-tracker/docs/handover/README.md)
 - [Database migration guidance](pt-tracker/database/MIGRATIONS.md)
 - [Project preferences](AGENTS.md)
+- [Security and public repository preparation](SECURITY.md)

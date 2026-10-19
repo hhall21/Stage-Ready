@@ -3,8 +3,8 @@
 **A training and progress platform for bodybuilding coaches and their clients.**
 
 Stage-Ready brings repeating training plans, workout logging, daily check-ins, and
-bodyweight trends into one workspace. Coaches plan a mesocycle once, assign it
-for a chosen period, and adjust upcoming sessions as a client's needs change.
+bodyweight trends into one workspace. Coaches create a repeating training split
+with a start date and adjust upcoming sessions as a client's needs change.
 Clients follow their schedule and record what they actually did.
 
 The interface uses dark backgrounds, white typography, and borderless bodybuilding
@@ -23,35 +23,45 @@ photographs that blend into the page. It adapts to desktop and mobile screens.
 - End coaching to remove the coach's access while preserving the client's account,
   workouts, check-ins, and logged history.
 - Review each client's check-ins, training sessions, and bodyweight trends.
-- Create mesocycles with a start date and duration or a custom end date.
-- Define weekly workouts that repeat automatically throughout the training block.
+- Build a split of 1–15 numbered training/rest days and choose its start date.
+- Write a separate workout for every training day; the split repeats automatically.
 - Edit exercises, sets, reps, weight, RIR, and coaching notes when plans need to change.
 
-### Mesocycle-based programming
+### Repeating training splits
 
-A coach can create a block such as **Push on Monday, Pull on Wednesday, and Legs
-on Friday for eight weeks**. Stage-Ready generates the dated sessions, so the coach
-does not need to plan each individual workout.
+A coach can create **Day 1 Push, Day 2 Pull, Day 3 Rest, Day 4 Legs**. Day 1 starts
+on the selected date. Calendar days advance through the sequence, including
+rest days, and wrap to Day 1 after the last day. A newer split takes over on its
+own start date. Missed logins do not stop the calendar count.
 
 - Up to **10 exercises per workout**.
-- Default duration of eight weeks, with adjustable dates.
-- No overlapping mesocycles for the same client.
-- Upcoming unlogged sessions update when the mesocycle changes, including today's
+- Splits can contain 1–15 days and repeat until the next split starts.
+- Each training day has its own workout; rest days have no exercise entries.
+- Today's scheduled workout or rest day appears automatically on login.
+- The client can select a different split day for special circumstances. An extra
+  rest day pauses the count; choosing a training or planned rest day makes the
+  following date continue with the next split day. Skipping the last rest day
+  and selecting Day 1 therefore makes tomorrow Day 2.
+- Choices can be corrected before performance is logged. Earlier choices cannot
+  shift later logged sessions, and client accounts cannot create or rewrite workouts.
+- Upcoming unlogged sessions update when the split changes, including today's
   session if training has not been logged.
 - Past sessions, completed workouts, sessions with logged sets, and sessions with
   training clips retain their existing records.
-- Logging a session preserves it from later mesocycle changes, even if it is
+- Logging a session preserves it from later split changes, even if it is
   subsequently marked incomplete.
 
-Plans currently support up to fourteen weekly workout templates, one hundred
-sets per exercise, and a date range of up to one year.
+Plans support up to one hundred sets per exercise. Changing a split's start date
+or length after recorded history requires a new split. Previous weekly mesocycles
+and their logged sessions remain available; they are not rewritten into new splits.
+Run `php artisan migrate` when upgrading an existing installation.
 
 ### Client workspace
 
-- View assigned mesocycles and scheduled workouts.
+- View assigned training splits and the correct scheduled workout or rest day.
 - Log actual reps, weight, reps in reserve (**RIR**), and completion for each set.
 - Mark workouts as completed.
-- Add an extra workout outside the repeating plan.
+- Choose a coach-prescribed split day or extra rest when the schedule changes.
 - Create, edit, and delete personal daily check-ins.
 
 ### Meal plans, daily prescriptions and written reviews
@@ -82,9 +92,12 @@ Existing installations require `php artisan migrate` for these features.
 
 Coaches enable weekly monitoring per client in **Weekly health**, for clients
 who need blood pressure and resting heart rate recorded during their cycle.
-Clients record a date, systolic/diastolic pressure in mmHg, resting heart rate in
-bpm, and optional notes. The overview shows when a reading is due: immediately
-when monitoring starts, then every seven days after a current reading.
+Clients may record systolic/diastolic pressure in mmHg, resting heart rate in
+bpm, and notes. Every measurement is optional, including when correcting or
+clearing an earlier reading. Missing measurements stay null and appear as not
+recorded. The overview shows when a full reading is due: immediately when
+monitoring starts, then every seven days after a current full reading. Blank or
+partial entries stay visible to coaches without postponing that reminder.
 
 Clients can correct their readings, and current coaches can view the dated
 history. Disabling monitoring or ending coaching preserves readings. Monitoring
@@ -103,7 +116,10 @@ Current coaches can read the responses in daily
 history and the seven/fourteen-day review summary. Missing ratings are excluded
 from averages, with response counts shown. Existing check-ins remain unchanged.
 
-Each client can record one check-in per date, with optional:
+Clients can save or submit a partial or entirely blank check-in. Coaches are
+responsible for agreeing expectations and following up on missed information.
+A blank date uses today when creating a record, or preserves its original date
+when editing. Each client can record one check-in per date, with optional:
 
 | Training and recovery      | Daily habits |
 | -------------------------- | ------------ |
@@ -115,12 +131,13 @@ Sleep quality, energy, and stress use a 1–5 rating scale.
 
 ### Posing photos and daily coach reviews
 
-Clients can save their daily numbers as a draft, then add the eight poses in the
+Clients can save their daily numbers as a draft, then choose from the eight poses in the
 [NPC men's bodybuilding pose set](https://npcnewsonline.com/official-bodybuilding-rules/).
-The check-in also requires front relaxed, rear relaxed, left side relaxed and
-right side relaxed: twelve required photos in total. An additional **Favourite
-classic pose** photo is optional and never blocks submission. Required and optional
-photos are labelled separately; the progress count includes required photos only.
+The check-in also offers front relaxed, rear relaxed, left side relaxed and
+right side relaxed, plus a **Favourite classic pose**: thirteen photo options.
+Every photo is optional. Clients can submit with any number of photos, including
+none, and coaches can review those submissions. Missing poses stay visible to
+the coach, and the photo count includes every uploaded pose.
 
 - Photos upload individually and stay private to the client and currently assigned
   coaches. They are not placed on the public storage disk.
@@ -134,9 +151,12 @@ photos are labelled separately; the progress count includes required photos only
 - Changing a photo marks earlier reviews out of date and requires resubmission.
   A coach cannot save a review against a photo set that changed while being viewed.
 
-Existing check-ins and their recorded numbers remain available. Check-ins without
-the required photo set stay drafts until all twelve required poses have been supplied.
-Previously submitted photos and review history remain available.
+Existing check-ins and their recorded numbers remain available. A saved draft
+only becomes submitted when the client chooses to submit it; missing photos do
+not block that action. Previously submitted photos and review history remain
+available. Run `php artisan migrate` to allow partial weekly health readings on
+existing installations; rolling back that migration leaves the columns nullable
+so omitted measurements are preserved.
 
 The browser prepares JPEG uploads at a maximum 2,000-pixel long edge to keep daily
 uploads smaller. The server accepts JPEG, PNG, and WebP images up to 5 MB and
@@ -173,7 +193,7 @@ direction of bodyweight over time.
 - Clients access their own records.
 - Coaches access clients with an active assignment covering the current date.
 - Inactive accounts cannot sign in or continue accessing protected pages and APIs.
-- Mesocycle creation and editing are restricted to assigned coaches.
+- Split creation, program changes and workout creation are restricted to assigned coaches.
 
 ### Exercise progress
 
@@ -207,8 +227,10 @@ privacy consent, a honeypot field, and a limit of five requests per minute per I
 
 ## Local setup
 
-Requirements: PHP 8.3 or newer with the relevant database driver, Composer, and
-Node.js with npm compatible with the project's build tools.
+Requirements: PHP 8.4.1 or newer with the relevant database driver, Composer, and
+Node.js 22.18+ within the 22.x series, or Node.js 24.11+ with npm. The committed Composer
+lock file includes packages that require PHP 8.4.1+, even though the framework's
+base requirement is lower.
 
 Run the following from the Laravel application directory, `pt-tracker`:
 
@@ -245,6 +267,10 @@ Open **http://localhost:8000**.
 For live frontend development, run `npm run dev` in a second terminal while the
 Laravel server is running.
 
+The `vite` dependency is an alias for the matching Vite+ core package. Keep its
+version aligned with `vite-plus` when upgrading the build tools; the npm
+override ensures plugins use that same copy.
+
 ### Invitation and password reset emails
 
 Set `APP_URL` to the address clients use to open Stage-Ready. Invitation and reset
@@ -269,7 +295,8 @@ create an empty database instead, run migrations and load the sample data:
 php artisan db:seed
 ```
 
-The sample seeder requires its target tables to be empty. It includes coaches,
+The sample seeder only runs in `local` and `testing`, and requires its target
+tables to be empty. It includes coaches,
 clients, assignments, check-ins, workouts, and related tracker records.
 
 | Role   | Email                  | Password   |
@@ -277,7 +304,10 @@ clients, assignments, check-ins, workouts, and related tracker records.
 | Coach  | `james@pttracker.test` | `password` |
 | Client | `adam@example.com`     | `password` |
 
-These are development-only accounts. Do not seed them into production.
+These credentials are public and only for local development. Do not deploy the
+demo database or seed these accounts into staging or production. Start hosted
+installations with a new, empty database. See the repository's
+[security notes](../SECURITY.md) for public-repository and deployment checks.
 
 ## Project structure
 
@@ -316,11 +346,15 @@ soft edge fades and background blending to avoid visible rectangular borders.
 
 ```sh
 php artisan test
+composer validate --strict
+composer audit --locked
+npm audit
 php vendor/bin/pint --test
 php vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 npm run types:check
 npm run check
 npm run build
+php database/verify-demo.php
 ```
 
 Tests cover authentication, inactive accounts, record ownership, coach assignments,
@@ -335,9 +369,11 @@ build using the workflow in the repository root's `.github/workflows/` directory
 ## Current scope
 
 The working website includes authentication, coach/client dashboards, check-ins,
-workout and set logging, mesocycles, and bodyweight trends.
+private posing reviews, workout and set logging, mesocycles, bodyweight trends,
+meal plans, daily practice prescriptions, weekly health monitoring and written
+coach reviews.
 
-Models and database tables also exist for meals, training clips, clip feedback,
+Models and database tables also exist for individual meal logging, training clips, clip feedback,
 supplements, phases, cycle entries, and competitions. Their full user interfaces
 and upload/management endpoints are not yet implemented. Progress photos are
 available through the daily posing check-in workflow.

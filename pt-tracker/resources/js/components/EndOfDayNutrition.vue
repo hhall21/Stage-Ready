@@ -50,6 +50,7 @@ function apply(data: Responses | null) {
     completedAt.value = data?.nutrition_completed_at ?? null;
 }
 async function load() {
+    date.value ||= localDate();
     loading.value = true;
     ready.value = false;
     error.value = '';
@@ -133,7 +134,6 @@ onMounted(load);
                 type="date"
                 :max="localDate()"
                 :disabled="loading || saving"
-                required
                 @change="load"
         /></label>
         <p v-if="loading" class="loading-message" role="status">

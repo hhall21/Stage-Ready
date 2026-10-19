@@ -15,10 +15,10 @@ class SaveWeeklyHealthReadingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reading_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
-            'systolic' => ['required', 'integer', 'between:1,400', 'gt:diastolic'],
-            'diastolic' => ['required', 'integer', 'between:1,300'],
-            'resting_heart_rate' => ['required', 'integer', 'between:1,300'],
+            'reading_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'systolic' => ['nullable', 'integer', 'between:1,400', ...($this->filled('diastolic') ? ['gt:diastolic'] : [])],
+            'diastolic' => ['nullable', 'integer', 'between:1,300'],
+            'resting_heart_rate' => ['nullable', 'integer', 'between:1,300'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'client_id' => ['prohibited'],
         ];

@@ -8,6 +8,7 @@ use App\Http\Requests\SavePracticePlanRequest;
 use App\Models\NutritionPlan;
 use App\Models\PracticePlan;
 use App\Models\User;
+use App\Services\TrainingSplitScheduler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -56,7 +57,8 @@ class CoachingPlanController extends Controller
 
         return response()->json([
             'date' => $date,
-            'day_type' => $client->workouts()->whereDate('workout_date', $date)->exists() ? 'training' : 'rest',
+            'day_type' => app(TrainingSplitScheduler::class)->dayType($client, $date)
+                ?? ($client->workouts()->whereDate('workout_date', $date)->exists() ? 'training' : 'rest'),
             'weekday' => Carbon::parse($date)->dayOfWeekIso,
             'current' => (clone $query)->whereNull('cancelled_at')->whereDate('effective_from', '<=', $date)->orderByDesc('effective_from')->orderByDesc('id')->first(),
             'versions' => $query->orderByDesc('effective_from')->orderByDesc('id')->paginate(12),

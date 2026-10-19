@@ -15,6 +15,15 @@ class SaveWorkoutRequest extends FormRequest
     /** @return array<string, list<string>> */
     public function rules(): array
     {
+        if ($this->user()?->role === 'client' && ! $this->isMethod('POST')) {
+            return [
+                'completed' => ['required', 'boolean'],
+                'workout_name' => ['prohibited'], 'workout_date' => ['prohibited'],
+                'exercises' => ['prohibited'], 'notes' => ['prohibited'],
+                'client_id' => ['prohibited'], 'trainer_id' => ['prohibited'],
+                'training_split_id' => ['prohibited'], 'split_day_number' => ['prohibited'],
+            ];
+        }
         $presence = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
@@ -24,6 +33,7 @@ class SaveWorkoutRequest extends FormRequest
             'completed' => ['sometimes', 'boolean'],
             'client_id' => ['prohibited'],
             'trainer_id' => ['prohibited'],
+            'training_split_id' => ['prohibited'], 'split_day_number' => ['prohibited'],
             'exercises' => ['sometimes', 'array', 'max:'.Workout::MAX_EXERCISES],
             'exercises.*' => ['required', 'array:exercise_id,notes,sets'],
             'exercises.*.exercise_id' => ['required', 'integer', 'exists:exercises,id'],

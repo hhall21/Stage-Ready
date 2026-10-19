@@ -2,8 +2,10 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AthleteVisual from '@/components/AthleteVisual.vue';
+import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
+import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
 import { api, message } from '@/lib/tracker-api';
 const props = withDefaults(
     defineProps<{ next?: string; passwordReset?: boolean }>(),
@@ -37,9 +39,7 @@ async function login() {
         <section class="login-copy">
             <p class="eyebrow">YOUR TRAINING SPACE</p>
             <h1>WELCOME<br /><span class="outline-text">BACK.</span></h1>
-            <p class="intro">
-                Pick up where you left off.<br />Your next step is waiting.
-            </p>
+            <JordanPetersQuote :quote="jordanPetersQuotes.patience" />
             <form class="login-form" @submit.prevent="login">
                 <p v-if="passwordReset" class="notice" role="status">
                     Password updated. Sign in with your new password.

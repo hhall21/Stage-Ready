@@ -45,5 +45,78 @@ jobs:
           npm ci
           npm run build
 
+      - name: Validate dependency manifests and audit dependencies
+        run: |
+          composer validate --strict
+          composer audit --locked --no-interaction
+          npm audit
+
+      - name: Verify the public demo contains only sample data
+        run: php database/verify-demo.php
+
       - name: Run CI Checks
         run: composer ci:check
+
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: stage_ready_test
+          MYSQL_USER: stage_ready_test
+          MYSQL_PASSWORD: ci-only-disposable-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: stage_ready_test
+      DB_USERNAME: stage_ready_test
+      DB_PASSWORD: ci-only-disposable-password
+      DB_URL: ''
+    defaults:
+      run:
+        working-directory: pt-tracker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, pdo_sqlite, sqlite3
+          tools: composer:v2
+          coverage: none
+      - name: Test against an isolated MySQL database
+        run: |
+          composer install --no-interaction --prefer-dist
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+
+  handover-preview:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pt-tracker/docs/handover
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify handover preview generation and pagination
+        run: |
+          python3 -m venv "$RUNNER_TEMP/handover-check"
+          "$RUNNER_TEMP/handover-check/bin/python" -m pip install -r requirements.txt
+          "$RUNNER_TEMP/handover-check/bin/python" -m unittest discover -s . -p 'test_*.py'

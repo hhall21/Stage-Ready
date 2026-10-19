@@ -31,8 +31,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        RateLimiter::for('login', fn (Request $request): Limit => Limit::perMinute(5)
-            ->by(strtolower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('login', function (Request $request): array {
+            $email = $request->input('email');
+            $email = is_string($email) ? mb_strtolower($email) : '';
+
+            return [
+                Limit::perMinute(20)->by('ip:'.$request->ip()),
+                Limit::perMinute(5)->by('login:'.hash('sha256', $email).'|'.$request->ip()),
+            ];
+        });
 
         RateLimiter::for('contact', function (Request $request): Limit {
             return Limit::perMinute(5)->by($request->ip());

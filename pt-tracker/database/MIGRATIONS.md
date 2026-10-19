@@ -63,6 +63,15 @@ From the `pt-tracker` folder, after configuring the intended database in `.env`:
 php artisan migrate
 ```
 
+## Repeating split upgrade
+
+`2026_10_19_230000_create_training_splits` adds repeating 1–15-day programs,
+dated client day selections, and nullable split references on workout snapshots.
+Run `php artisan migrate` on an existing Laravel installation. Existing weekly
+mesocycles and workout performance are preserved. New splits use a start date
+and keep repeating until a newer split begins. The application only replaces
+unlogged upcoming sessions when a coach edits a split or a client changes a day.
+
 ## Existing database created with SQL
 
 Do not run these creation migrations on the existing SQL database yet: its tables

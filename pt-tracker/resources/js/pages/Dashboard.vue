@@ -8,12 +8,15 @@ import ClientManagement from '@/components/ClientManagement.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
 import EndOfDayNutrition from '@/components/EndOfDayNutrition.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
-import MesocyclePanel from '@/components/MesocyclePanel.vue';
+import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
+import TrainingDayPanel from '@/components/TrainingDayPanel.vue';
+import TrainingSplitPanel from '@/components/TrainingSplitPanel.vue';
 import NutritionPlans from '@/components/NutritionPlans.vue';
 import PracticePlans from '@/components/PracticePlans.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import WeeklyHealth from '@/components/WeeklyHealth.vue';
 import { athleteImages } from '@/lib/athlete-images';
+import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
 import {
     api,
     ApiError,
@@ -73,6 +76,10 @@ const checkPage = ref(1),
     workoutLast = ref(1);
 const checkTotal = ref(0),
     workoutTotal = ref(0);
+const recordsLoaded = ref(false);
+const trainingDayPanel = ref<InstanceType<typeof TrainingDayPanel> | null>(
+    null,
+);
 const editCheck = ref<number | null>(null);
 const openPosing = ref<number | null>(null);
 const savedPosingCheck = ref<CheckIn | null>(null);
@@ -228,6 +235,7 @@ async function loadRecords() {
         workoutLast.value = training.last_page;
         workoutTotal.value = training.total;
         weightPoints.value = trend.data;
+        recordsLoaded.value = true;
     } catch (cause) {
         if (version === loadVersion) handleError(cause);
     } finally {
@@ -235,6 +243,7 @@ async function loadRecords() {
     }
 }
 async function selectClient() {
+    recordsLoaded.value = false;
     openPosing.value = null;
     savedPosingCheck.value = null;
     checkins.value = [];
@@ -251,6 +260,11 @@ async function selectClient() {
     workoutForm.notes = '';
     workoutForm.exercises = [];
     await loadRecords();
+}
+
+async function refreshTraining() {
+    await loadRecords();
+    await trainingDayPanel.value?.reload();
 }
 
 async function refreshClients() {
@@ -331,7 +345,7 @@ async function saveCheck() {
             : result.data;
         success.value = result.data.submitted_at
             ? 'Check-in details saved. Your submitted pose photos and coach feedback are below.'
-            : 'Add all twelve required pose photos below, including the four relaxed views, then submit your daily check-in. The favourite classic pose is optional.';
+            : 'Check-in saved. You can add any pose photos or submit it as it is. Your coach can follow up on anything left blank.';
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -386,7 +400,7 @@ async function toggleWorkout(workout: Workout) {
         await api(base.value + '/workouts/' + workout.id, 'PATCH', {
             completed: !workout.completed,
         });
-        await loadRecords();
+        await refreshTraining();
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -415,9 +429,9 @@ async function saveSet(
                 completed: set.completed,
             },
         );
-        await loadRecords();
+        await refreshTraining();
         success.value =
-            'Set logged. This session is preserved when the mesocycle changes.';
+            'Set logged. This session is preserved when your coach changes the program.';
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -496,7 +510,10 @@ onMounted(() => {
             </nav>
             <div class="sidebar-bottom">
                 <p class="eyebrow">THE DAILY STANDARD</p>
-                <p>Consistency<br />builds strength.</p>
+                <JordanPetersQuote
+                    :quote="jordanPetersQuotes.recovery"
+                    variant="compact"
+                />
             </div>
         </aside>
         <main class="dashboard-main">
@@ -585,7 +602,7 @@ onMounted(() => {
                 @changed="refreshClients"
             />
             <p
-                v-else-if="loading && !checkins.length && !workouts.length"
+                v-else-if="loading && !recordsLoaded"
                 class="loading-message"
                 role="status"
             >
@@ -654,13 +671,23 @@ onMounted(() => {
                     :client-id="selected"
                 />
                 <section v-if="tab === 'overview'">
+                    <TrainingDayPanel
+                        ref="trainingDayPanel"
+                        v-if="selected"
+                        :key="'today-' + selected"
+                        :client-id="selected"
+                        :can-log="canCheckIn"
+                        @changed="loadRecords"
+                    />
                     <div class="dashboard-banner">
                         <div>
                             <p class="eyebrow">
                                 {{ activeClient?.name }} / THE NEXT STEP
                             </p>
-                            <h2>Progress is built<br />one day at a time.</h2>
-                            <p>Keep showing up. Keep moving forward.</p>
+                            <JordanPetersQuote
+                                :quote="jordanPetersQuotes.progress"
+                                variant="display"
+                            />
                             <button
                                 class="button"
                                 @click="
@@ -753,23 +780,25 @@ onMounted(() => {
                                         : 'Your daily posing check-in'
                                 }}
                             </h2>
-                            <span class="eyebrow">EIGHT MANDATORY POSES</span>
+                            <span class="eyebrow">ALL FIELDS OPTIONAL</span>
                         </div>
                         <p class="form-help checkin-form-help">
-                            Your mandatory pose photos are your daily check-in.
-                            Choose the date, then upload all twelve required
-                            poses for your coach. Bodyweight, recovery and notes
-                            are optional. Complete the separate nutrition
-                            check-in above at the end of your day.
+                            Share whatever you want to record. Bodyweight,
+                            recovery, notes and every pose photo are optional.
+                            Your coach can follow up on your check-ins. Save
+                            nutrition separately at the end of your day.
                         </p>
                         <div class="form-grid">
                             <label
                                 >Check-in date<input
                                     v-model="checkForm.check_in_date"
                                     type="date"
-                                    required
                             /></label>
                         </div>
+                        <p class="form-help">
+                            Leave the date blank to use today, or keep the
+                            original date when editing.
+                        </p>
                         <details class="checkin-optional" :open="!!editCheck">
                             <summary>
                                 Optional bodyweight, recovery and notes
@@ -796,13 +825,7 @@ onMounted(() => {
                         </details>
                         <div class="form-actions">
                             <button class="button" :disabled="saving">
-                                {{
-                                    saving
-                                        ? 'Saving…'
-                                        : editCheck
-                                          ? 'Save details and view poses'
-                                          : 'Continue to pose photos'
-                                }}
+                                {{ saving ? 'Saving…' : 'Save check-in' }}
                                 ↗</button
                             ><button
                                 v-if="editCheck"
@@ -999,20 +1022,28 @@ onMounted(() => {
                     </div>
                 </section>
                 <section v-if="tab === 'workouts'">
-                    <MesocyclePanel
+                    <TrainingDayPanel
+                        ref="trainingDayPanel"
+                        v-if="selected"
+                        :key="'workout-day-' + selected"
+                        :client-id="selected"
+                        :can-log="canCheckIn"
+                        @changed="loadRecords"
+                    />
+                    <TrainingSplitPanel
                         v-if="selected"
                         :client-id="selected"
                         :exercises="exercises"
                         :can-edit="user?.role === 'coach'"
-                        @changed="loadRecords"
+                        @changed="refreshTraining"
                     />
                     <form
-                        v-if="canCheckIn"
+                        v-if="user?.role === 'coach'"
                         class="panel"
                         @submit.prevent="saveWorkout"
                     >
                         <div class="section-bar">
-                            <h2>Add an extra workout</h2>
+                            <h2>Add a coach workout</h2>
                             <span class="eyebrow"
                                 >{{ workoutForm.exercises.length }} / 10
                                 EXERCISES</span
@@ -1142,8 +1173,8 @@ onMounted(() => {
                     </div>
                     <div v-if="!workouts.length" class="empty-state">
                         <p>
-                            No sessions yet. Assigned mesocycle workouts will
-                            appear here.
+                            No sessions yet. Assigned training split workouts
+                            will appear here.
                         </p>
                     </div>
                     <article

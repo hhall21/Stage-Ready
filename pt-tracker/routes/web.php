@@ -8,12 +8,16 @@ use Inertia\Inertia;
 
 Route::inertia('/', 'Welcome')->name('home');
 Route::get('/login', function (Request $request) {
-    $next = (string) $request->query('next', '');
+    $next = $request->query('next', '');
 
-    return Inertia::render('Login', ['next' => preg_match('#^/join/[A-Za-z0-9]{64}$#', $next) ? $next : '/dashboard', 'passwordReset' => $request->boolean('reset')]);
+    return Inertia::render('Login', ['next' => is_string($next) && preg_match('#^/join/[A-Za-z0-9]{64}$#', $next) ? $next : '/dashboard', 'passwordReset' => $request->boolean('reset')]);
 })->name('login');
 Route::inertia('/forgot-password', 'ForgotPassword')->name('password.request');
-Route::get('/reset-password/{token}', fn (Request $request, string $token) => Inertia::render('ResetPassword', ['token' => $token, 'email' => (string) $request->query('email', '')]))->name('password.reset');
+Route::get('/reset-password/{token}', function (Request $request, string $token) {
+    $email = $request->query('email', '');
+
+    return Inertia::render('ResetPassword', ['token' => $token, 'email' => is_string($email) ? $email : '']);
+})->name('password.reset');
 Route::get('/join/{token}', [ClientInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:invitation-accept')->name('invitation.show');
 Route::inertia('/dashboard', 'Dashboard')
     ->middleware(['auth', 'auth.session', EnsureAccountIsActive::class])

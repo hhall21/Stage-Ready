@@ -120,15 +120,17 @@ class TrackerApiTest extends TestCase
 
     public function test_workout_limit_nested_sets_and_record_ownership(): void
     {
+        $coach = User::factory()->create(['role' => 'coach']);
         $client = User::factory()->create();
         $other = User::factory()->create();
+        TrainerClient::create(['trainer_id' => $coach->id, 'client_id' => $client->id, 'start_date' => today()]);
         $exercise = Exercise::create(['exercise_name' => 'Squat']);
         $base = "/api/clients/{$client->id}/workouts";
         $payload = [
             'workout_name' => 'Legs', 'workout_date' => '2026-10-08',
             'exercises' => array_fill(0, 10, ['exercise_id' => $exercise->id, 'sets' => [['reps' => 8, 'weight' => 60, 'rir' => 2]]]),
         ];
-        $this->actingAs($client)->postJson($base, $payload)->assertCreated()->assertJsonCount(10, 'data.workout_exercises');
+        $this->actingAs($coach)->postJson($base, $payload)->assertCreated()->assertJsonCount(10, 'data.workout_exercises');
         $workout = $client->workouts()->firstOrFail();
         $this->assertSame(10, $workout->workoutExercises()->count());
         $this->assertSame(1, $workout->workoutExercises()->first()->sets()->first()->set_number);
@@ -136,8 +138,9 @@ class TrackerApiTest extends TestCase
         $this->postJson($base, $payload)->assertUnprocessable()->assertJsonValidationErrors('exercises');
         $this->patchJson("$base/{$workout->id}", ['exercises' => $payload['exercises']])->assertUnprocessable();
         $this->assertSame(10, $workout->workoutExercises()->count());
-        $this->patchJson("$base/{$workout->id}", ['completed' => true])->assertOk()->assertJsonCount(10, 'data.workout_exercises');
-        $this->patchJson("$base/{$workout->id}", ['exercises' => [['exercise_id' => $exercise->id]]])
+        $this->actingAs($client)->patchJson("$base/{$workout->id}", ['completed' => true])->assertOk()->assertJsonCount(10, 'data.workout_exercises');
+        $this->patchJson("$base/{$workout->id}", ['completed' => false, 'exercises' => [['exercise_id' => $exercise->id]]])->assertUnprocessable();
+        $this->actingAs($coach)->patchJson("$base/{$workout->id}", ['exercises' => [['exercise_id' => $exercise->id]]])
             ->assertOk()->assertJsonCount(1, 'data.workout_exercises');
         $foreign = $other->workouts()->create(['workout_name' => 'Private', 'workout_date' => '2026-10-08']);
         $this->getJson("$base/{$foreign->id}")->assertNotFound();
