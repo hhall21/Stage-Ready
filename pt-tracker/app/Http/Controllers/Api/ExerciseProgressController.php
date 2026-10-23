@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\TrainingPerformanceContext;
+use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +33,8 @@ class ExerciseProgressController extends Controller
         $exercises = (clone $query)->select('exercises.id', 'exercises.exercise_name')->distinct()->orderBy('exercises.exercise_name')->get();
         $exerciseId = isset($data['exercise_id']) ? (int) $data['exercise_id'] : $exercises->first()?->id;
         $points = $exerciseId === null ? collect() : (clone $query)->where('exercises.id', $exerciseId)
-            ->when(isset($data['from']), fn ($query) => $query->whereDate('workouts.workout_date', '>=', $data['from']))
-            ->when(isset($data['to']), fn ($query) => $query->whereDate('workouts.workout_date', '<=', $data['to']))
+            ->when(isset($data['from']), fn ($query) => $query->where('workouts.workout_date', '>=', DateBounds::start($data['from'])))
+            ->when(isset($data['to']), fn ($query) => $query->where('workouts.workout_date', '<', DateBounds::after($data['to'])))
             ->select('workouts.id', 'workouts.workout_date', 'workouts.workout_name')
             ->selectRaw('MAX(exercise_sets.weight) as max_weight_kg, MAX(exercise_sets.reps) as max_reps, COUNT(*) as working_sets')
             ->groupBy('workouts.id', 'workouts.workout_date', 'workouts.workout_name')

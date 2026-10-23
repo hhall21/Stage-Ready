@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DateBounds;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
@@ -16,8 +17,8 @@ class BodyweightTrendController extends Controller
         $end = CarbonImmutable::today();
         $start = $end->subDays(55);
         $weights = $client->dailyCheckIns()->whereNotNull('bodyweight')
-            ->whereDate('check_in_date', '>=', $start->subDays(6)->toDateString())
-            ->whereDate('check_in_date', '<=', $end->toDateString())
+            ->where('check_in_date', '>=', DateBounds::start($start->subDays(6)->toDateString()))
+            ->where('check_in_date', '<', DateBounds::after($end->toDateString()))
             ->get()->map(fn ($record) => [
                 'date' => CarbonImmutable::parse($record->getAttribute('check_in_date'))->toDateString(),
                 'weight' => (float) $record->getAttribute('bodyweight'),

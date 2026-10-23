@@ -7,6 +7,7 @@ use App\Http\Requests\SaveWeeklyHealthReadingRequest;
 use App\Models\TrainerClient;
 use App\Models\User;
 use App\Models\WeeklyHealthReading;
+use App\Support\DateBounds;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -103,14 +104,14 @@ class WeeklyHealthController extends Controller
     private function activeAssignments(User $client): Builder
     {
         return TrainerClient::where('client_id', $client->id)->where('status', 'active')
-            ->whereDate('start_date', '<=', today()->toDateString())
+            ->where('start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('end_date')->orWhereDate('end_date', '>=', today()->toDateString()))
             ->whereHas('trainer', fn ($query) => $query->where('role', 'coach')->where('is_active', true));
     }
 
     private function checkDuplicate(User $client, string $date, ?int $except = null): void
     {
-        if (WeeklyHealthReading::where('client_id', $client->id)->whereDate('reading_date', $date)
+        if (WeeklyHealthReading::where('client_id', $client->id)->where('reading_date', '>=', DateBounds::start($date))->where('reading_date', '<', DateBounds::after($date))
             ->when($except !== null, fn ($query) => $query->whereKeyNot($except))->exists()) {
             throw ValidationException::withMessages(['reading_date' => 'A health reading already exists for this date. Edit that reading instead.']);
         }

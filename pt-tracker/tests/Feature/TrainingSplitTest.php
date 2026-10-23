@@ -7,6 +7,7 @@ use App\Models\TrainerClient;
 use App\Models\TrainingSplit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TrainingSplitTest extends TestCase
@@ -51,6 +52,29 @@ class TrainingSplitTest extends TestCase
     private function assign(?array $plan = null): int
     {
         return $this->actingAs($this->coach)->postJson($this->base.'/training-splits', $plan ?? $this->plan())->assertCreated()->json('data.id');
+    }
+
+    public function test_a_maximum_size_workout_is_materialised_in_batches_without_losing_set_details(): void
+    {
+        $entry = $this->training('Maximum workout')['exercises'][0];
+        $entry['sets'] = array_fill(0, 100, ['reps' => 8, 'weight' => null, 'rir' => 2]);
+        $plan = $this->plan();
+        $plan['days'] = [['name' => 'Maximum workout', 'is_rest_day' => false, 'exercises' => array_fill(0, 10, $entry)]];
+        $this->assign($plan);
+        DB::enableQueryLog();
+        $response = $this->actingAs($this->client)->getJson($this->base.'/training-schedule')->assertOk();
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+        $inserts = array_filter($queries, fn (array $query): bool => str_starts_with(strtolower($query['query']), 'insert '));
+        $this->assertLessThan(30, count($inserts), 'Creating 1,000 sets must use bounded batch writes.');
+        $response->assertJsonCount(10, 'data.workout.workout_exercises')
+            ->assertJsonCount(100, 'data.workout.workout_exercises.9.sets')
+            ->assertJsonPath('data.workout.workout_exercises.9.sets.99.set_number', 100)
+            ->assertJsonPath('data.workout.workout_exercises.9.sets.99.weight', null)
+            ->assertJsonPath('data.workout.workout_exercises.9.sets.99.reps', 8);
+        $this->getJson($this->base.'/training-schedule')->assertJsonPath('data.workout.id', $response->json('data.workout.id'));
+        $this->assertDatabaseCount('workouts', 1);
+        $this->assertDatabaseCount('exercise_sets', 1000);
     }
 
     public function test_calendar_counts_rest_days_wraps_and_keeps_workouts_idempotent_after_long_gaps(): void

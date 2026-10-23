@@ -7,6 +7,7 @@ use App\Http\Requests\SaveTrainingSplitRequest;
 use App\Models\TrainingSplit;
 use App\Models\User;
 use App\Services\TrainingSplitScheduler;
+use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,9 +31,9 @@ class TrainingSplitController extends Controller
             Gate::authorize('manageMesocycles', $client);
             $data = $request->validated();
             $this->checkStart($client, $data['start_date']);
-            $nextStart = TrainingSplit::where('client_id', $client->id)->whereDate('start_date', '>', $data['start_date'])->min('start_date');
-            $affected = $client->workouts()->whereNotNull('training_split_id')->whereDate('workout_date', '>=', $data['start_date'])
-                ->when($nextStart !== null, fn ($query) => $query->whereDate('workout_date', '<', $nextStart));
+            $nextStart = TrainingSplit::where('client_id', $client->id)->where('start_date', '>=', DateBounds::after($data['start_date']))->min('start_date');
+            $affected = $client->workouts()->whereNotNull('training_split_id')->where('workout_date', '>=', DateBounds::start($data['start_date']))
+                ->when($nextStart !== null, fn ($query) => $query->where('workout_date', '<', DateBounds::start($nextStart)));
             if ($affected->get()->contains(fn ($workout) => $workout->hasPerformance())) {
                 throw ValidationException::withMessages(['start_date' => 'A split already has logged workouts in this period. Start the new split after those workouts.']);
             }
@@ -89,7 +90,7 @@ class TrainingSplitController extends Controller
 
     private function checkStart(User $client, string $date, ?int $except = null): void
     {
-        if (TrainingSplit::where('client_id', $client->id)->whereDate('start_date', $date)
+        if (TrainingSplit::where('client_id', $client->id)->where('start_date', '>=', DateBounds::start($date))->where('start_date', '<', DateBounds::after($date))
             ->when($except !== null, fn ($query) => $query->whereKeyNot($except))->exists()) {
             throw ValidationException::withMessages(['start_date' => 'This client already has a split starting on that date. Edit it or choose another date.']);
         }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\DateBounds;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,16 +23,16 @@ class TrainingPerformanceContext
         $first = CarbonImmutable::parse($sessions->first()['date']);
         $last = (string) $sessions->last()['date'];
         $weights = DB::table('daily_check_ins')->where('client_id', $client->id)->whereNotNull('bodyweight')
-            ->whereDate('check_in_date', '>=', $first->subDays(13)->toDateString())->whereDate('check_in_date', '<=', $last)
+            ->where('check_in_date', '>=', DateBounds::start($first->subDays(13)->toDateString()))->where('check_in_date', '<', DateBounds::after($last))
             ->selectRaw('DATE(check_in_date) AS check_in_date, bodyweight')->get();
         $calories = DB::table('meals')->leftJoin('meal_items', 'meal_items.meal_id', '=', 'meals.id')
-            ->where('meals.client_id', $client->id)->whereDate('meals.meal_date', '>=', $first->toDateString())->whereDate('meals.meal_date', '<=', $last)
+            ->where('meals.client_id', $client->id)->where('meals.meal_date', '>=', DateBounds::start($first->toDateString()))->where('meals.meal_date', '<', DateBounds::after($last))
             ->selectRaw('DATE(meals.meal_date) AS meal_date')
             ->selectRaw('SUM(meal_items.calories) AS subtotal, COUNT(meal_items.id) AS item_count, COUNT(meal_items.calories) AS readings')
             ->selectRaw('COUNT(DISTINCT meals.id) AS meal_count, COUNT(DISTINCT CASE WHEN meal_items.id IS NOT NULL THEN meals.id END) AS meals_with_items')
             ->groupByRaw('DATE(meals.meal_date)')->get()->keyBy('meal_date');
         $plans = DB::table('nutrition_plans')->where('client_id', $client->id)->whereNull('cancelled_at')
-            ->whereDate('effective_from', '<=', $last)->orderByDesc('effective_from')->orderByDesc('id')
+            ->where('effective_from', '<', DateBounds::after($last))->orderByDesc('effective_from')->orderByDesc('id')
             ->get(['effective_from', 'training_meals']);
 
         return $sessions->map(function (array $session) use ($weights, $calories, $plans): array {

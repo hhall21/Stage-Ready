@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveMesocycleRequest;
 use App\Models\User;
 use App\Services\MesocycleScheduler;
+use App\Support\DateBounds;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +61,7 @@ class MesocycleController extends Controller
         if (CarbonImmutable::parse($data['start_date'])->diffInDays(CarbonImmutable::parse($data['end_date'])) > 365) {
             throw ValidationException::withMessages(['end_date' => 'A mesocycle can span at most one year.']);
         }
-        $query = $client->mesocycles()->whereDate('start_date', '<=', $data['end_date'])->whereDate('end_date', '>=', $data['start_date']);
+        $query = $client->mesocycles()->where('start_date', '<', DateBounds::after($data['end_date']))->where('end_date', '>=', DateBounds::start($data['start_date']));
         if ($except !== null) {
             $query->whereKeyNot($except);
         }

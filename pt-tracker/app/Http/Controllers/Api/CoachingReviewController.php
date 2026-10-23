@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CoachingReview;
 use App\Models\TrainerClient;
 use App\Models\User;
+use App\Support\DateBounds;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class CoachingReviewController extends Controller
         $schedules = $assignments->map(function (TrainerClient $assignment) use ($client) {
             $start = $assignment->review_started_on ?? $assignment->start_date;
             $latest = CoachingReview::where('client_id', $client->id)->where('coach_id', $assignment->trainer_id)
-                ->where('phase', $assignment->review_phase)->whereDate('review_date', '>=', $start)
+                ->where('phase', $assignment->review_phase)->where('review_date', '>=', DateBounds::start($start))
                 ->orderByDesc('review_date')->first();
             $interval = $assignment->review_phase === 'prep' ? 7 : 14;
             $due = Carbon::parse($latest ? $latest->review_date : $start)->addDays($interval);
@@ -36,8 +37,8 @@ class CoachingReviewController extends Controller
         $own = $assignments->firstWhere('trainer_id', $request->user()?->id);
         $days = ($own ? $own->review_phase === 'prep' : $assignments->contains('review_phase', 'prep')) ? 7 : 14;
         $from = today()->subDays($days - 1)->toDateString();
-        $checks = $client->dailyCheckIns()->whereDate('check_in_date', '>=', $from)->whereDate('check_in_date', '<=', today()->toDateString())->get();
-        $workouts = $client->workouts()->whereDate('workout_date', '>=', $from)->whereDate('workout_date', '<=', today()->toDateString())->get();
+        $checks = $client->dailyCheckIns()->where('check_in_date', '>=', DateBounds::start($from))->where('check_in_date', '<', DateBounds::after(today()->toDateString()))->get();
+        $workouts = $client->workouts()->where('workout_date', '>=', DateBounds::start($from))->where('workout_date', '<', DateBounds::after(today()->toDateString()))->get();
         $nutrition = [];
         foreach (['hunger_level', 'appetite_level', 'digestive_discomfort'] as $field) {
             $recorded = $checks->whereNotNull($field);
@@ -94,7 +95,7 @@ class CoachingReviewController extends Controller
             if ($data['review_date'] < Carbon::parse($assignment->review_started_on ?? $assignment->start_date)->toDateString()) {
                 throw ValidationException::withMessages(['review_date' => 'Choose a date in the current coaching phase.']);
             }
-            if (CoachingReview::where('client_id', $client->id)->where('coach_id', $request->user()->id)->whereDate('review_date', $data['review_date'])->exists()) {
+            if (CoachingReview::where('client_id', $client->id)->where('coach_id', $request->user()->id)->where('review_date', '>=', DateBounds::start($data['review_date']))->where('review_date', '<', DateBounds::after($data['review_date']))->exists()) {
                 throw ValidationException::withMessages(['review_date' => 'You have already published a review for this date.']);
             }
 
@@ -108,7 +109,7 @@ class CoachingReviewController extends Controller
     private function assignments(User $client): Builder
     {
         return TrainerClient::where('client_id', $client->id)->where('status', 'active')
-            ->whereDate('start_date', '<=', today()->toDateString())
+            ->where('start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('end_date')->orWhereDate('end_date', '>=', today()->toDateString()))
             ->whereHas('trainer', fn ($query) => $query->where('role', 'coach')->where('is_active', true));
     }

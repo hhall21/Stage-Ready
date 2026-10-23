@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TrainingSplit;
 use App\Models\User;
 use App\Models\Workout;
+use App\Support\DateBounds;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +15,7 @@ class TrainingSplitScheduler
 {
     public function active(User $client, CarbonImmutable $date): ?TrainingSplit
     {
-        return TrainingSplit::where('client_id', $client->id)->whereDate('start_date', '<=', $date->toDateString())
+        return TrainingSplit::where('client_id', $client->id)->where('start_date', '<', DateBounds::after($date->toDateString()))
             ->orderByDesc('start_date')->first();
     }
 
@@ -23,7 +24,7 @@ class TrainingSplitScheduler
         $anchor = CarbonImmutable::parse($split->getAttribute('start_date'))->startOfDay();
         $next = 1;
         $length = count($split->days);
-        foreach ($split->selections()->whereDate('calendar_date', '<', $date->toDateString())->orderBy('calendar_date')->get() as $selection) {
+        foreach ($split->selections()->where('calendar_date', '<', DateBounds::start($date->toDateString()))->orderBy('calendar_date')->get() as $selection) {
             $selectedDate = CarbonImmutable::parse($selection->getAttribute('calendar_date'))->startOfDay();
             $expected = ($next - 1 + (int) $anchor->diffInDays($selectedDate)) % $length + 1;
             $selected = (int) $selection->getAttribute('day_number');
@@ -42,11 +43,11 @@ class TrainingSplitScheduler
         if (! $split) {
             return null;
         }
-        $workout = $split->workouts()->whereDate('workout_date', $date)->first();
+        $workout = $split->workouts()->where('workout_date', '>=', DateBounds::start($date))->where('workout_date', '<', DateBounds::after($date))->first();
         if ($workout && ($workout->hasPerformance() || $calendarDate->lt(CarbonImmutable::today()))) {
             return 'training';
         }
-        $selection = $split->selections()->whereDate('calendar_date', $date)->first()?->getAttribute('day_number');
+        $selection = $split->selections()->where('calendar_date', '>=', DateBounds::start($date))->where('calendar_date', '<', DateBounds::after($date))->first()?->getAttribute('day_number');
         if ($selection === 0) {
             return 'rest';
         }
@@ -80,15 +81,15 @@ class TrainingSplitScheduler
             if ($dayNumber !== null && $dayNumber > count($split->days)) {
                 throw ValidationException::withMessages(['day_number' => 'Choose a day from this client’s split.']);
             }
-            $existing = $split->selections()->whereDate('calendar_date', $date)->first();
+            $existing = $split->selections()->where('calendar_date', '>=', DateBounds::start($date))->where('calendar_date', '<', DateBounds::after($date))->first();
             if (($existing === null && $dayNumber === null) || ($existing !== null && $existing->getAttribute('day_number') === $dayNumber)) {
                 return $this->stateLocked($client, $calendarDate);
             }
-            $workout = $split->workouts()->whereDate('workout_date', $date)->first();
+            $workout = $split->workouts()->where('workout_date', '>=', DateBounds::start($date))->where('workout_date', '<', DateBounds::after($date))->first();
             if ($workout?->hasPerformance()) {
                 abort(409, 'This day already has logged performance. Its workout is preserved. Choose the split day before logging performance.');
             }
-            if ($split->workouts()->whereDate('workout_date', '>', $date)->get()->contains(fn (Workout $session): bool => $session->hasPerformance())) {
+            if ($split->workouts()->where('workout_date', '>=', DateBounds::after($date))->get()->contains(fn (Workout $session): bool => $session->hasPerformance())) {
                 abort(409, 'Later workouts have already been logged. Change today’s split day instead to preserve that history.');
             }
             if ($dayNumber === null) {
@@ -102,8 +103,8 @@ class TrainingSplitScheduler
             }
             // Replace this unlogged session; later materialised sessions will be
             // recreated using the new anchor. Never delete recorded performance.
-            $split->workouts()->unlogged()->whereDate('workout_date', $date)->delete();
-            $split->workouts()->unlogged()->whereDate('workout_date', '>', $date)
+            $split->workouts()->unlogged()->where('workout_date', '>=', DateBounds::start($date))->where('workout_date', '<', DateBounds::after($date))->delete();
+            $split->workouts()->unlogged()->where('workout_date', '>=', DateBounds::after($date))
                 ->where('workout_date', '>=', today()->toDateString())->delete();
 
             return $this->stateLocked($client, $calendarDate);
@@ -116,15 +117,15 @@ class TrainingSplitScheduler
         $split = $this->active($client, $date);
         if (! $split) {
             return ['date' => $date->toDateString(), 'split' => null, 'workout' => null,
-                'next_split' => TrainingSplit::where('client_id', $client->id)->whereDate('start_date', '>', $date->toDateString())->orderBy('start_date')->first()];
+                'next_split' => TrainingSplit::where('client_id', $client->id)->where('start_date', '>=', DateBounds::after($date->toDateString()))->orderBy('start_date')->first()];
         }
         $expected = $this->expectedDay($split, $date);
-        $selection = $split->selections()->whereDate('calendar_date', $date->toDateString())->first();
+        $selection = $split->selections()->where('calendar_date', '>=', DateBounds::start($date->toDateString()))->where('calendar_date', '<', DateBounds::after($date->toDateString()))->first();
         $selected = $selection?->getAttribute('day_number');
         $number = $selected === null || $selected === 0 ? $expected : (int) $selected;
         $day = $split->days[$number - 1];
         $rest = $selected === 0 || (bool) $day['is_rest_day'];
-        $workout = $split->workouts()->whereDate('workout_date', $date->toDateString())->first();
+        $workout = $split->workouts()->where('workout_date', '>=', DateBounds::start($date->toDateString()))->where('workout_date', '<', DateBounds::after($date->toDateString()))->first();
         $locked = $workout?->hasPerformance() ?? false;
         $snapshot = $workout && ($locked || $date->lt(CarbonImmutable::today()));
         if ($snapshot) {
@@ -136,19 +137,37 @@ class TrainingSplitScheduler
                 'workout_name' => $day['name'], 'workout_date' => $date->toDateString(),
                 'split_day_number' => $number, 'notes' => $day['notes'] ?? null,
             ]);
-            foreach ($day['exercises'] as $index => $exercise) {
-                $entry = $workout->workoutExercises()->create([
-                    'exercise_id' => $exercise['exercise_id'], 'exercise_order' => $index + 1, 'notes' => $exercise['notes'] ?? null,
-                ]);
-                foreach ($exercise['sets'] as $setIndex => $set) {
-                    $entry->sets()->create([...$set, 'set_number' => $setIndex + 1]);
+            $timestamp = now()->toDateTimeString();
+            $exercises = array_values($day['exercises']);
+            $connection = $workout->getConnection();
+            $connection->table('workout_exercises')->insert(array_map(
+                fn (array $exercise, int $index): array => [
+                    'workout_id' => $workout->id, 'exercise_id' => $exercise['exercise_id'],
+                    'exercise_order' => $index + 1, 'notes' => $exercise['notes'] ?? null,
+                    'created_at' => $timestamp, 'updated_at' => $timestamp,
+                ], $exercises, array_keys($exercises),
+            ));
+            // Read generated IDs by exercise order; never assume consecutive IDs.
+            $sets = [];
+            foreach ($workout->workoutExercises()->get(['id', 'exercise_order']) as $entry) {
+                foreach ($exercises[$entry->exercise_order - 1]['sets'] as $setIndex => $set) {
+                    $sets[] = [
+                        'workout_exercise_id' => $entry->id, 'set_number' => $setIndex + 1,
+                        'reps' => $set['reps'] ?? null, 'weight' => $set['weight'] ?? null,
+                        'rir' => $set['rir'] ?? null, 'completed' => false,
+                        'created_at' => $timestamp, 'updated_at' => $timestamp,
+                    ];
                 }
+            }
+            // Fifty rows stay within SQLite's bind limit and keep MySQL writes small.
+            foreach (array_chunk($sets, 50) as $batch) {
+                $connection->table('exercise_sets')->insert($batch);
             }
         }
         $tomorrow = $date->addDay();
         $nextSplit = $this->active($client, $tomorrow);
         $nextNumber = $nextSplit ? $this->expectedDay($nextSplit, $tomorrow) : null;
-        $nextSelection = $nextSplit?->selections()->whereDate('calendar_date', $tomorrow->toDateString())->first();
+        $nextSelection = $nextSplit?->selections()->where('calendar_date', '>=', DateBounds::start($tomorrow->toDateString()))->where('calendar_date', '<', DateBounds::after($tomorrow->toDateString()))->first();
         if ($nextSelection && $nextSelection->getAttribute('day_number') !== 0) {
             $nextNumber = (int) $nextSelection->getAttribute('day_number');
         }

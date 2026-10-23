@@ -7,6 +7,7 @@ use App\Http\Requests\SaveDailyCheckInRequest;
 use App\Models\ProgressPhoto;
 use App\Models\User;
 use App\Support\CheckInPhotoCleanup;
+use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -36,7 +37,7 @@ class DailyCheckInController extends Controller
         $record = DB::transaction(function () use ($client, $data) {
             $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
-            if ($client->dailyCheckIns()->whereDate('check_in_date', $data['check_in_date'])->exists()) {
+            if ($client->dailyCheckIns()->where('check_in_date', '>=', DateBounds::start($data['check_in_date']))->where('check_in_date', '<', DateBounds::after($data['check_in_date']))->exists()) {
                 throw ValidationException::withMessages(['check_in_date' => 'A check-in already exists for this date.']);
             }
 
@@ -57,7 +58,7 @@ class DailyCheckInController extends Controller
             $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
             $record = $client->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
-            if (isset($data['check_in_date']) && $client->dailyCheckIns()->whereKeyNot($checkIn)->whereDate('check_in_date', $data['check_in_date'])->exists()) {
+            if (isset($data['check_in_date']) && $client->dailyCheckIns()->whereKeyNot($checkIn)->where('check_in_date', '>=', DateBounds::start($data['check_in_date']))->where('check_in_date', '<', DateBounds::after($data['check_in_date']))->exists()) {
                 throw ValidationException::withMessages(['check_in_date' => 'A check-in already exists for this date.']);
             }
             if (isset($data['check_in_date']) && $record->check_in_date->toDateString() !== $data['check_in_date']) {

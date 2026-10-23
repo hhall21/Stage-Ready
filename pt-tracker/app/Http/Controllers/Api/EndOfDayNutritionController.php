@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveDailyCheckInRequest;
 use App\Models\User;
+use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -20,7 +21,7 @@ class EndOfDayNutritionController extends Controller
         Gate::authorize('viewTracker', $client);
         $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today']]);
         $data['date'] ??= today()->toDateString();
-        $record = $client->dailyCheckIns()->whereDate('check_in_date', $data['date'])->first();
+        $record = $client->dailyCheckIns()->where('check_in_date', '>=', DateBounds::start($data['date']))->where('check_in_date', '<', DateBounds::after($data['date']))->first();
 
         return response()->json(['data' => $record?->only(['check_in_date', 'nutrition_completed_at', ...self::FIELDS])]);
     }
@@ -39,7 +40,7 @@ class EndOfDayNutritionController extends Controller
         $record = DB::transaction(function () use ($client, $data) {
             User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             Gate::authorize('manageCheckIns', $client);
-            $record = $client->dailyCheckIns()->whereDate('check_in_date', $data['check_in_date'])->first();
+            $record = $client->dailyCheckIns()->where('check_in_date', '>=', DateBounds::start($data['check_in_date']))->where('check_in_date', '<', DateBounds::after($data['check_in_date']))->first();
             $responses = array_merge(array_fill_keys(self::FIELDS, null), $record?->only(self::FIELDS) ?? [], Arr::only($data, self::FIELDS));
             $hasResponses = collect($responses)->contains(fn ($value) => filled($value));
             if (! $record && ! $hasResponses) {

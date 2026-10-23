@@ -28,7 +28,7 @@ class DevelopmentSampleSeederTest extends TestCase
     public function test_samples_cover_every_application_table_and_preserve_database_rules(): void
     {
         $framework = ['migrations', 'sessions', 'password_reset_tokens', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs'];
-        $applicationTables = array_values(array_diff(Schema::getTableListing(schemaQualified: false), $framework));
+        $applicationTables = array_values(array_diff(Schema::getTableListing(schema: Schema::getCurrentSchemaName(), schemaQualified: false), $framework));
         $this->assertEqualsCanonicalizing($applicationTables, DevelopmentSampleSeeder::TABLES);
         $before = [];
         foreach ($framework as $table) {
@@ -41,7 +41,11 @@ class DevelopmentSampleSeederTest extends TestCase
         foreach ($before as $table => $count) {
             $this->assertDatabaseCount($table, $count);
         }
-        $this->assertSame([], DB::select('PRAGMA foreign_key_check'));
+        if (DB::getDriverName() === 'sqlite') {
+            $this->assertSame([], DB::select('PRAGMA foreign_key_check'));
+        } else {
+            $this->assertSame(1, (int) DB::scalar('SELECT @@foreign_key_checks'));
+        }
         $this->assertSame(0, DB::table('workout_exercises')->select('workout_id')->groupBy('workout_id')->havingRaw('COUNT(*) > 10')->get()->count());
         $this->assertGreaterThan(0, DB::table('exercise_sets')->whereNull('weight')->where('completed', true)->where('reps', '>', 0)->count());
         $this->assertDatabaseHas('daily_check_ins', ['bodyweight' => null]);

@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Support\DateBounds;
 
 class UserPolicy
 {
@@ -18,7 +19,7 @@ class UserPolicy
         return $user->role === 'coach' && $user->clients()
             ->where('users.id', $client->id)
             ->wherePivot('status', 'active')
-            ->whereDate('trainer_clients.start_date', '<=', today()->toDateString())
+            ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')
                 ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()))
             ->exists();

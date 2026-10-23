@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\TrainerClient;
 use App\Models\User;
+use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class ClientController extends Controller
             ->where('users.role', 'client')
             ->where('users.is_active', true)
             ->wherePivot('status', 'active')
-            ->whereDate('trainer_clients.start_date', '<=', today()->toDateString())
+            ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')
                 ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()))
             ->orderBy('users.name')
