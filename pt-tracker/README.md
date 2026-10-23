@@ -323,6 +323,20 @@ Framework tables (sessions, password resets, cache, queues and migrations) are
 left alone. Repeating the command preserves records and edits without duplicating
 the samples. It only runs in `local` or `testing` and never sends invitations or email.
 
+To give every existing client six weeks of graph history, run:
+
+```sh
+php artisan db:seed --class=DevelopmentGraphHistorySeeder
+```
+
+This adds past weigh-ins and twelve completed sessions for each client's exercises,
+with at most ten exercises per session. It also adds fictional food logs on session
+dates so coaches can select **Logged food calories** in the calorie comparison.
+Existing check-ins, food logs, workouts and prescriptions remain unchanged,
+including blank readings. All added records are labelled as fictional samples.
+Repeating the command preserves edits and does not duplicate the history. This
+loader only runs in `local` or `testing`.
+
 Sample client emails are `sample.client01@stage-ready.test` through
 `sample.client10@stage-ready.test`, with password `password`. The loader uses the
 existing James demo coach if its public demo password still matches; otherwise it
