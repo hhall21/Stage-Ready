@@ -166,9 +166,11 @@ onMounted(load);
                         }}</span>
                     </div>
                     <p class="form-help">
-                        Your coach can use this to follow weekly blood pressure
-                        and resting heart rate. Save what you have and agree
-                        check-ins with your coach.
+                        {{
+                            isCoach
+                                ? 'Follow the client’s weekly blood pressure and resting heart rate. Review partial readings and follow up on anything missing.'
+                                : 'Record weekly blood pressure and resting heart rate for your coach. Save what you have and agree check-ins with your coach.'
+                        }}
                     </p>
                     <p v-if="state.due_on" class="form-help">
                         {{

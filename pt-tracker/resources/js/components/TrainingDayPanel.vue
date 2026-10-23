@@ -299,8 +299,12 @@ defineExpose({ reload: load });
             </template>
             <p v-else-if="state.next_split" class="form-help">
                 {{ state.next_split.name }} starts on
-                {{ displayDate(state.next_split.start_date) }}. Your first
-                workout will appear then.
+                {{ displayDate(state.next_split.start_date) }}.
+                {{
+                    canLog
+                        ? 'Your first workout will appear then.'
+                        : 'The client’s first workout will appear then.'
+                }}
             </p>
             <p v-else class="form-help">
                 {{

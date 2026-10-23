@@ -139,8 +139,11 @@ onMounted(load);
                     @change="load"
             /></label>
             <p class="form-help">
-                Your coach sets each day's work. Scheduled versions can increase
-                posing rounds as show day approaches.
+                {{
+                    coachId
+                        ? 'Prescribe the client’s daily work. Schedule later versions to increase posing rounds as show day approaches.'
+                        : 'Your coach sets each day’s work. Scheduled versions can increase posing rounds as show day approaches.'
+                }}
             </p>
         </div>
         <p v-if="loading" role="status" class="loading-message">

@@ -188,9 +188,11 @@ onMounted(load);
                 <div class="panel">
                     <h2>Written coach reviews</h2>
                     <p class="form-help">
-                        Weekly during prep. Every fourteen days in the
-                        off-season. Your daily check-ins and posing feedback
-                        remain separate.
+                        {{
+                            coachId
+                                ? 'Review the client weekly during prep and every fourteen days in the off-season. Daily check-ins and posing feedback remain separate.'
+                                : 'Weekly during prep. Every fourteen days in the off-season. Your daily check-ins and posing feedback remain separate.'
+                        }}
                     </p>
                     <p
                         v-for="schedule in visibleSchedules"

@@ -220,3 +220,16 @@ export function displayDate(value: string): string {
         year: 'numeric',
     }).format(new Date(value.slice(0, 10) + 'T12:00:00'));
 }
+
+export async function allPages<T>(url: string): Promise<T[]> {
+    const items: T[] = [];
+    let page = 1,
+        last = 1;
+    do {
+        const result = await api<Page<T>>(url + '?page=' + page);
+        items.push(...result.data);
+        last = result.last_page;
+        page++;
+    } while (page <= last);
+    return items;
+}
