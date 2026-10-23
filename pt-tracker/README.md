@@ -241,9 +241,10 @@ privacy consent, a honeypot field, and a limit of five requests per minute per I
 ## Local setup
 
 Requirements: PHP 8.4.1 or newer with the relevant database driver, Composer, and
-Node.js 22.18+ within the 22.x series, or Node.js 24.11+ with npm. The committed Composer
-lock file includes packages that require PHP 8.4.1+, even though the framework's
-base requirement is lower.
+Node.js 22.18+ within the 22.x series, or Node.js 24.11+ with npm. Composer’s PHP
+requirement and dependency-resolution platform both specify 8.4.1, matching the
+minimum required by the locked packages and avoiding rounded platform versions
+in automated updates.
 
 Run the following from the Laravel application directory, `pt-tracker`:
 
