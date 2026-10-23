@@ -7,8 +7,8 @@ bodyweight trends into one workspace. Coaches create a repeating training split
 with a start date and adjust upcoming sessions as a client's needs change.
 Clients follow their schedule and record what they actually did.
 
-The interface uses dark backgrounds, white typography, and borderless bodybuilding
-photographs that blend into the page. It adapts to desktop and mobile screens.
+The interface uses dark backgrounds, white typography, and original dark bodybuilding
+illustrations that blend into the page. It adapts to desktop and mobile screens.
 
 ## Features
 
@@ -252,21 +252,20 @@ composer install
 npm ci
 cp .env.example .env
 php artisan key:generate
-php -r "file_exists('database/database.sqlite') || copy('database/demo.sqlite', 'database/database.sqlite');"
+php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
 php artisan migrate
+php artisan db:seed
 npm run build
 php artisan serve
 ```
 
-The repository includes [`database/demo.sqlite`](database/demo.sqlite), a verified
-SQLite database containing all migrations and development sample data. Setup
-copies it to your private working database without overwriting an existing one.
-You can inspect the demo file with any SQLite database viewer. Keep the tracked
-demo file unchanged while running the website; local databases remain ignored.
+Migrations define the schema; `PtTrackerSeeder` and its fictional JSON fixtures
+provide the sample data. No database snapshot or duplicate SQL schema is shipped.
+The seed command above is for a new, empty local database only.
 
-Keep an existing
-`.env` when updating an installed project. For a database previously created from
-the supplied SQL, read [the migration notes](database/MIGRATIONS.md) before running
+Keep an existing `.env` when updating an installed project, and skip seeding.
+For a database previously created from
+legacy SQL, read [the migration notes](database/MIGRATIONS.md) before running
 migrations.
 
 Open **http://localhost:8000**.
@@ -283,6 +282,14 @@ Laravel server is running.
 The `vite` dependency is an alias for the matching Vite+ core package. Keep its
 version aligned with `vite-plus` when upgrading the build tools; the npm
 override ensures plugins use that same copy.
+
+Vite+ and its aliased core are pinned together at 1.4.0. This upgrades the bundled
+development server and testing packages past the reported security advisories
+([bundled server](https://github.com/advisories/GHSA-698v-4r3x-3vcv),
+[manual mocks](https://github.com/advisories/GHSA-qxg6-89mg-rqv8),
+[Windows paths](https://github.com/advisories/GHSA-xp26-3454-mjgp)). vue-tsc was
+upgraded and checked separately first to provide the required Vue language core.
+TypeScript stays on its existing 5.x series.
 
 ### Invitation and password reset emails
 
@@ -320,10 +327,10 @@ Sample client emails are `sample.client01@stage-ready.test` through
 existing James demo coach if its public demo password still matches; otherwise it
 creates `sample.coach@stage-ready.test` with the same demo password. Sample photos
 and clips are labelled placeholders copied to private storage. Keep this data local;
-the shared `demo.sqlite` and its original fixtures are unchanged.
+the original JSON fixtures are unchanged.
 
-The included demo database already contains the accounts below. If you chose to
-create an empty database instead, run migrations and load the sample data:
+The setup seed command creates the accounts below. To add them later to a new,
+empty local database, run:
 
 ```sh
 php artisan db:seed
@@ -366,15 +373,16 @@ pt-tracker/
 └── docs/API.md                 # Endpoint and implementation notes
 ```
 
-### Photography and branding
+### Artwork and branding
 
 The product name is **Stage-Ready** throughout the website. Project preferences
 are recorded in the workspace's `AGENTS.md`.
 
 Image imports are configured in
-[`athlete-images.ts`](resources/js/lib/athlete-images.ts). The current photographs
-are stored in `resources` and bundled by Vite. The shared image component uses
-soft edge fades and background blending to avoid visible rectangular borders.
+[`athlete-images.ts`](resources/js/lib/athlete-images.ts). The original SVG
+illustrations live in [`resources/artwork/`](resources/artwork/README.md) and are
+bundled by Vite. Dark fades blend the artwork into the page without image borders.
+The retired third-party photographs are no longer part of the current source.
 
 ## Verification
 
@@ -388,7 +396,7 @@ php vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 npm run types:check
 npm run check
 npm run build
-php database/verify-demo.php
+php database/verify-demo.php database/database.sqlite
 ```
 
 Tests cover authentication, inactive accounts, record ownership, coach assignments,
@@ -421,6 +429,12 @@ contact-enquiry API is available, but a public contact form is not yet connected
 
 See [API and implementation notes](docs/API.md) for endpoint details, CSRF handling,
 request examples, validation rules, and record-replacement behaviour.
+The [training analytics walkthrough](docs/TRAINING_ANALYTICS.md) explains one
+feature from authorization and logged sets through historical context and charts.
+
+Dashboard owns authentication, client selection and navigation. Each section
+loads its own records when mounted, owns its forms and pagination, and is reset
+when the selected client changes. Changing tabs does not fetch unrelated sections.
 
 ## Staging deployment
 

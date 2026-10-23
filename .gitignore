@@ -1,4 +1,5 @@
 # Local environment, credentials, and client databases.
+/AGENTS.local.md
 .env
 .env.*
 !.env.example
@@ -7,7 +8,6 @@
 /pt-tracker/database/*.sqlite
 /pt-tracker/database/*.sqlite-*
 /pt-tracker/database/*.db
-!/pt-tracker/database/demo.sqlite
 **/*.pem
 **/*.key
 **/*.p12

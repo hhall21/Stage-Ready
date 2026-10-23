@@ -22,7 +22,9 @@ their schedule and record their progress.
   acceptance, manage invitations, and end coaching while preserving client history.
 - **Password reset:** emailed, expiring reset links with request throttling and
   existing-session invalidation.
-- **Exercise progress:** weight and rep charts from completed logged sets, with
+- **Training analytics:** coach weight-over-time charts and weight/rep comparisons
+  against daily calories and rolling seven-day bodyweight averages. Clients retain
+  exercise progress charts from completed logged sets, with
   session readings and training volume measured in working sets.
 - **Repeating training splits:** coaches define 1–15 training/rest days and a
   start date. The correct workout appears automatically and the count wraps.
@@ -44,8 +46,8 @@ their schedule and record their progress.
 - **Protected accounts:** session authentication, CSRF protection, login rate
   limiting, role-based access, and inactive-account blocking.
 - **Contact enquiries:** a validated public API with privacy consent and spam controls.
-- **Dark visual design:** white typography and borderless bodybuilding
-  photography that blends into the page, with desktop and mobile layouts.
+- **Dark visual design:** white typography and original dark
+  bodybuilding illustrations, with desktop and mobile layouts.
 
 ## Technology
 
@@ -77,7 +79,7 @@ After following the setup guide, use these fictional sample accounts at `/login`
 These credentials are public and only for the local demo. The sample seeder is
 blocked outside `local` and `testing`. Start staging and production with an empty
 database and create real accounts with unique passwords; do not deploy the demo
-database or the reference SQL's sample records.
+database.
 
 ## Current scope
 
@@ -95,6 +97,7 @@ coaching management are available in the coach dashboard.
 
 - [Setup, features, and project structure](pt-tracker/README.md)
 - [API and implementation notes](pt-tracker/docs/API.md)
+- [Training analytics walkthrough](pt-tracker/docs/TRAINING_ANALYTICS.md)
 - [Handover PDF design and notes pagination](pt-tracker/docs/handover/README.md)
 - [Database migration guidance](pt-tracker/database/MIGRATIONS.md)
 - [Project preferences](AGENTS.md)

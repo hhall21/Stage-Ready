@@ -1,7 +1,11 @@
 <?php
 
-// Read-only checks for the shared development database; no app configuration needed.
-$database = new PDO('sqlite:file:'.__DIR__.'/demo.sqlite?mode=ro');
+// Read-only checks for an explicitly supplied generated demo database.
+$path = $argv[1] ?? null;
+if ($path === null || ! is_file($path)) {
+    throw new RuntimeException('Usage: php database/verify-demo.php /path/to/generated-demo.sqlite');
+}
+$database = new PDO('sqlite:file:'.realpath($path).'?mode=ro');
 $database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $query = static function (string $sql) use ($database): PDOStatement {
     $statement = $database->query($sql);

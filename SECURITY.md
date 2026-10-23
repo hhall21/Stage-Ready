@@ -16,12 +16,14 @@ Maintainers should enable private vulnerability reporting before publication.
   committed, even if the files have since been removed from the public history.
 - Keep populated `.env` files, local databases, uploaded photos, logs, generated
   client reports, private keys and backups out of Git. Only the blank environment
-  examples, fictional seed data and verified `database/demo.sqlite` belong here.
-- Run `php database/verify-demo.php` from `pt-tracker` before publishing any
-  change to the demo database. It must contain only fictional fixtures, with no
-  sessions, invitations, reset tokens, client uploads or other runtime records.
-- Confirm permission to redistribute the photographs bundled in `resources/`
-  and choose a repository license covering the code you own. Dependency licenses
+  examples and fictional seed data belong here; database snapshots stay ignored.
+- Generate demo data from migrations and seeders in a disposable local database.
+  Run `php database/verify-demo.php /absolute/path/to/demo.sqlite` to verify that
+  copy before using it in a demonstration. Never commit the generated database.
+- The current illustrations in `resources/artwork/` are original SVGs. Do not
+  restore third-party photographs without redistribution permission. Review old
+  commits for retired assets before publishing the history, and choose a repository
+  license covering the code you own. Dependency licenses
   and the Composer package's license field do not grant rights to photographs.
 - Enable GitHub secret scanning, push protection, dependency alerts and private
   vulnerability reporting where available. Required CI checks should pass before
@@ -67,7 +69,7 @@ These response headers do not replace upload validation, authorization or CSRF.
 ## Deploying a hosted application
 
 Making the source public and deploying the app are separate steps. Use a new
-private database for a hosted installation, not `demo.sqlite` or the sample SQL.
+private database for a hosted installation, with no demo fixtures.
 Set `APP_ENV=production`, `APP_DEBUG=false`, a fresh `APP_KEY`, the correct HTTPS
 `APP_URL` and `SESSION_SECURE_COOKIE=true`. Use unique secrets, a database account
 with only the required privileges, private upload storage outside the web root,
@@ -88,7 +90,7 @@ composer audit --locked
 npm audit
 composer ci:check
 npm run build
-php database/verify-demo.php
+php database/verify-demo.php database/database.sqlite
 ```
 
 Automated tests and dependency/secret scans reduce risk but are not a guarantee

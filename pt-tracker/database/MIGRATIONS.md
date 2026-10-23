@@ -1,5 +1,10 @@
 # Stage-Ready migrations
 
+The calendar-query migration adds client/date indexes to workouts, meals and
+legacy mesocycles. Run `php artisan migrate`; it preserves all records. Calendar
+filters now compare bound day boundaries directly, so both MySQL DATE values and
+SQLite midnight timestamps work without wrapping indexed columns in `DATE()`.
+
 The end-of-day nutrition migration adds a nullable completion timestamp. Existing
 responses are preserved; completion is recorded when clients save the separate
 end-of-day form. Apply with `php artisan migrate`.
@@ -20,12 +25,10 @@ existing installation. Monitoring starts disabled; existing records are preserve
 Ending coaching clears that assignment's monitoring requirement without deleting
 the client's readings.
 
-`demo.sqlite` is the shared development database, generated from the migrations
-and `PtTrackerSeeder` sample records, with no local sessions or enquiries.
-Copy it to `database.sqlite` for local use (see the application README), then run
-`php artisan migrate` to apply any newer migrations. Never copy over an existing
-working database that contains records you want to keep. Do not run `db:seed`
-on the already-seeded copy.
+Migrations are the schema source of truth. New local installations create an
+empty ignored `database.sqlite`, run `php artisan migrate`, then load fictional
+fixtures with `php artisan db:seed`. No database snapshot is tracked. Never seed
+over existing client records or use destructive resets on a working database.
 
 The client-onboarding migration adds the invitation table. Run `php artisan migrate`
 on an existing installation to enable invitations; it preserves existing records.
@@ -40,20 +43,11 @@ preserved. Legacy photos have no pose key and do not satisfy the named-pose
 submission requirement. Existing check-ins start as drafts. Named pose keys are
 unique per check-in; legacy records with a null pose key may still coexist.
 
-The migrations translate the table definitions in `../../CREATE AND INSERTS.sql`.
-They include column lengths, decimal precision, nullability, defaults, named foreign
-keys, delete actions, and composite unique constraints. Laravel's existing users,
-password reset, session, cache, jobs, and contact enquiry migrations are retained.
-The tracker user fields are added in a separate migration. The user factory now
-supplies the required client role.
-
-Clients are stored in `users` with role `client`. The earlier `create_clients_table`
-placeholder now does nothing. If it was already run, any existing `clients` table
-is left untouched.
-
-The SQL defines `phases_name` but its INSERT uses `phase_name`. These migrations
-use `phase_name`. The `cycle_entries.cycle_id` name is preserved and references
-`phases.id`, as in the SQL. Sample INSERT data is not imported by migrations.
+The current migrations define table types, precision, nullability, foreign keys,
+delete actions and unique constraints. The earlier SQL dump and unused migration
+drafts have been retired. Sample data lives only in seeders and their JSON fixture.
+Clients are users with the client role; an earlier clients-table placeholder
+migration remains a no-op for compatibility with existing migration histories.
 
 ## Running on a new, empty database
 
@@ -87,5 +81,5 @@ migration as applied: that could hide missing columns or tables.
 For disposable development data only, once all definitions are ready and the
 target connection has been checked, `php artisan migrate:fresh` rebuilds the
 database. It deletes ALL tables and data on that connection, including tables
-without migration files. The SQL INSERT data would need to be imported separately
-or converted into seeders.
+without migration files. Load fictional fixtures with the local-only seeders
+only after verifying the target.

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650">
+  <defs>
+    <radialGradient id="glow"><stop stop-color="#394a48" stop-opacity=".5"/><stop offset="1" stop-color="#050505" stop-opacity="0"/></radialGradient>
+    <linearGradient id="steel" x1="0" x2="1"><stop stop-color="#101214"/><stop offset=".48" stop-color="#737d7e"/><stop offset=".55" stop-color="#252d30"/><stop offset="1" stop-color="#080a0b"/></linearGradient>
+    <linearGradient id="plate"><stop stop-color="#3d4749"/><stop offset=".45" stop-color="#151b1e"/><stop offset="1" stop-color="#050607"/></linearGradient>
+    <linearGradient id="fade" x2="0" y2="1"><stop offset=".5" stop-color="#050505" stop-opacity="0"/><stop offset="1" stop-color="#050505"/></linearGradient>
+  </defs>
+  <path fill="#050505" d="M0 0h1000v650H0z"/><ellipse cx="570" cy="310" rx="500" ry="330" fill="url(#glow)"/>
+  <g transform="translate(120 70) rotate(-17 400 300)">
+    <rect x="40" y="280" width="740" height="30" rx="8" fill="url(#steel)"/>
+    <g fill="url(#plate)" stroke="#a7b5b6" stroke-opacity=".15" stroke-width="2">
+      <rect x="160" y="120" width="70" height="350" rx="24"/><rect x="105" y="150" width="50" height="290" rx="18"/><rect x="65" y="185" width="35" height="220" rx="13"/>
+      <rect x="570" y="120" width="70" height="350" rx="24"/><rect x="645" y="150" width="50" height="290" rx="18"/><rect x="700" y="185" width="35" height="220" rx="13"/>
+    </g>
+    <path d="M249 286h301m-301 17h301" stroke="#c6d4d2" stroke-opacity=".25"/>
+    <path d="M184 150v290m410-290v290" stroke="#6afbf0" stroke-opacity=".24" stroke-width="2"/>
+  </g>
+  <path fill="url(#fade)" d="M0 0h1000v650H0z"/>
+</svg>

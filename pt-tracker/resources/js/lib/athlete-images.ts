@@ -1,17 +1,14 @@
-import hero from '../../levronemmside.jpg';
-import login from '../../frankzanefront.jpg';
-import dashboard from '../../bb1back.webp';
-import detail from '../../levronethreequarter.jpg';
-import front from '../../levronefront.jpg';
+import athlete from '../../artwork/stage-athlete.svg';
+import equipment from '../../artwork/training-equipment.svg';
 
-// Vite publishes these resource images with versioned asset URLs.
+// Original Stage-Ready artwork, published with versioned asset URLs.
 export const athleteImages: Record<
     'hero' | 'login' | 'dashboard' | 'detail' | 'front',
     string | null
 > = {
-    hero,
-    login,
-    dashboard,
-    detail,
-    front,
+    hero: athlete,
+    login: athlete,
+    dashboard: equipment,
+    detail: equipment,
+    front: athlete,
 };

@@ -52,7 +52,9 @@ jobs:
           npm audit
 
       - name: Verify the public demo contains only sample data
-        run: php database/verify-demo.php
+        run: |
+          APP_ENV=testing php artisan db:seed --class=PtTrackerSeeder --force
+          php database/verify-demo.php database/database.sqlite
 
       - name: Run CI Checks
         run: composer ci:check

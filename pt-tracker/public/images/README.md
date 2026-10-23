@@ -1,6 +1,5 @@
-Add dark-background bodybuilding photographs here. Set the hero, login and
-dashboard URLs in resources/js/lib/athlete-images.ts (for example,
-/images/hero.webp). Use near-black backgrounds; CSS fades the edges into the
-page without a border. Recommended: portrait hero/login images at least 1200px
-tall and a landscape dashboard crop. Images are decorative and do not replace
-any interface text. Empty slots keep their layout without broken images.
+# Decorative assets
+
+Stage-Ready uses original SVG artwork from `resources/artwork/`, imported through
+`resources/js/lib/athlete-images.ts`. Do not bundle third-party photographs without
+a documented redistribution licence. Client pose photos remain private uploads.
