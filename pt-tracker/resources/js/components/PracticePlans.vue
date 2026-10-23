@@ -262,7 +262,7 @@ onMounted(load);
                             :min="localDate()"
                             required /></label
                     ><label
-                        >Show date (optional)<input
+                        >Show date<input
                             v-model="form.show_date"
                             type="date"
                             :min="form.effective_from"

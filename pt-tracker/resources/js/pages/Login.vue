@@ -36,7 +36,7 @@ async function login() {
     <Head title="Member login" />
     <SiteHeader />
     <main class="login-layout">
-        <section class="login-copy">
+        <section class="login-copy" data-section="overview">
             <p class="eyebrow">YOUR TRAINING SPACE</p>
             <h1>WELCOME<br /><span class="outline-text">BACK.</span></h1>
             <JordanPetersQuote :quote="jordanPetersQuotes.patience" />

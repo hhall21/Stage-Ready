@@ -246,8 +246,8 @@ watch(
             <p class="form-help">
                 Up to 60 logged sessions, ordered from oldest to newest. Only
                 completed working sets with at least one rep are included. A
-                recorded weight is optional. Weight and rep records can come
-                from different sets.
+                completed set counts towards volume without a recorded weight.
+                Weight and rep records can come from different sets.
             </p>
             <details class="progress-history">
                 <summary>View session readings</summary>

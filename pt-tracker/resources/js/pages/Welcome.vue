@@ -5,13 +5,14 @@ import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
 import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
+import { vReveal } from '@/lib/motion';
 </script>
 <template>
     <Head title="Training with purpose" />
     <div class="public-page">
         <SiteHeader />
         <main>
-            <section class="hero">
+            <section class="hero" data-section="workouts">
                 <div class="hero-copy">
                     <p class="eyebrow">
                         <span class="status-dot"></span> PERSONAL TRAINING /
@@ -42,8 +43,8 @@ import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
                 </div>
                 <AthleteVisual :src="athleteImages.hero" />
             </section>
-            <section id="approach" class="approach">
-                <div class="section-heading">
+            <section id="approach" class="approach" data-section="progress">
+                <div v-reveal class="section-heading">
                     <p class="eyebrow">THE APPROACH</p>
                     <h2>Every detail.<br />One direction.</h2>
                     <p>
@@ -52,7 +53,7 @@ import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
                     </p>
                 </div>
                 <div class="approach-grid">
-                    <article>
+                    <article v-reveal data-section="workouts">
                         <span class="number">01</span>
                         <h3>Train with intent.</h3>
                         <p>
@@ -60,7 +61,7 @@ import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
                             training space.
                         </p>
                     </article>
-                    <article>
+                    <article v-reveal data-section="progress">
                         <span class="number">02</span>
                         <h3>Know your progress.</h3>
                         <p>
@@ -68,7 +69,7 @@ import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
                             your consistency adds up.
                         </p>
                     </article>
-                    <article>
+                    <article v-reveal data-section="reviews">
                         <span class="number">03</span>
                         <h3>Stay connected.</h3>
                         <p>
@@ -78,7 +79,7 @@ import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
                     </article>
                 </div>
             </section>
-            <section class="closing">
+            <section v-reveal class="closing" data-section="reviews">
                 <div class="athlete-gallery">
                     <AthleteVisual :src="athleteImages.detail" />
                     <AthleteVisual :src="athleteImages.front" />

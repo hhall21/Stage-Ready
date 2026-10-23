@@ -327,7 +327,7 @@ onMounted(load);
                             />
                         </label>
                         <details>
-                            <summary>Optional meal calories and macros</summary>
+                            <summary>Meal calories and macros</summary>
                             <div class="form-grid">
                                 <label
                                     v-for="macro in macroFields"

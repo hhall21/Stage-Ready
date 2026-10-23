@@ -209,6 +209,19 @@ across the latest 60 logged sessions, plus an accessible table of readings.
 - Weight and rep records may come from different sets in the same session.
 - Clients and their current coaches can view the charts.
 
+Coaches use **Training analytics** to view weight over calendar time and compare
+both weight and reps against daily calories or rolling seven-day average
+bodyweight. Select an exercise and history range, then hover, tap or focus a chart
+point to inspect the session. A readings table includes missing values and counts.
+
+Calorie comparisons can use the training-day prescription effective on each
+session date or food calories logged for that date. Logged food may cover only
+part of a day; incomplete calorie entries are shown as subtotals and excluded
+from the calorie plots. Bodyweight averages use that session date and the six
+preceding days, with weigh-in counts and a comparison to seven days earlier.
+Missing readings remain missing. Clients retain their existing Exercise Progress
+view. These comparisons use existing records and do not require a migration.
+
 ### Contact enquiries
 
 A public API accepts prospective-client enquiries with validation, required
@@ -287,6 +300,27 @@ with your own account before inviting clients. Keep credentials in the local
 environment file.
 
 ### Sample accounts
+
+To add richer samples to an existing local database without clearing its records, run:
+
+```sh
+php artisan db:seed --class=DevelopmentSampleSeeder
+```
+
+This adds ten fictional client scenarios across all 27 application tables, including
+training splits, legacy programs, logged sets, meals, prescriptions, reviews,
+invitations and enquiries. Related detail tables can contain more than ten rows.
+The first sample client has ten days of check-ins for a useful bodyweight trend.
+Framework tables (sessions, password resets, cache, queues and migrations) are
+left alone. Repeating the command preserves records and edits without duplicating
+the samples. It only runs in `local` or `testing` and never sends invitations or email.
+
+Sample client emails are `sample.client01@stage-ready.test` through
+`sample.client10@stage-ready.test`, with password `password`. The loader uses the
+existing James demo coach if its public demo password still matches; otherwise it
+creates `sample.coach@stage-ready.test` with the same demo password. Sample photos
+and clips are labelled placeholders copied to private storage. Keep this data local;
+the shared `demo.sqlite` and its original fixtures are unchanged.
 
 The included demo database already contains the accounts below. If you chose to
 create an empty database instead, run migrations and load the sample data:

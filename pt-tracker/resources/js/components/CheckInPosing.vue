@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import SlidePanel from '@/components/SlidePanel.vue';
+import { motionScrollBehavior } from '@/lib/motion';
 import { api, ApiError, displayDate, message } from '@/lib/tracker-api';
 import type { CheckIn, CheckInPosing, TrackerUser } from '@/lib/tracker-api';
 
@@ -329,7 +331,10 @@ watch(
         if (!data.value) await load();
         await nextTick();
         if (alive)
-            panel.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            panel.value?.scrollIntoView({
+                behavior: motionScrollBehavior(),
+                block: 'start',
+            });
     },
     { immediate: true },
 );
@@ -347,7 +352,7 @@ onBeforeUnmount(() => {
                 <span class="status-pill">{{ status }}</span>
                 <span class="posing-count"
                     >{{ photoCount }} photos<template v-if="data">
-                        · all {{ poses.length }} poses optional</template
+                        · {{ poses.length }} poses</template
                     ></span
                 >
             </div>
@@ -365,7 +370,7 @@ onBeforeUnmount(() => {
                 }}
             </button>
         </div>
-        <div v-show="open" :id="'posing-' + checkIn.id">
+        <SlidePanel :open="open" :id="'posing-' + checkIn.id">
             <p v-if="error" class="notice" role="alert">{{ error }}</p>
             <p v-if="success" class="notice" role="status">{{ success }}</p>
             <p v-if="loading" class="loading-message" role="status">
@@ -389,11 +394,10 @@ onBeforeUnmount(() => {
                             are resized for clear check-ins and smaller uploads.
                         </p>
                         <p v-if="isClient" class="form-help">
-                            Every pose is optional. Upload any photos you want
-                            to share, or submit without photos. Your coach can
-                            follow up on anything left blank. Replacing or
-                            removing a photo requires a fresh submission and
-                            review.
+                            Upload any photos you want to share, or submit
+                            without photos. Your coach can follow up on anything
+                            left blank. Replacing or removing a photo requires a
+                            fresh submission and review.
                         </p>
                     </div>
                     <button
@@ -406,7 +410,7 @@ onBeforeUnmount(() => {
                     </button>
                 </div>
                 <p v-if="missing.length" class="form-help">
-                    Not uploaded (optional):
+                    Not uploaded:
                     {{ missing.map((pose) => pose.label).join(', ') }}.
                 </p>
                 <div class="posing-grid">
@@ -416,7 +420,6 @@ onBeforeUnmount(() => {
                         class="pose-card"
                     >
                         <h5>{{ pose.label }}</h5>
-                        <span class="form-help">Optional photo</span>
                         <template v-if="photoFor(pose.key)">
                             <a
                                 :href="imageUrl(photoFor(pose.key)!)"
@@ -435,13 +438,7 @@ onBeforeUnmount(() => {
                             </a>
                             <span class="form-help">Uploaded</span>
                         </template>
-                        <p v-else class="pose-placeholder">
-                            {{
-                                isClient
-                                    ? 'Optional — add if you wish'
-                                    : 'Not uploaded'
-                            }}
-                        </p>
+                        <p v-else class="pose-placeholder">Not uploaded</p>
                         <template v-if="isClient">
                             <label class="pose-file-label"
                                 >{{
@@ -573,7 +570,7 @@ onBeforeUnmount(() => {
                         {{
                             data.submitted_at
                                 ? 'This photo set is ready for your coach to review.'
-                                : 'Submit whenever you are ready to request a review. Every pose photo is optional.'
+                                : 'Submit whenever you are ready to request a review.'
                         }}
                     </p>
                     <p
@@ -670,7 +667,7 @@ onBeforeUnmount(() => {
                         >
                         <template v-if="review.is_competition_prep">
                             <label
-                                >Flatness (1–10, optional)<input
+                                >Flatness (1–10)<input
                                     v-model.number="review.flatness_rating"
                                     type="number"
                                     min="1"
@@ -684,7 +681,7 @@ onBeforeUnmount(() => {
                                 ></label
                             >
                             <label
-                                >Fullness (1–10, optional)<input
+                                >Fullness (1–10)<input
                                     v-model.number="review.fullness_rating"
                                     type="number"
                                     min="1"
@@ -729,6 +726,6 @@ onBeforeUnmount(() => {
                     </button>
                 </form>
             </template>
-        </div>
+        </SlidePanel>
     </section>
 </template>

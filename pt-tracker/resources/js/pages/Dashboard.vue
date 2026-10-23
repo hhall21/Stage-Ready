@@ -8,6 +8,7 @@ import ClientManagement from '@/components/ClientManagement.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
 import EndOfDayNutrition from '@/components/EndOfDayNutrition.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
+import TrainingAnalytics from '@/components/TrainingAnalytics.vue';
 import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import TrainingDayPanel from '@/components/TrainingDayPanel.vue';
 import TrainingSplitPanel from '@/components/TrainingSplitPanel.vue';
@@ -17,6 +18,7 @@ import SiteHeader from '@/components/SiteHeader.vue';
 import WeeklyHealth from '@/components/WeeklyHealth.vue';
 import { athleteImages } from '@/lib/athlete-images';
 import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
+import { motionScrollBehavior, vReveal } from '@/lib/motion';
 import {
     api,
     ApiError,
@@ -53,7 +55,14 @@ const navigation = computed<
     { id: 'overview', label: 'Overview', number: '01' },
     { id: 'checkins', label: 'Daily check-ins', number: '02' },
     { id: 'workouts', label: 'Workouts', number: '03' },
-    { id: 'progress', label: 'Exercise progress', number: '04' },
+    {
+        id: 'progress',
+        label:
+            user.value?.role === 'coach'
+                ? 'Training analytics'
+                : 'Exercise progress',
+        number: '04',
+    },
     { id: 'health', label: 'Weekly health', number: '05' },
     { id: 'nutrition', label: 'Meal plans', number: '06' },
     { id: 'practice', label: 'Cardio and practice', number: '07' },
@@ -94,8 +103,7 @@ const checkForm = reactive<Record<string, string | number | null>>({
     water_litres: '',
     notes: '',
 });
-const fields = [
-    { key: 'bodyweight', label: 'Bodyweight (kg)', max: 999.99, step: '0.01' },
+const recoveryFields = [
     { key: 'sleep_hours', label: 'Sleep (hours)', max: 24, step: '0.25' },
     {
         key: 'sleep_quality',
@@ -295,10 +303,10 @@ function resetCheck() {
         checkForm[key] = key === 'check_in_date' ? localDate() : '';
     });
 }
-function hasOptionalDetails(record: CheckIn) {
+function hasRecoveryDetails(record: CheckIn) {
     return (
         !!record.notes ||
-        fields.some(({ key }) => {
+        recoveryFields.some(({ key }) => {
             const value = record[key as keyof CheckIn];
             return value !== null && value !== undefined && value !== '';
         })
@@ -314,7 +322,7 @@ function edit(record: CheckIn) {
     tab.value = 'checkins';
     document
         .getElementById('check-form')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        ?.scrollIntoView({ behavior: motionScrollBehavior(), block: 'start' });
 }
 async function saveCheck() {
     saving.value = true;
@@ -500,6 +508,7 @@ onMounted(() => {
                 <button
                     v-for="item in navigation"
                     :key="item.id"
+                    :data-section="item.id"
                     :class="{ active: tab === item.id }"
                     :aria-current="tab === item.id ? 'page' : undefined"
                     @click="selectTab(item.id)"
@@ -516,7 +525,7 @@ onMounted(() => {
                 />
             </div>
         </aside>
-        <main class="dashboard-main">
+        <main class="dashboard-main" :data-section="tab">
             <div class="workspace-heading">
                 <div>
                     <p class="eyebrow">
@@ -526,7 +535,7 @@ onMounted(() => {
                                 : 'YOUR DAILY STANDARD'
                         }}
                     </p>
-                    <h1>
+                    <h1 :key="tab" class="workspace-title">
                         {{
                             tab === 'overview'
                                 ? 'Let’s get to work.'
@@ -597,6 +606,7 @@ onMounted(() => {
                 >
             </div>
             <ClientManagement
+                data-section="clients"
                 v-if="user?.role === 'coach' && tab === 'clients'"
                 :clients="clients"
                 @changed="refreshClients"
@@ -627,24 +637,28 @@ onMounted(() => {
             </div>
             <template v-else>
                 <NutritionPlans
+                    data-section="nutrition"
                     v-if="tab === 'nutrition' && selected"
                     :key="'nutrition-' + selected"
                     :client-id="selected"
                     :coach-id="user?.role === 'coach' ? user.id : null"
                 />
                 <PracticePlans
+                    data-section="practice"
                     v-if="tab === 'practice' && selected"
                     :key="'practice-' + selected"
                     :client-id="selected"
                     :coach-id="user?.role === 'coach' ? user.id : null"
                 />
                 <CoachingReviews
+                    data-section="reviews"
                     v-if="tab === 'reviews' && selected"
                     :key="'reviews-' + selected"
                     :client-id="selected"
                     :coach-id="user?.role === 'coach' ? user.id : null"
                 />
                 <CoachingReviews
+                    data-section="reviews"
                     v-if="tab === 'overview' && selected"
                     :key="'review-summary-' + selected"
                     :client-id="selected"
@@ -653,12 +667,14 @@ onMounted(() => {
                     @open="selectTab('reviews')"
                 />
                 <WeeklyHealth
+                    data-section="health"
                     v-if="tab === 'health' && selected"
                     :key="'health-' + selected"
                     :client-id="selected"
                     :is-coach="user?.role === 'coach'"
                 />
                 <WeeklyHealth
+                    data-section="health"
                     v-if="tab === 'overview' && selected"
                     :key="'health-summary-' + selected"
                     :client-id="selected"
@@ -666,12 +682,22 @@ onMounted(() => {
                     compact
                     @open="selectTab('health')"
                 />
+                <TrainingAnalytics
+                    data-section="progress"
+                    v-if="
+                        tab === 'progress' && selected && user?.role === 'coach'
+                    "
+                    :key="'analytics-' + selected"
+                    :client-id="selected"
+                />
                 <ExerciseProgress
-                    v-if="tab === 'progress' && selected"
+                    data-section="progress"
+                    v-else-if="tab === 'progress' && selected"
                     :client-id="selected"
                 />
                 <section v-if="tab === 'overview'">
                     <TrainingDayPanel
+                        data-section="workouts"
                         ref="trainingDayPanel"
                         v-if="selected"
                         :key="'today-' + selected"
@@ -704,19 +730,22 @@ onMounted(() => {
                         </div>
                         <AthleteVisual compact :src="athleteImages.dashboard" />
                     </div>
-                    <BodyweightTrend :points="weightPoints" />
+                    <BodyweightTrend
+                        data-section="progress"
+                        :points="weightPoints"
+                    />
                     <div class="stats-grid">
-                        <article>
+                        <article v-reveal data-section="checkins">
                             <p class="eyebrow">POSING CHECK-INS</p>
                             <strong>{{ checkTotal }}</strong
                             ><span>Daily entries, including drafts</span>
                         </article>
-                        <article>
+                        <article v-reveal data-section="workouts">
                             <p class="eyebrow">WORKOUTS</p>
                             <strong>{{ workoutTotal }}</strong
                             ><span>Sessions in your training log</span>
                         </article>
-                        <article>
+                        <article v-reveal data-section="progress">
                             <p class="eyebrow">LATEST BODYWEIGHT</p>
                             <strong
                                 >{{ latest?.bodyweight ?? '—'
@@ -726,11 +755,11 @@ onMounted(() => {
                             ><span>{{
                                 latest
                                     ? displayDate(latest.check_in_date)
-                                    : 'Add an optional weigh-in'
+                                    : 'Add a weigh-in'
                             }}</span>
                         </article>
                     </div>
-                    <div class="section-bar">
+                    <div class="section-bar" data-section="workouts">
                         <h2>Scheduled training</h2>
                         <button class="text-link" @click="tab = 'workouts'">
                             View workouts ↗
@@ -760,6 +789,7 @@ onMounted(() => {
                 </section>
                 <section v-show="tab === 'checkins'">
                     <EndOfDayNutrition
+                        data-section="nutrition"
                         v-if="selected"
                         :key="'nutrition-check-in-' + selected"
                         :client-id="selected"
@@ -780,13 +810,11 @@ onMounted(() => {
                                         : 'Your daily posing check-in'
                                 }}
                             </h2>
-                            <span class="eyebrow">ALL FIELDS OPTIONAL</span>
                         </div>
                         <p class="form-help checkin-form-help">
-                            Share whatever you want to record. Bodyweight,
-                            recovery, notes and every pose photo are optional.
-                            Your coach can follow up on your check-ins. Save
-                            nutrition separately at the end of your day.
+                            Share what you want to record. Your coach can follow
+                            up on your check-ins. Save nutrition separately at
+                            the end of your day.
                         </p>
                         <div class="form-grid">
                             <label
@@ -794,17 +822,26 @@ onMounted(() => {
                                     v-model="checkForm.check_in_date"
                                     type="date"
                             /></label>
+                            <label
+                                >Bodyweight (kg)<input
+                                    v-model.number="checkForm.bodyweight"
+                                    type="number"
+                                    min="0"
+                                    max="999.99"
+                                    step="0.01"
+                                    placeholder="—"
+                            /></label>
                         </div>
                         <p class="form-help">
                             Leave the date blank to use today, or keep the
                             original date when editing.
                         </p>
-                        <details class="checkin-optional" :open="!!editCheck">
-                            <summary>
-                                Optional bodyweight, recovery and notes
-                            </summary>
+                        <details class="checkin-details" :open="!!editCheck">
+                            <summary>Recovery and notes</summary>
                             <div class="form-grid">
-                                <label v-for="field in fields" :key="field.key"
+                                <label
+                                    v-for="field in recoveryFields"
+                                    :key="field.key"
                                     >{{ field.label
                                     }}<input
                                         v-model.number="checkForm[field.key]"
@@ -901,6 +938,15 @@ onMounted(() => {
                                 </button>
                             </div>
                         </div>
+                        <div class="checkin-values">
+                            <span
+                                >Bodyweight<strong>{{
+                                    record.bodyweight === null
+                                        ? 'Not recorded'
+                                        : record.bodyweight + ' kg'
+                                }}</strong></span
+                            >
+                        </div>
                         <CheckInPosing
                             v-if="selected && user"
                             :key="selected + ':' + record.id"
@@ -911,20 +957,12 @@ onMounted(() => {
                             @updated="Object.assign(record, $event)"
                         />
                         <details
-                            v-if="hasOptionalDetails(record)"
-                            class="checkin-optional"
+                            v-if="hasRecoveryDetails(record)"
+                            class="checkin-details"
                         >
-                            <summary>Bodyweight, recovery and notes</summary>
+                            <summary>Recovery and notes</summary>
                             <div class="checkin-values">
                                 <span
-                                    >Weight
-                                    <strong
-                                        >{{
-                                            record.bodyweight ?? '—'
-                                        }}
-                                        kg</strong
-                                    ></span
-                                ><span
                                     >Sleep
                                     <strong
                                         >{{
@@ -974,7 +1012,7 @@ onMounted(() => {
                         </details>
                         <details
                             v-if="hasNutrition(record)"
-                            class="checkin-optional"
+                            class="checkin-details"
                             open
                         >
                             <summary>End-of-day nutrition responses</summary>
@@ -1124,7 +1162,7 @@ onMounted(() => {
                                         min="0"
                                         max="99999.99"
                                         step="0.01"
-                                        placeholder="Optional" /></label
+                                        placeholder="—" /></label
                                 ><label
                                     >Reps in reserve<input
                                         v-model.number="row.rir"
@@ -1132,7 +1170,7 @@ onMounted(() => {
                                         min="0"
                                         max="99.9"
                                         step="0.1"
-                                        placeholder="Optional"
+                                        placeholder="—"
                                 /></label>
                             </div>
                         </div>

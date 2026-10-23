@@ -4,17 +4,26 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TrainingPerformanceContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 
 class ExerciseProgressController extends Controller
 {
-    public function __invoke(Request $request, User $client): JsonResponse
+    public function __invoke(Request $request, User $client, TrainingPerformanceContext $context): JsonResponse
     {
         Gate::authorize('viewTracker', $client);
-        $data = $request->validate(['exercise_id' => ['nullable', 'integer', 'exists:exercises,id']]);
+        $data = $request->validate([
+            'exercise_id' => ['nullable', 'integer', 'exists:exercises,id'],
+            'from' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+        ]);
+        if (isset($data['from'], $data['to']) && $data['from'] > $data['to']) {
+            throw ValidationException::withMessages(['to' => 'The end date must be on or after the start date.']);
+        }
         $query = DB::table('exercise_sets')->join('workout_exercises', 'workout_exercises.id', '=', 'exercise_sets.workout_exercise_id')
             ->join('workouts', 'workouts.id', '=', 'workout_exercises.workout_id')
             ->join('exercises', 'exercises.id', '=', 'workout_exercises.exercise_id')
@@ -23,6 +32,8 @@ class ExerciseProgressController extends Controller
         $exercises = (clone $query)->select('exercises.id', 'exercises.exercise_name')->distinct()->orderBy('exercises.exercise_name')->get();
         $exerciseId = isset($data['exercise_id']) ? (int) $data['exercise_id'] : $exercises->first()?->id;
         $points = $exerciseId === null ? collect() : (clone $query)->where('exercises.id', $exerciseId)
+            ->when(isset($data['from']), fn ($query) => $query->whereDate('workouts.workout_date', '>=', $data['from']))
+            ->when(isset($data['to']), fn ($query) => $query->whereDate('workouts.workout_date', '<=', $data['to']))
             ->select('workouts.id', 'workouts.workout_date', 'workouts.workout_name')
             ->selectRaw('MAX(exercise_sets.weight) as max_weight_kg, MAX(exercise_sets.reps) as max_reps, COUNT(*) as working_sets')
             ->groupBy('workouts.id', 'workouts.workout_date', 'workouts.workout_name')
@@ -31,6 +42,10 @@ class ExerciseProgressController extends Controller
                 'max_weight_kg' => $point->max_weight_kg === null ? null : round((float) $point->max_weight_kg, 2), 'max_reps' => (int) $point->max_reps,
                 'working_sets' => (int) $point->working_sets]);
 
-        return response()->json(['exercises' => $exercises, 'exercise_id' => $exerciseId, 'data' => $points]);
+        if ($request->user()?->role === 'coach') {
+            $points = $context->attach($client, $points);
+        }
+
+        return response()->json(['exercises' => $exercises, 'exercise_id' => $exerciseId, 'data' => $points, 'session_limit' => 60]);
     }
 }

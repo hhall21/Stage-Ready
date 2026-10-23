@@ -78,6 +78,32 @@
     --ink: #050505;
     --surface: var(--ink);
     --line: #292929;
+    --accent-sand: #fbc374;
+    --accent-teal: #6afbf0;
+    --accent-lilac: #bb92fc;
+    --accent-sage: #8bfb6a;
+    --accent-blue: #83bcfc;
+    --section-accent: var(--accent-sand);
+    --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-section='overview'],
+[data-section='workouts'],
+[data-section='practice'] {
+    --section-accent: var(--accent-sand);
+}
+[data-section='progress'] {
+    --section-accent: var(--accent-teal);
+}
+[data-section='checkins'],
+[data-section='reviews'] {
+    --section-accent: var(--accent-lilac);
+}
+[data-section='health'],
+[data-section='nutrition'] {
+    --section-accent: var(--accent-sage);
+}
+[data-section='clients'] {
+    --section-accent: var(--accent-blue);
 }
 .trend-stats {
     display: flex;
@@ -267,7 +293,8 @@ textarea:focus-visible {
     letter-spacing: 0.03em;
     transition:
         background 0.2s,
-        border-color 0.2s;
+        border-color 0.2s,
+        transform 0.2s var(--motion-ease);
 }
 .button:hover:not(:disabled) {
     background: #383838;
@@ -303,7 +330,7 @@ textarea:focus-visible {
     display: inline-block;
     width: 6px;
     height: 6px;
-    background: #fff;
+    background: var(--section-accent);
     border-radius: 50%;
     margin-right: 9px;
 }
@@ -444,6 +471,19 @@ textarea:focus-visible {
 .approach-grid article {
     border-top: 1px solid #444;
     padding-top: 25px;
+}
+.approach-grid .number::before,
+.section-heading > .eyebrow::before,
+.closing > .eyebrow::before,
+.login-copy > .eyebrow::before,
+.workspace-heading .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 2px;
+    margin-right: 10px;
+    vertical-align: middle;
+    background: var(--section-accent);
 }
 .number {
     font-size: 10px;
@@ -590,16 +630,39 @@ textarea {
     gap: 14px;
     text-align: left;
     font-size: 12px;
+    position: relative;
+    transition:
+        background 0.18s,
+        border-color 0.18s;
+}
+.sidebar nav button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 10px;
+    transform: translateY(-50%);
+    background: var(--section-accent);
+    opacity: 0.95;
+    transition:
+        height 0.22s var(--motion-ease),
+        opacity 0.18s;
 }
 .sidebar nav button span {
     font-size: 9px;
 }
 .sidebar nav button span:last-child {
     margin-left: auto;
+    transition: transform 0.2s var(--motion-ease);
 }
 .sidebar nav button.active {
     border-color: #444;
     background: #1a1a1a;
+}
+.sidebar nav button.active::before {
+    height: 22px;
+    opacity: 1;
 }
 .sidebar-bottom {
     margin-top: auto;
@@ -734,6 +797,22 @@ textarea {
     font-size: 17px;
     font-weight: 500;
     margin: 0;
+}
+.dashboard-main .section-bar h2::before,
+.dashboard-main .panel > h2::before,
+.dashboard-main .stats-grid .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 12px;
+    margin-right: 10px;
+    vertical-align: baseline;
+    background: var(--section-accent);
+}
+.dashboard-main .stats-grid .eyebrow::before {
+    width: 5px;
+    height: 5px;
+    vertical-align: middle;
 }
 .section-bar .eyebrow {
     margin-bottom: 0;
@@ -1111,12 +1190,132 @@ textarea {
         gap: 6px;
     }
 }
+.hero-copy > *,
+.login-copy > .eyebrow,
+.login-copy > h1,
+.login-form {
+    animation: content-rise 0.6s var(--motion-ease) backwards;
+}
+.hero-copy > :nth-child(2),
+.login-copy > h1 {
+    animation-delay: 0.06s;
+}
+.hero-copy > :nth-child(3),
+.login-form {
+    animation-delay: 0.12s;
+}
+.hero-copy > :nth-child(4) {
+    animation-delay: 0.18s;
+}
+.hero-copy > :nth-child(5) {
+    animation-delay: 0.24s;
+}
+.dashboard-main > section,
+.workspace-title {
+    animation: section-slide 0.32s var(--motion-ease) backwards;
+}
+.dashboard-main .panel {
+    animation: content-rise 0.36s var(--motion-ease) backwards;
+}
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+    transition:
+        opacity 0.5s var(--motion-ease),
+        transform 0.5s var(--motion-ease);
+}
+.reveal-on-scroll.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition-delay: var(--reveal-delay, 0s);
+}
+.reveal-on-scroll:focus-within {
+    opacity: 1;
+    transform: none;
+    transition: none;
+}
+.approach-grid > :nth-child(2),
+.stats-grid > :nth-child(2) {
+    --reveal-delay: 0.07s;
+}
+.approach-grid > :nth-child(3),
+.stats-grid > :nth-child(3) {
+    --reveal-delay: 0.14s;
+}
+.slide-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        grid-template-rows 0.3s var(--motion-ease),
+        opacity 0.2s,
+        visibility 0s linear 0.3s;
+}
+.slide-panel.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition:
+        grid-template-rows 0.3s var(--motion-ease),
+        opacity 0.2s,
+        visibility 0s;
+}
+.slide-panel-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+.slide-panel.is-open:focus-within > .slide-panel-inner {
+    overflow: visible;
+}
+@keyframes content-rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 12px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes section-slide {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .button:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+    .button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    .sidebar nav button:hover:not(:disabled) {
+        background: #1a1a1a;
+        border-color: #444;
+    }
+    .sidebar nav button:hover:not(:disabled) span:last-child {
+        transform: translate(2px, -2px);
+    }
+}
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
     }
-    * {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
         transition: none !important;
+    }
+    .reveal-on-scroll {
+        opacity: 1;
+        transform: none;
     }
 }
 
@@ -1169,16 +1368,16 @@ textarea {
 .checkin-form-help {
     margin-bottom: 24px;
 }
-.checkin-optional {
+.checkin-details {
     margin-top: 24px;
 }
-.checkin-optional summary {
+.checkin-details summary {
     cursor: pointer;
     font-size: 12px;
     line-height: 1.7;
     padding: 8px 0;
 }
-.checkin-optional[open] summary {
+.checkin-details[open] summary {
     margin-bottom: 18px;
 }
 .checkin-posing {
@@ -1334,6 +1533,100 @@ textarea {
 .progress-switch {
     margin-bottom: 25px;
     gap: 12px;
+}
+.analytics-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 20px;
+    margin: 25px 0;
+}
+.analytics-calorie-source {
+    max-width: 350px;
+    margin-bottom: 18px;
+}
+.analytics-coverage {
+    margin: -12px 0 22px;
+}
+.analytics-charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.analytics-charts[data-comparison='time'] {
+    grid-template-columns: 1fr;
+}
+.performance-chart {
+    min-width: 0;
+    margin-bottom: 24px;
+}
+.performance-chart .section-bar {
+    align-items: baseline;
+    margin-bottom: 12px;
+}
+.performance-plot {
+    min-height: 264px;
+    margin-top: 16px;
+}
+.performance-plot svg {
+    width: 100%;
+    display: block;
+    overflow: visible;
+}
+.performance-plot text {
+    fill: white;
+    font-size: 11px;
+}
+.performance-plot circle[role='button'] {
+    cursor: pointer;
+}
+.performance-axis {
+    text-align: center;
+    font-size: 11px;
+    margin: 12px 0 0;
+}
+.analytics-empty {
+    min-height: 264px;
+    display: grid;
+    align-content: center;
+    font-size: 13px;
+    line-height: 1.8;
+}
+.analytics-readings {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+    margin-bottom: 0;
+}
+.analytics-readings dt,
+.analytics-readings small,
+.training-analytics td small {
+    font-size: 11px;
+    line-height: 1.7;
+}
+.analytics-readings dd {
+    font-size: 21px;
+    margin: 10px 0;
+}
+.training-analytics td small {
+    display: block;
+    margin-top: 6px;
+}
+.training-analytics caption {
+    text-align: left;
+    margin-bottom: 16px;
+    font-size: 12px;
+}
+@media (max-width: 1100px) {
+    .analytics-charts {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+@media (max-width: 720px) {
+    .analytics-filters,
+    .analytics-readings {
+        grid-template-columns: 1fr;
+    }
 }
 .exercise-chart {
     width: 100%;

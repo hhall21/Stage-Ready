@@ -167,8 +167,8 @@ onMounted(load);
                     </div>
                     <p class="form-help">
                         Your coach can use this to follow weekly blood pressure
-                        and resting heart rate. Every measurement is optional;
-                        save what you have and agree check-ins with your coach.
+                        and resting heart rate. Save what you have and agree
+                        check-ins with your coach.
                     </p>
                     <p v-if="state.due_on" class="form-help">
                         {{
@@ -263,7 +263,7 @@ onMounted(load);
                             /></label>
                         </div>
                         <label class="notes-label"
-                            >Notes (optional)<textarea
+                            >Notes<textarea
                                 v-model="form.notes"
                                 rows="2"
                                 maxlength="5000"

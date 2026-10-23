@@ -9,7 +9,7 @@ defineProps<{ title: string; heading: string }>();
     <Head :title="title"><meta name="referrer" content="no-referrer" /></Head>
     <SiteHeader />
     <main class="login-layout">
-        <section class="login-copy">
+        <section class="login-copy" data-section="overview">
             <p class="eyebrow">YOUR STAGE-READY WORKSPACE</p>
             <h1 class="auth-title">{{ heading }}</h1>
             <div class="login-form"><slot /></div>

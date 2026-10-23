@@ -377,7 +377,7 @@ onMounted(load);
                                 required
                             /></label
                         ><label class="notes-label"
-                            >Next steps (optional)<textarea
+                            >Next steps<textarea
                                 v-model="form.next_steps"
                                 rows="3"
                                 maxlength="5000"

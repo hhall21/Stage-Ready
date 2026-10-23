@@ -279,6 +279,30 @@ email delivery; local development logs emails and offers copyable invitation lin
 
 ## Exercise progress
 
+The endpoint also accepts `from` and `to` (`YYYY-MM-DD`, no later than today).
+The start must not follow the end. The session limit remains 60; exercise choices
+include all the client's logged exercises, even outside the selected date range.
+
+Current assigned coaches receive additional per-session analytics fields:
+
+- `prescribed_calories_kcal`, `prescribed_meal_readings`, `prescribed_meal_count`:
+  training-day totals from the latest non-cancelled meal plan effective on that
+  training date. A total is null if any prescribed meal has no calorie reading.
+- `logged_calories_kcal`, `logged_calorie_subtotal_kcal`, `logged_item_readings`,
+  `logged_item_count`, `logged_meal_count`: totals for the client's food logs on
+  that date. A complete total needs calories on all recorded food items and no
+  empty meal logs. Partial data retains its subtotal but has a null total. Logged
+  meals do not prove a full day of intake; recorded zero calories remain zero.
+- `average_bodyweight_kg`, `bodyweight_readings`: the rolling seven-day average
+  ending on the training date, using recorded weigh-ins only. No later readings
+  are used. An empty window has a null average and zero readings.
+- `bodyweight_change_from_7_days_ago_kg`, `prior_bodyweight_readings`: comparison
+  with the seven-day window ending seven days before the session. The change is
+  null if either window has no weigh-ins.
+
+Client responses retain the existing performance fields. Former or unrelated
+coaches cannot access the endpoint. All responses include `session_limit: 60`.
+
 `GET /api/clients/{client}/exercise-progress?exercise_id={id}` returns an exercise
 selector (`exercises`), the selected `exercise_id`, and `data` containing up to 60
 recent sessions in chronological order. The exercise parameter is optional.
