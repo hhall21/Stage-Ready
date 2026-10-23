@@ -15,6 +15,15 @@ return new class extends Migration
 
     public function down(): void
     {
+        // InnoDB may replace its implicit foreign-key indexes with our composites.
+        // Restore supporting indexes before removing the client/date indexes.
+        if (in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            foreach (['workouts', 'meals', 'mesocycles'] as $name) {
+                if (! Schema::hasIndex($name, ['client_id'])) {
+                    Schema::table($name, fn (Blueprint $table) => $table->index('client_id'));
+                }
+            }
+        }
         Schema::table('workouts', fn (Blueprint $table) => $table->dropIndex(['client_id', 'workout_date']));
         Schema::table('meals', fn (Blueprint $table) => $table->dropIndex(['client_id', 'meal_date']));
         Schema::table('mesocycles', fn (Blueprint $table) => $table->dropIndex(['client_id', 'start_date']));

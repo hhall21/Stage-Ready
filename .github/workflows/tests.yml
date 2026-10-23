@@ -105,6 +105,9 @@ jobs:
           composer install --no-interaction --prefer-dist
           cp .env.example .env
           php artisan key:generate
+          php artisan migrate --force
+          php artisan migrate:rollback --step=1 --force
+          php artisan migrate --force
           php artisan test
 
   handover-preview:
