@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 #[Fillable(['client_id', 'competition_name', 'competition_date', 'location', 'category', 'target_weight', 'placing', 'notes'])]
 class Competition extends Model
@@ -22,5 +23,10 @@ class Competition extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function hasTakenPlace(): bool
+    {
+        return Carbon::parse($this->competition_date)->lessThan(today());
     }
 }

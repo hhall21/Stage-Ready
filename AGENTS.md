@@ -2,6 +2,10 @@
 
 - The website's name is **Stage-Ready**. Always use this name in user-facing
   copy, navigation, page titles, and branding; never call the website PT Tracker.
+- Before every push, review whether the changes are worth mentioning in the
+  README. Update the root overview and/or application README when features,
+  behaviour, setup, requirements or limitations change. Keep the wording natural
+  and useful; routine internal changes do not need a README entry.
 - Keep the interface dark with white writing throughout.
 - Bodybuilding photographs should blend into the dark page and form backgrounds
   with no visible image borders.

@@ -25,6 +25,7 @@ const client = props.client,
     user = props.user,
     selected = client.id;
 const canCheckIn = computed(() => user.role === 'client');
+const posingEnabled = ref(false);
 const checkins = ref<CheckIn[]>([]),
     workouts = ref<Workout[]>([]),
     weightPoints = ref<WeightPoint[]>([]);
@@ -42,7 +43,7 @@ async function loadRecords() {
     error.value = '';
     try {
         const [checks, training, trend] = await Promise.all([
-            api<Page<CheckIn>>(
+            api<Page<CheckIn> & { posing_enabled: boolean }>(
                 '/api/clients/' + client.id + '/daily-check-ins',
             ),
             api<Page<Workout>>('/api/clients/' + client.id + '/workouts'),
@@ -51,6 +52,7 @@ async function loadRecords() {
             ),
         ]);
         if (request !== version) return;
+        posingEnabled.value = checks.posing_enabled;
         checkins.value = checks.data;
         workouts.value = training.data;
         weightPoints.value = trend.data;
@@ -111,7 +113,9 @@ onBeforeUnmount(() => version++);
                 >
                     {{
                         canCheckIn
-                            ? 'Upload your daily poses'
+                            ? posingEnabled
+                                ? 'Upload your daily poses'
+                                : 'Record your daily check-in'
                             : 'Plan client training'
                     }}
                     ↗
@@ -122,7 +126,9 @@ onBeforeUnmount(() => version++);
         <BodyweightTrend data-section="progress" :points="weightPoints" />
         <div class="stats-grid">
             <article v-reveal data-section="checkins">
-                <p class="eyebrow">POSING CHECK-INS</p>
+                <p class="eyebrow">
+                    {{ posingEnabled ? 'POSING CHECK-INS' : 'DAILY CHECK-INS' }}
+                </p>
                 <strong>{{ checkTotal }}</strong
                 ><span>Daily entries, including drafts</span>
             </article>

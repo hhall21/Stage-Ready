@@ -4,6 +4,8 @@ import { computed, onMounted, ref } from 'vue';
 import CheckInSection from '@/components/CheckInSection.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
+import CoachDiscipline from '@/components/CoachDiscipline.vue';
+import CompetitionsSection from '@/components/CompetitionsSection.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
 import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import NutritionPlans from '@/components/NutritionPlans.vue';
@@ -35,7 +37,8 @@ type DashboardTab =
     | 'nutrition'
     | 'practice'
     | 'reviews'
-    | 'clients';
+    | 'clients'
+    | 'competitions';
 const tab = ref<DashboardTab>('overview');
 const navigation = computed<
     { id: DashboardTab; label: string; number: string }[]
@@ -56,7 +59,14 @@ const navigation = computed<
     { id: 'practice', label: 'Cardio and practice', number: '07' },
     { id: 'reviews', label: 'Coach reviews', number: '08' },
     ...(user.value?.role === 'coach'
-        ? [{ id: 'clients' as const, label: 'Clients', number: '09' }]
+        ? [
+              { id: 'clients' as const, label: 'Clients', number: '09' },
+              {
+                  id: 'competitions' as const,
+                  label: 'Competitions',
+                  number: '10',
+              },
+          ]
         : []),
 ]);
 
@@ -84,6 +94,7 @@ const heading = computed(() => {
             : 'Your daily prescriptions.',
         reviews: coach ? 'Review. Adjust. Progress.' : 'Your coach’s feedback.',
         clients: 'Your coaching roster.',
+        competitions: 'Plan your clients’ competition dates.',
     };
     return headings[tab.value];
 });
@@ -206,7 +217,11 @@ onMounted(initialize);
                 </button>
             </p>
             <div
-                v-if="user?.role === 'coach' && tab !== 'clients'"
+                v-if="
+                    user?.role === 'coach' &&
+                    tab !== 'clients' &&
+                    tab !== 'competitions'
+                "
                 class="client-picker"
             >
                 <label for="client-select">Assigned client</label
@@ -230,15 +245,21 @@ onMounted(initialize);
                     {{ clients.length === 1 ? 'client' : 'clients' }}</span
                 >
             </div>
-            <ClientManagement
-                data-section="clients"
-                v-if="user?.role === 'coach' && tab === 'clients'"
-                :clients="clients"
-                @changed="refreshClients"
-            />
+            <template v-if="user?.role === 'coach' && tab === 'clients'">
+                <CoachDiscipline :user="user" @updated="user = $event" />
+                <ClientManagement
+                    data-section="clients"
+                    :clients="clients"
+                    @changed="refreshClients"
+                />
+            </template>
             <p v-else-if="loading" class="loading-message" role="status">
                 Loading your records…
             </p>
+            <CompetitionsSection
+                v-else-if="user?.role === 'coach' && tab === 'competitions'"
+                :clients="clients"
+            />
             <div v-else-if="!selected" class="empty-state">
                 <h2>Your workspace is ready.</h2>
                 <p>

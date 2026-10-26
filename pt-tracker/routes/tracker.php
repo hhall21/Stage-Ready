@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientInvitationController;
 use App\Http\Controllers\Api\CoachingPlanController;
 use App\Http\Controllers\Api\CoachingReviewController;
+use App\Http\Controllers\Api\CompetitionController;
 use App\Http\Controllers\Api\DailyCheckInController;
 use App\Http\Controllers\Api\EndOfDayNutritionController;
 use App\Http\Controllers\Api\ExerciseProgressController;
@@ -27,7 +28,9 @@ Route::prefix('api')->group(function () {
     Route::post('invitations/{token}/accept', [ClientInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth.session', 'throttle:invitation-accept']);
     Route::middleware(['auth', 'auth.session', EnsureAccountIsActive::class])->group(function () {
         Route::get('user', [AuthController::class, 'user']);
+        Route::patch('user/coaching-type', [AuthController::class, 'coachingType']);
         Route::get('clients', [ClientController::class, 'index']);
+        Route::get('competitions', [CompetitionController::class, 'index']);
         Route::get('client-invitations', [ClientInvitationController::class, 'index']);
         Route::post('client-invitations', [ClientInvitationController::class, 'store'])->middleware('throttle:invitations');
         Route::post('client-invitations/{invitation}/resend', [ClientInvitationController::class, 'resend'])->whereNumber('invitation')->middleware('throttle:invitations');
@@ -36,6 +39,9 @@ Route::prefix('api')->group(function () {
         Route::get('exercises', fn () => response()->json(Exercise::orderBy('exercise_name')->paginate(50)));
         Route::get('daily-check-in-photos/{photo}', [CheckInPosingController::class, 'photo'])->whereNumber('photo');
         Route::prefix('clients/{client}')->whereNumber('client')->group(function () {
+            Route::post('competitions', [CompetitionController::class, 'store']);
+            Route::put('competitions/{competition}', [CompetitionController::class, 'update'])->whereNumber('competition');
+            Route::delete('competitions/{competition}', [CompetitionController::class, 'destroy'])->whereNumber('competition');
             Route::delete('coaching', [ClientController::class, 'destroy']);
             Route::get('nutrition-plans', [CoachingPlanController::class, 'nutrition']);
             Route::post('nutrition-plans', [CoachingPlanController::class, 'storeNutrition']);

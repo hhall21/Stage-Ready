@@ -58,6 +58,7 @@ class PosingCheckInTest extends TestCase
     public function test_date_only_check_ins_accept_pose_submissions_but_cannot_create_a_coach_rating(): void
     {
         $client = User::factory()->create();
+        $this->coachFor($client);
         $metrics = '/api/clients/'.$client->id.'/daily-check-ins';
         $this->actingAs($client)->postJson($metrics, [
             'check_in_date' => today()->toDateString(), 'bodyweight' => 81.4,
@@ -443,6 +444,7 @@ class PosingCheckInTest extends TestCase
     private function clientCheckIn(): array
     {
         $client = User::factory()->create();
+        $this->coachFor($client);
 
         return [$client, $client->dailyCheckIns()->create(['check_in_date' => today(), 'bodyweight' => 81.4])];
     }

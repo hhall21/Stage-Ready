@@ -30,12 +30,26 @@ class UserPolicy
         return $user->role === 'client' && $this->viewTracker($user, $client);
     }
 
+    public function useCheckInPhotos(User $user, User $client): bool
+    {
+        if (! $this->viewTracker($user, $client)) {
+            return false;
+        }
+
+        return $user->role === 'coach' ? $user->is_bodybuilding_coach : $client->hasBodybuildingCoach();
+    }
+
     public function manageWorkouts(User $user, User $client): bool
     {
         return $user->role === 'coach' && $this->viewTracker($user, $client);
     }
 
     public function manageMesocycles(User $user, User $client): bool
+    {
+        return $user->role === 'coach' && $this->viewTracker($user, $client);
+    }
+
+    public function manageCompetitions(User $user, User $client): bool
     {
         return $user->role === 'coach' && $this->viewTracker($user, $client);
     }

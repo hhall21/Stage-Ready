@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\DateBounds;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $password
  * @property string $role
  * @property bool $is_active
+ * @property bool $is_bodybuilding_coach
  * @property Carbon|null $date_of_birth
  * @property string|null $phone
  * @property string|null $remember_token
@@ -37,6 +39,7 @@ class User extends Authenticatable
     /** @var array<string, mixed> */
     protected $attributes = [
         'is_active' => true,
+        'is_bodybuilding_coach' => true,
     ];
 
     /**
@@ -51,6 +54,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
+            'is_bodybuilding_coach' => 'boolean',
         ];
     }
 
@@ -66,6 +70,17 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'trainer_clients', 'client_id', 'trainer_id')
             ->withPivot(['id', 'start_date', 'end_date', 'status'])->withTimestamps();
+    }
+
+    public function hasBodybuildingCoach(): bool
+    {
+        return $this->trainers()->where('users.role', 'coach')
+            ->where('users.is_active', true)->where('users.is_bodybuilding_coach', true)
+            ->wherePivot('status', 'active')
+            ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))
+            ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')
+                ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()))
+            ->exists();
     }
 
     /** @return HasMany<TrainerClient, $this> */

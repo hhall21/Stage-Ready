@@ -26,7 +26,7 @@ class CheckInPosingController extends Controller
 {
     public function show(User $client, int $checkIn): JsonResponse
     {
-        Gate::authorize('viewTracker', $client);
+        Gate::authorize('useCheckInPhotos', $client);
 
         return $this->response($client->dailyCheckIns()->findOrFail($checkIn));
     }
@@ -34,6 +34,7 @@ class CheckInPosingController extends Controller
     public function storePhoto(SavePosePhotoRequest $request, User $client, int $checkIn, string $pose): JsonResponse
     {
         Gate::authorize('manageCheckIns', $client);
+        Gate::authorize('useCheckInPhotos', $client);
         $client->dailyCheckIns()->findOrFail($checkIn);
         $poseDefinition = BodybuildingPoses::find($pose);
         $file = $request->file('photo');
@@ -71,6 +72,7 @@ class CheckInPosingController extends Controller
     public function destroyPhoto(Request $request, User $client, int $checkIn, string $pose): JsonResponse
     {
         Gate::authorize('manageCheckIns', $client);
+        Gate::authorize('useCheckInPhotos', $client);
         BodybuildingPoses::find($pose);
         $request->validate(['photo_version' => ['required', 'integer', 'min:0']]);
         $record = DB::transaction(function () use ($request, $client, $checkIn, $pose): DailyCheckIn {
@@ -92,6 +94,7 @@ class CheckInPosingController extends Controller
     public function submit(Request $request, User $client, int $checkIn): JsonResponse
     {
         Gate::authorize('manageCheckIns', $client);
+        Gate::authorize('useCheckInPhotos', $client);
         $request->validate(['photo_version' => ['required', 'integer', 'min:0']]);
         $record = DB::transaction(function () use ($request, $client, $checkIn): DailyCheckIn {
             $lockedClient = $this->lockClient($request, $client);
@@ -111,13 +114,13 @@ class CheckInPosingController extends Controller
     {
         $coach = $request->user();
         abort_unless($coach?->role === 'coach', 403);
-        Gate::authorize('viewTracker', $client);
+        Gate::authorize('useCheckInPhotos', $client);
         $record = DB::transaction(function () use ($request, $coach, $client, $checkIn): DailyCheckIn {
             // Keep the coach/client lock order shared with ending coaching.
             $lockedCoach = User::whereKey($coach->id)->lockForUpdate()->firstOrFail();
             $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
             abort_unless($lockedCoach->role === 'coach', 403);
-            Gate::forUser($lockedCoach)->authorize('viewTracker', $lockedClient);
+            Gate::forUser($lockedCoach)->authorize('useCheckInPhotos', $lockedClient);
             $record = $lockedClient->dailyCheckIns()->lockForUpdate()->findOrFail($checkIn);
             $this->assertVersion($request, $record);
             if ($record->submitted_at === null) {
@@ -140,7 +143,7 @@ class CheckInPosingController extends Controller
     public function photo(ProgressPhoto $photo): StreamedResponse
     {
         $checkIn = $photo->checkIn()->firstOrFail();
-        Gate::authorize('viewTracker', $checkIn->client()->firstOrFail());
+        Gate::authorize('useCheckInPhotos', $checkIn->client()->firstOrFail());
         abort_unless($photo->pose_key !== null && in_array($photo->mime_type, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
         $disk = Storage::disk('checkin_photos');
         abort_unless($disk->exists($photo->file_path), 404);
@@ -165,6 +168,7 @@ class CheckInPosingController extends Controller
     {
         $lockedClient = User::whereKey($client->id)->lockForUpdate()->firstOrFail();
         Gate::forUser($lockedClient)->authorize('manageCheckIns', $lockedClient);
+        Gate::forUser($lockedClient)->authorize('useCheckInPhotos', $lockedClient);
         abort_unless($request->user()?->is($lockedClient), 403);
 
         return $lockedClient;

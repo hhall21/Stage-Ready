@@ -3,6 +3,7 @@ export type TrackerUser = {
     name: string;
     email: string;
     role: 'coach' | 'client';
+    is_bodybuilding_coach: boolean;
 };
 export type Page<T> = {
     data: T[];

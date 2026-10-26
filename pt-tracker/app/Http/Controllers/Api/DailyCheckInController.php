@@ -19,7 +19,10 @@ class DailyCheckInController extends Controller
     {
         Gate::authorize('viewTracker', $client);
 
-        return response()->json($client->dailyCheckIns()->withCount('posePhotos')->orderByDesc('check_in_date')->paginate(30));
+        return response()->json([
+            ...$client->dailyCheckIns()->withCount('posePhotos')->orderByDesc('check_in_date')->paginate(30)->toArray(),
+            'posing_enabled' => Gate::allows('useCheckInPhotos', $client),
+        ]);
     }
 
     public function show(User $client, int $checkIn): JsonResponse

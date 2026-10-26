@@ -153,6 +153,36 @@ values and use the seven/fourteen calendar days ending today. Clients with any
 active prep coach see a seven-day summary. Historical reviews remain accessible
 to the client after coaching ends, while former coaches lose access.
 
+## Competition dates
+
+Competition management is restricted to coaches with a current active assignment.
+Clients cannot use these endpoints. Ending coaching preserves competition records
+and removes the former coach's access.
+
+- `GET /api/competitions?page=1&period=all`: clients with at least one matching
+  competition, paginated by 12 clients and ordered by name. `period` accepts `all`
+  (the default), `upcoming` (today or later) or `past` (before today). Both client
+  groups and competitions are filtered before pagination. Each show has a derived
+  `period` of `past` or `upcoming`, and the response includes `today` in the
+  application's timezone. Unassigned, inactive and non-matching clients are excluded.
+  Optional `client_id` (a positive integer) limits shows to one assigned client
+  and combines with `period` before pagination. The response also includes
+  `client_options` (IDs and names only) for all currently assigned active clients
+  with any competition, independent of the selected client or period. Unknown or
+  unassigned IDs return an empty show list without exposing other clients.
+- `POST /api/clients/{client}/competitions`: requires `competition_name` (max 200)
+  and `competition_date` (`YYYY-MM-DD`). Optional fields are `location` (max 200),
+  `category` (max 150). Past dates are accepted. Only shows before today can include
+  optional `placing` (max 50) and `notes` (max 5,000). These fields must be omitted
+  for today's or future shows, and are omitted from those shows' API responses.
+- `PUT /api/clients/{client}/competitions/{competition}`: corrects a competition
+  using the same fields and required name/date. The client cannot be changed.
+  Moving a show to today or later hides existing results without clearing them.
+  Omitted result fields retain their values; past results can be cleared explicitly.
+- `DELETE /api/clients/{client}/competitions/{competition}`: removes only that
+  competition. Removing a client's last competition hides them from the grouped
+  list without deleting their account or other records.
+
 ## Weekly health monitoring
 
 Routes under `/api/clients/{client}/weekly-health`:
@@ -180,6 +210,21 @@ coaches lose access when coaching ends. There are no drug/dose recommendations o
 automated clinical classifications in this feature.
 
 ## Daily posing check-ins
+
+Photo and posing routes require a current bodybuilding coaching assignment.
+The assigned coach must have `is_bodybuilding_coach=true`; clients are eligible
+when at least one current active coach has that flag. A powerlifting coach cannot
+access photos through a client who also has a bodybuilding coach. Without this
+access, posing read/upload/remove/submit/review routes and private image URLs
+return 403. Stored photos and reviews are preserved.
+
+`GET /api/clients/{client}/daily-check-ins` includes `posing_enabled` for the current
+viewer. Normal measurements and nutrition remain available for both disciplines.
+
+`GET /api/user` includes boolean `is_bodybuilding_coach`. Coaches may change their
+own value with `PATCH /api/user/coaching-type` and a required boolean field of the
+same name. Client and inactive accounts cannot change it. True means bodybuilding,
+false means powerlifting; user roles and coaching assignments are unchanged.
 
 Saving daily numbers creates or edits a draft. Submission requires the original
 eight bodybuilding poses plus `front_relaxed`, `rear_relaxed`, `left_side_relaxed`
@@ -217,7 +262,8 @@ stale versions receive HTTP 409. Photo changes and check-in date changes increme
 the version and clear submission. Existing reviews remain visible but are marked
 out of date; unchanged metrics edits do not invalidate a posing review.
 
-Only a currently assigned coach can review a complete, submitted set. The review
+Only a currently assigned bodybuilding coach can review a submitted check-in,
+including blank or partial photo sets. The review
 body requires `photo_version`, integer `posing_rating` (1-10), written `feedback`
 (up to 10,000 characters), and boolean `is_competition_prep`. Optional
 `flatness_rating` and `fullness_rating` accept integers 1-10 during prep; send
@@ -227,11 +273,12 @@ coach assessments, not automated scores.
 
 Each coach can update only their own review. Reviews include `coach_id`,
 `coach_name`, scores, feedback, `photo_version`, `reviewed_at`, and `is_current`.
-They remain readable by the client after coaching ends. A client cannot submit
+They remain stored after coaching ends; reading posing history requires active
+bodybuilding photo access. A client cannot submit
 coach feedback or score fields through the metrics endpoint.
 
 The migration preserves legacy front/side/back/other progress-photo records.
-Only named required-pose photos count towards the twelve-photo submission requirement.
+Only named pose photos are used in posing check-ins, and every photo is optional.
 Adding, replacing or deleting the optional classic photo also invalidates the
 submission and review version. Submission remains possible after removing it
 when all twelve required images are present. Existing photos and review history

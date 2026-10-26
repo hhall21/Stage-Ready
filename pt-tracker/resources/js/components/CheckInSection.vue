@@ -9,6 +9,7 @@ const props = defineProps<{ clientId: number; user: TrackerUser }>();
 const selected = props.clientId;
 const user = props.user;
 const canCheckIn = computed(() => user.role === 'client');
+const posingEnabled = ref(false);
 const base = computed(() => '/api/clients/' + selected);
 const loading = ref(true),
     saving = ref(false),
@@ -84,10 +85,11 @@ async function loadRecords() {
     loading.value = true;
     error.value = '';
     try {
-        const checks = await api<Page<CheckIn>>(
+        const checks = await api<Page<CheckIn> & { posing_enabled: boolean }>(
             base.value + '/daily-check-ins?page=' + checkPage.value,
         );
         if (version !== loadVersion) return;
+        posingEnabled.value = checks.posing_enabled;
         checkins.value = checks.data;
         checkLast.value = checks.last_page;
         checkTotal.value = checks.total;
@@ -142,17 +144,19 @@ async function saveCheck() {
             payload,
         );
         resetCheck();
-        openPosing.value = result.data.id;
         checkPage.value = 1;
         await loadRecords();
-        savedPosingCheck.value = checkins.value.some(
-            (record) => record.id === result.data.id,
-        )
-            ? null
-            : result.data;
-        success.value = result.data.submitted_at
-            ? 'Check-in details saved. Your submitted pose photos and coach feedback are below.'
-            : 'Check-in saved. You can add any pose photos or submit it as it is. Your coach can follow up on anything left blank.';
+        openPosing.value = posingEnabled.value ? result.data.id : null;
+        savedPosingCheck.value =
+            !posingEnabled.value ||
+            checkins.value.some((record) => record.id === result.data.id)
+                ? null
+                : result.data;
+        success.value = !posingEnabled.value
+            ? 'Check-in saved. Your coach can follow up on anything left blank.'
+            : result.data.submitted_at
+              ? 'Check-in details saved. Your submitted pose photos and coach feedback are below.'
+              : 'Check-in saved. You can add any pose photos or submit it as it is. Your coach can follow up on anything left blank.';
     } catch (cause) {
         handleError(cause);
     } finally {
@@ -163,7 +167,7 @@ async function saveCheck() {
 async function removeRecord(_kind: 'daily-check-ins', id: number) {
     if (
         !window.confirm(
-            'Delete this check-in and its progress photo records? This cannot be undone.',
+            'Delete this check-in and all its attached records? This cannot be undone.',
         )
     )
         return;
@@ -216,8 +220,12 @@ onMounted(loadRecords);
                 <h2>
                     {{
                         editCheck
-                            ? 'Edit your posing check-in'
-                            : 'Your daily posing check-in'
+                            ? posingEnabled
+                                ? 'Edit your posing check-in'
+                                : 'Edit your daily check-in'
+                            : posingEnabled
+                              ? 'Your daily posing check-in'
+                              : 'Your daily check-in'
                     }}
                 </h2>
             </div>
@@ -285,6 +293,7 @@ onMounted(loadRecords);
         <div
             v-if="
                 savedPosingCheck &&
+                posingEnabled &&
                 selected &&
                 user &&
                 !checkins.some((record) => record.id === savedPosingCheck!.id)
@@ -306,15 +315,23 @@ onMounted(loadRecords);
             />
         </div>
         <div class="section-bar">
-            <h2>Posing check-in history</h2>
+            <h2>
+                {{
+                    posingEnabled
+                        ? 'Posing check-in history'
+                        : 'Daily check-in history'
+                }}
+            </h2>
             <span class="eyebrow">{{ checkTotal }} ENTRIES</span>
         </div>
         <div v-if="!checkins.length" class="empty-state">
             <p>
                 {{
-                    canCheckIn
-                        ? 'No posing check-ins yet. Your daily pose photos and coach feedback will appear here.'
-                        : 'No posing check-ins yet. The client’s daily entries and your feedback will appear here.'
+                    posingEnabled
+                        ? canCheckIn
+                            ? 'No posing check-ins yet. Your daily pose photos and coach feedback will appear here.'
+                            : 'No posing check-ins yet. The client’s daily entries and your feedback will appear here.'
+                        : 'No daily check-ins recorded yet.'
                 }}
             </p>
         </div>
@@ -347,7 +364,7 @@ onMounted(loadRecords);
                 >
             </div>
             <CheckInPosing
-                v-if="selected && user"
+                v-if="posingEnabled && selected && user"
                 :key="selected + ':' + record.id"
                 :client-id="selected"
                 :check-in="record"

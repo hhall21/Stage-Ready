@@ -27,7 +27,7 @@ class ClientController extends Controller
                 ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()))
             ->orderBy('users.name')
             ->paginate(30)
-            ->through(fn ($client) => $client->only(['id', 'name', 'email', 'role'])));
+            ->through(fn ($client) => $client->only(['id', 'name', 'email', 'role', 'is_bodybuilding_coach'])));
     }
 
     public function destroy(Request $request, User $client): JsonResponse

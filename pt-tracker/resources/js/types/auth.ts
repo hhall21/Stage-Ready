@@ -1,6 +1,7 @@
 export type User = {
     id: number;
     name: string;
+    is_bodybuilding_coach: boolean;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
