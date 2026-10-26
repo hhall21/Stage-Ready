@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Services\CoachingHandoverPdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class DevelopmentSampleSeeder extends Seeder
         'meals', 'meal_items', 'exercises', 'training_splits', 'split_day_selections',
         'mesocycles', 'workouts', 'workout_exercises', 'exercise_sets',
         'training_clips', 'clip_feedback', 'supplements', 'supplement_logs',
-        'phases', 'cycle_entries', 'competitions',
+        'phases', 'cycle_entries', 'competitions', 'coaching_handovers',
     ];
 
     public function run(): void
@@ -85,6 +86,7 @@ class DevelopmentSampleSeeder extends Seeder
         ]);
         // Anchor dates to the first run, so later runs do not duplicate or rewrite history.
         $anchor = CarbonImmutable::parse(DB::table('users')->where('id', $clientId)->value('created_at'))->startOfDay();
+        $this->handover($clientId, $coachId, $anchor);
         $yesterday = $anchor->subDay();
         $reviewPhase = $index % 2 === 0 ? 'prep' : 'offseason';
         $this->ensure('trainer_clients', ['trainer_id' => $coachId, 'client_id' => $clientId], [
@@ -230,6 +232,31 @@ class DevelopmentSampleSeeder extends Seeder
             'category' => $index % 2 === 0 ? 'Classic physique' : 'Bodybuilding',
             'target_weight' => $index % 3 === 0 ? null : 75 + $index * 1.4, 'placing' => null,
             'notes' => 'Fictional competition; not a real scheduled event.',
+        ]);
+    }
+
+    private function handover(int $clientId, int $coachId, CarbonImmutable $anchor): void
+    {
+        $start = $anchor->subDays(84)->toDateString();
+        $key = ['client_id' => $clientId, 'coach_id' => $coachId, 'started_on' => $start];
+        if (DB::table('coaching_handovers')->where($key)->exists()) {
+            return;
+        }
+        // This earlier fictional period ends before the current sample assignment begins.
+        $end = $anchor->subDays(43);
+        $coach = DB::table('users')->where('id', $coachId)->firstOrFail();
+        $snapshot = [
+            'client_name' => (string) DB::table('users')->where('id', $clientId)->value('name'),
+            'coach_name' => (string) $coach->name,
+            'discipline' => $coach->is_bodybuilding_coach ? 'Bodybuilding' : 'Powerlifting',
+            'start_date' => $start, 'end_date' => $end->toDateString(),
+            'weights' => [], 'weight_trend' => [], 'completed_sessions' => 0, 'working_sets' => 0,
+            'personal_bests' => [], 'feedback' => 'Fictional handover from an earlier coaching period. No performance readings were recorded in that period.',
+            'next_steps' => 'Keep recording your sessions and check-ins during the next coaching period.', 'notes' => [],
+        ];
+        $this->ensure('coaching_handovers', $key, [
+            'ended_at' => $end->setTime(18, 0), 'snapshot' => $this->json($snapshot),
+            'pdf_base64' => base64_encode(app(CoachingHandoverPdf::class)->render($snapshot)),
         ]);
     }
 

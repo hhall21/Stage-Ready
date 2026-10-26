@@ -1,8 +1,11 @@
 # Stage-Ready handover PDF preview
 
 This is the sample design for a client coaching handover. It is a standalone
-preview, using fictional data. It is not connected to the coach dashboard or the
-application database.
+preview, using fictional data. It is separate from the application's personal
+handover reports, which are generated in PHP when a coach ends coaching. Clients
+preview and download those reports in **Coaching handovers** after signing in.
+See [ending coaching](../../README.md#ending-coaching-and-client-handovers) for
+the live flow, access rules and update steps.
 
 Open [the sample PDF](sample-handover.pdf) to review the design.
 

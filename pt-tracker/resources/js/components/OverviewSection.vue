@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import AthleteVisual from '@/components/AthleteVisual.vue';
 import BodyweightTrend from '@/components/BodyweightTrend.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
-import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import TrainingDayPanel from '@/components/TrainingDayPanel.vue';
 import WeeklyHealth from '@/components/WeeklyHealth.vue';
-import { athleteImages } from '@/lib/athlete-images';
-import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
-import { vReveal } from '@/lib/motion';
 import { api, displayDate, message } from '@/lib/tracker-api';
 import type {
     CheckIn,
@@ -68,6 +63,14 @@ onMounted(loadRecords);
 onBeforeUnmount(() => version++);
 </script>
 <template>
+    <TrainingDayPanel
+        data-section="workouts"
+        v-if="selected"
+        :key="'today-' + selected"
+        :client-id="selected"
+        :can-log="canCheckIn"
+        @changed="loadRecords"
+    />
     <CoachingReviews
         data-section="reviews"
         :client-id="client.id"
@@ -81,108 +84,172 @@ onBeforeUnmount(() => version++);
         compact
         @open="emit('open', 'health')"
     />
-    <section aria-label="Client overview">
+    <section aria-label="Client overview" :aria-busy="loading">
         <p v-if="error" class="notice" role="alert">
             {{ error }}
             <button class="text-link" :disabled="loading" @click="loadRecords">
                 Retry
             </button>
         </p>
-        <p v-if="loading" class="loading-message" role="status">
+        <p v-else-if="loading" class="loading-message" role="status">
             Loading records…
         </p>
-        <TrainingDayPanel
-            data-section="workouts"
-            ref="trainingDayPanel"
-            v-if="selected"
-            :key="'today-' + selected"
-            :client-id="selected"
-            :can-log="canCheckIn"
-            @changed="loadRecords"
-        />
-        <div class="dashboard-banner">
-            <div>
-                <p class="eyebrow">{{ client.name }} / THE NEXT STEP</p>
-                <JordanPetersQuote
-                    :quote="jordanPetersQuotes.progress"
-                    variant="display"
-                />
+        <template v-else>
+            <div class="overview-action">
+                <div>
+                    <h2>
+                        {{
+                            canCheckIn
+                                ? 'Your daily check-in'
+                                : 'Client training'
+                        }}
+                    </h2>
+                    <p>
+                        {{
+                            canCheckIn
+                                ? 'Record today’s measurements and notes. Every field is optional.'
+                                : 'Review prescribed sessions and update upcoming training.'
+                        }}
+                    </p>
+                </div>
                 <button
-                    class="button"
+                    class="button button-secondary"
                     @click="emit('open', canCheckIn ? 'checkins' : 'workouts')"
                 >
                     {{
                         canCheckIn
                             ? posingEnabled
-                                ? 'Upload your daily poses'
-                                : 'Record your daily check-in'
+                                ? 'Open check-in and poses'
+                                : 'Record check-in'
                             : 'Plan client training'
                     }}
-                    ↗
                 </button>
             </div>
-            <AthleteVisual compact :src="athleteImages.dashboard" />
-        </div>
-        <BodyweightTrend data-section="progress" :points="weightPoints" />
-        <div class="stats-grid">
-            <article v-reveal data-section="checkins">
-                <p class="eyebrow">
-                    {{ posingEnabled ? 'POSING CHECK-INS' : 'DAILY CHECK-INS' }}
-                </p>
-                <strong>{{ checkTotal }}</strong
-                ><span>Daily entries, including drafts</span>
-            </article>
-            <article v-reveal data-section="workouts">
-                <p class="eyebrow">WORKOUTS</p>
-                <strong>{{ workoutTotal }}</strong
-                ><span>{{
-                    canCheckIn
-                        ? 'Sessions in your training log'
-                        : 'Sessions in the client training log'
-                }}</span>
-            </article>
-            <article v-reveal data-section="progress">
-                <p class="eyebrow">LATEST BODYWEIGHT</p>
-                <strong
-                    >{{ latest?.bodyweight ?? '—'
-                    }}<small v-if="latest?.bodyweight"> kg</small></strong
-                ><span>{{
-                    latest
-                        ? displayDate(latest.check_in_date)
-                        : 'Add a weigh-in'
-                }}</span>
-            </article>
-        </div>
-        <div class="section-bar" data-section="workouts">
-            <h2>Scheduled training</h2>
-            <button class="text-link" @click="emit('open', 'workouts')">
-                View workouts ↗
-            </button>
-        </div>
-        <div v-if="!workouts.length" class="empty-state">
-            <p>
-                {{
-                    canCheckIn
-                        ? 'No workouts yet. Your next session starts here.'
-                        : 'No workouts yet. Prescribe the client’s first session in Workouts.'
-                }}
-            </p>
-        </div>
-        <article
-            v-for="workout in workouts.slice(0, 3)"
-            :key="workout.id"
-            class="workout-summary"
-        >
-            <div>
-                <p class="eyebrow">
-                    {{ displayDate(workout.workout_date) }}
-                </p>
-                <h3>{{ workout.workout_name }}</h3>
-                <p>{{ workout.workout_exercises.length }} exercises</p>
+            <BodyweightTrend data-section="progress" :points="weightPoints" />
+            <dl class="overview-records">
+                <div>
+                    <dt>Latest bodyweight</dt>
+                    <dd>
+                        {{ latest?.bodyweight ?? 'No reading'
+                        }}<small
+                            v-if="
+                                latest?.bodyweight !== null &&
+                                latest?.bodyweight !== undefined
+                            "
+                        >
+                            kg</small
+                        >
+                    </dd>
+                    <dd class="record-context">
+                        {{
+                            latest
+                                ? displayDate(latest.check_in_date)
+                                : 'Record a weigh-in in a daily check-in'
+                        }}
+                    </dd>
+                </div>
+                <div>
+                    <dt>Training sessions</dt>
+                    <dd>{{ workoutTotal }}</dd>
+                    <dd class="record-context">
+                        All sessions in the training log
+                    </dd>
+                </div>
+                <div>
+                    <dt>Daily check-ins</dt>
+                    <dd>{{ checkTotal }}</dd>
+                    <dd class="record-context">
+                        All daily entries, including drafts
+                    </dd>
+                </div>
+            </dl>
+            <div class="section-bar" data-section="workouts">
+                <h2>Recent training</h2>
+                <button class="text-link" @click="emit('open', 'workouts')">
+                    View workouts
+                </button>
             </div>
-            <span class="status-pill">{{
-                workout.completed ? 'Completed' : 'Planned'
-            }}</span>
-        </article>
+            <div v-if="!workouts.length" class="empty-state">
+                <p>
+                    {{
+                        canCheckIn
+                            ? 'No workouts yet. Your coach’s prescribed sessions will appear here.'
+                            : 'No workouts yet. Prescribe the client’s first session in Workouts.'
+                    }}
+                </p>
+            </div>
+            <article
+                v-for="workout in workouts.slice(0, 3)"
+                :key="workout.id"
+                class="workout-summary"
+            >
+                <div>
+                    <p class="eyebrow">
+                        {{ displayDate(workout.workout_date) }}
+                    </p>
+                    <h3>{{ workout.workout_name }}</h3>
+                    <p>{{ workout.workout_exercises.length }} exercises</p>
+                </div>
+                <span class="status-pill">{{
+                    workout.completed ? 'Completed' : 'Planned'
+                }}</span>
+            </article>
+        </template>
     </section>
 </template>
+
+<style scoped>
+.overview-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin: 32px 0;
+    padding-block: 24px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+.overview-action h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+    font-weight: 500;
+}
+.overview-action p {
+    max-width: 52ch;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+}
+.overview-records {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 32px 0;
+}
+.overview-records > div {
+    min-width: 0;
+}
+.overview-records dt,
+.overview-records .record-context {
+    font-size: 13px;
+    line-height: 1.7;
+}
+.overview-records dd {
+    margin: 8px 0 0;
+    font-size: 28px;
+    font-weight: 500;
+}
+.overview-records small {
+    font-size: 14px;
+}
+@media (max-width: 720px) {
+    .overview-records {
+        grid-template-columns: 1fr;
+    }
+    .overview-records > div + div {
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+    }
+}
+</style>

@@ -1,8 +1,18 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="dark" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script>
+            try {
+                if (localStorage.getItem('stage-ready-theme') === 'light') {
+                    document.documentElement.dataset.theme = 'light';
+                }
+            } catch {
+                // Keep the default theme when browser storage is unavailable.
+            }
+        </script>
 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 

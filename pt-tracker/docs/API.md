@@ -33,7 +33,8 @@ the returned token as `X-CSRF-TOKEN` on POST, PUT, PATCH and DELETE requests. Se
 invitation, or completing a password reset.
 
 - `POST /api/login`: email and password; limited to five attempts per minute per email/IP.
-- `GET /api/user`: signed-in user's ID, name, email and role.
+- `GET /api/user`: signed-in user's ID, name, email, role, fixed
+  `is_bodybuilding_coach` flag, `has_active_coaching` and `has_coaching_handovers`.
 - `GET /api/clients`: coaches' current active assigned clients, paginated.
 - `POST /api/logout`: ends the session.
 - `GET /api/exercises`: paginated exercise catalogue.
@@ -46,7 +47,37 @@ and manage workouts for clients with an active assignment whose start/end dates
 include today. Inactive accounts and clients cannot access tracker records.
 Coach accounts and user roles require trusted application code. Client onboarding
 and ending coaching are available through the endpoints below; public
-self-registration is not provided.
+self-registration is not provided. A coach's discipline is set by trusted
+provisioning code; there is no self-service discipline update endpoint.
+
+### Ending coaching and handover PDFs
+
+`DELETE /api/clients/{client}/coaching` is restricted to a currently assigned
+coach. It creates a personal handover PDF and marks only that assignment inactive
+in one transaction. It does not set the client's account `is_active` to false.
+Clients can still sign in and read their plans, reviews and logged history. The
+former coach loses access immediately. A PDF generation failure rolls back both
+the report and the assignment change.
+
+The optional JSON body accepts `feedback` (10,000 characters), `next_steps`
+(5,000 characters), and `notes` (a list of at most ten objects). Each supplied
+note requires `title` (160 characters), `period` (120 characters) and `body`
+(10,000 characters). Omit these fields, send null or use an empty notes list to
+end coaching without final notes. Long notes continue on extra pages.
+
+`GET /api/coaching-handovers?page=1` returns only the signed-in client's reports,
+12 per page, with `id`, `coach_name`, `discipline`, `started_on`, `ended_at` and
+`pdf_url`. It does not include the underlying snapshot or PDF bytes.
+`GET /api/coaching-handovers/{handover}/pdf` previews a saved PDF inline;
+`?download=1` uses attachment disposition. Both require the owning client's
+active account and session, use private no-store responses, and forbid access
+by coaches or other clients. Inline framing is restricted to the same origin.
+Repeated coaching periods create separate immutable reports. For older inactive
+assignments with known end dates, operators can run
+`php artisan coaching:backfill-handovers` once after upgrading. The command
+preserves existing PDFs and excludes records dated after the assignment ended.
+
+### Check-ins and workouts
 
 Check-ins require `check_in_date` (YYYY-MM-DD), unique per client. Optional fields:
 `bodyweight`, `sleep_hours`, `sleep_quality`, `energy_level`, `stress_level`,
@@ -221,10 +252,9 @@ return 403. Stored photos and reviews are preserved.
 `GET /api/clients/{client}/daily-check-ins` includes `posing_enabled` for the current
 viewer. Normal measurements and nutrition remain available for both disciplines.
 
-`GET /api/user` includes boolean `is_bodybuilding_coach`. Coaches may change their
-own value with `PATCH /api/user/coaching-type` and a required boolean field of the
-same name. Client and inactive accounts cannot change it. True means bodybuilding,
-false means powerlifting; user roles and coaching assignments are unchanged.
+`GET /api/user` includes boolean `is_bodybuilding_coach`. True means bodybuilding,
+false means powerlifting. This is a fixed discipline assigned by trusted
+provisioning code. Neither coaches nor clients can change it through the API.
 
 Saving daily numbers creates or edits a draft. Submission requires the original
 eight bodybuilding poses plus `front_relaxed`, `rear_relaxed`, `left_side_relaxed`

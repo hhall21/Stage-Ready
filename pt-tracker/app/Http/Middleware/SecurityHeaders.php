@@ -13,7 +13,9 @@ class SecurityHeaders
     {
         $response = $next($request);
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-Frame-Options', 'DENY');
+        if (! $response->headers->has('X-Frame-Options')) {
+            $response->headers->set('X-Frame-Options', 'DENY');
+        }
         $response->headers->set('Referrer-Policy', 'no-referrer');
         // Laravel responses can contain account data, CSRF tokens or invite links.
         // Static assets served directly by the web server keep their own caching.

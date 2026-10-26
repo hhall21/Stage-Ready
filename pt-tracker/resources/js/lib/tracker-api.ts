@@ -4,6 +4,8 @@ export type TrackerUser = {
     email: string;
     role: 'coach' | 'client';
     is_bodybuilding_coach: boolean;
+    has_active_coaching?: boolean;
+    has_coaching_handovers?: boolean;
 };
 export type Page<T> = {
     data: T[];

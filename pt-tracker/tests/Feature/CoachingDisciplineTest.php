@@ -23,27 +23,20 @@ class CoachingDisciplineTest extends TestCase
         Storage::fake('checkin_photos');
     }
 
-    public function test_the_flag_defaults_to_bodybuilding_and_only_the_coach_can_change_their_own_type(): void
+    public function test_coach_discipline_is_read_only_and_has_no_self_service_update_endpoint(): void
     {
         [$coach, $client] = $this->pair();
-        $other = User::factory()->create(['role' => 'coach']);
         $url = '/api/user/coaching-type';
         $this->assertTrue($coach->fresh()->is_bodybuilding_coach);
-        $this->assertTrue($client->fresh()->is_bodybuilding_coach);
-        $this->patchJson($url, ['is_bodybuilding_coach' => false])->assertUnauthorized();
-        $this->actingAs($client)->patchJson($url, ['is_bodybuilding_coach' => true])->assertForbidden();
+        $this->patchJson($url, ['is_bodybuilding_coach' => false])->assertNotFound();
+        $this->actingAs($client)->patchJson($url, ['is_bodybuilding_coach' => true])->assertNotFound();
         $this->actingAs($coach)->getJson('/api/user')->assertJsonPath('data.is_bodybuilding_coach', true);
-        $this->patchJson($url, ['is_bodybuilding_coach' => false, 'user_id' => $other->id, 'role' => 'client'])->assertOk()
-            ->assertJsonPath('data.id', $coach->id)->assertJsonPath('data.role', 'coach')
-            ->assertJsonPath('data.is_bodybuilding_coach', false)->assertJsonMissingPath('data.password');
-        $this->getJson('/api/user')->assertJsonPath('data.is_bodybuilding_coach', false);
-        $this->assertTrue($other->fresh()->is_bodybuilding_coach);
-        $this->patchJson($url, ['is_bodybuilding_coach' => true])->assertOk()->assertJsonPath('data.is_bodybuilding_coach', true);
-        foreach ([[], ['is_bodybuilding_coach' => null], ['is_bodybuilding_coach' => 2], ['is_bodybuilding_coach' => 'powerlifting']] as $payload) {
-            $this->patchJson($url, $payload)->assertUnprocessable()->assertJsonValidationErrors('is_bodybuilding_coach');
-        }
-        $coach->forceFill(['is_active' => false])->save();
-        $this->actingAs($coach)->patchJson($url, ['is_bodybuilding_coach' => false])->assertForbidden();
+        $this->patchJson($url, ['is_bodybuilding_coach' => false])->assertNotFound();
+        $this->assertTrue($coach->fresh()->is_bodybuilding_coach);
+        [$powerlifting] = $this->pair(false);
+        $this->actingAs($powerlifting)->getJson('/api/user')->assertJsonPath('data.is_bodybuilding_coach', false);
+        $this->patchJson($url, ['is_bodybuilding_coach' => true])->assertNotFound();
+        $this->assertFalse($powerlifting->fresh()->is_bodybuilding_coach);
     }
 
     public function test_bodybuilding_clients_and_coaches_have_access_while_unassigned_clients_do_not(): void
@@ -64,12 +57,12 @@ class CoachingDisciplineTest extends TestCase
         $this->getJson($this->base($unassigned, $unassignedCheck))->assertForbidden();
     }
 
-    public function test_changing_to_powerlifting_blocks_all_photo_endpoints_and_preserves_history(): void
+    public function test_powerlifting_blocks_all_photo_endpoints_and_preserves_existing_history(): void
     {
-        [$coach, $client] = $this->pair();
+        [$coach, $client] = $this->pair(false);
         [$checkIn, $photo] = $this->history($client, $coach);
         $base = $this->base($client, $checkIn);
-        $this->actingAs($coach)->patchJson('/api/user/coaching-type', ['is_bodybuilding_coach' => false])->assertOk();
+        $this->actingAs($coach);
         $this->getJson('/api/clients/'.$client->id.'/daily-check-ins')->assertJsonPath('posing_enabled', false);
         $this->getJson($base)->assertForbidden();
         $this->getJson('/api/daily-check-in-photos/'.$photo->id)->assertForbidden();
@@ -90,9 +83,8 @@ class CoachingDisciplineTest extends TestCase
         $this->assertDatabaseCount('check_in_posing_reviews', 1);
         $this->assertSame(0, $checkIn->fresh()->photo_version);
         Storage::disk('checkin_photos')->assertExists($photo->file_path);
-        $this->actingAs($coach->fresh())->patchJson('/api/user/coaching-type', ['is_bodybuilding_coach' => true])->assertOk();
-        $this->actingAs($client)->getJson($base)->assertOk()->assertJsonCount(1, 'data.photos')->assertJsonCount(1, 'data.reviews')
-            ->assertJsonPath('data.reviews.0.is_current', true);
+        $this->actingAs($coach)->patchJson('/api/user/coaching-type', ['is_bodybuilding_coach' => true])->assertNotFound();
+        $this->actingAs($client)->getJson($base)->assertForbidden();
     }
 
     public function test_a_powerlifting_coach_cannot_see_photos_when_the_client_also_has_a_bodybuilding_coach(): void
@@ -132,9 +124,9 @@ class CoachingDisciplineTest extends TestCase
     }
 
     /** @return array{User, User} */
-    private function pair(): array
+    private function pair(bool $bodybuilding = true): array
     {
-        $coach = User::factory()->create(['role' => 'coach']);
+        $coach = User::factory()->create(['role' => 'coach', 'is_bodybuilding_coach' => $bodybuilding]);
         $client = User::factory()->create();
         TrainerClient::create(['trainer_id' => $coach->id, 'client_id' => $client->id, 'start_date' => '2026-10-01']);
 

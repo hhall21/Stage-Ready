@@ -45,8 +45,8 @@ descriptive title and search/social metadata.
 ### Coach workspace
 
 - View clients with a current, active coaching assignment.
-- Choose Bodybuilding or Powerlifting under **Your coaching discipline** in the
-  Clients tab. Existing coach accounts default to Bodybuilding.
+- View the coach's fixed Bodybuilding or Powerlifting discipline in the Clients
+  tab. Existing coach accounts default to Bodybuilding.
 - Invite new clients by name and email from the Clients section, or invite an
   existing account holder to accept after signing in. Access starts immediately
   when the invitation is accepted; no coaching dates or upcoming-client list.
@@ -147,8 +147,9 @@ installations (`php artisan migrate`).
 
 Run `php artisan migrate` to add the boolean `is_bodybuilding_coach` field to user
 accounts. For coaches, `true` means bodybuilding and `false` means powerlifting;
-existing accounts default to `true`. The flag is changed through the coach's own
-discipline setting, rather than general account fields. Clients cannot change it.
+existing accounts default to `true`. Set the discipline in trusted application
+code when provisioning the coach. The dashboard displays it as read-only, and
+there is no client-facing or coach-facing API for switching disciplines.
 
 Clients' photo eligibility follows their current, active coaching assignments,
 not their own stored flag. A client with at least one active bodybuilding coach
@@ -159,10 +160,55 @@ coach still cannot access them when another coach is a bodybuilding coach.
 Without bodybuilding access, the dashboard shows normal daily check-ins and
 hides photo uploads, posing submissions, ratings and photo prompts. Photo and
 posing API routes enforce the same rules. Measurements and evening nutrition
-remain available. Changing discipline or ending the last bodybuilding assignment
+remain available. Ending the last bodybuilding assignment
 preserves existing photos and reviews; access returns when the client has an
 active bodybuilding coach again. Published nutrition/practice plans and written
 coaching reviews remain available to clients when coaching ends.
+
+### Ending coaching and client handovers
+
+In **Clients**, choose **End coaching**. The confirmation opens above the active
+client list and receives focus. Optionally record what worked well, next steps
+and up to ten additional notes, each with a title, period and body.
+Confirm **Create handover and end coaching** to save a personal PDF and end only
+that coach's assignment. The account remains active; ending coaching does not
+disable the client's login or delete plans, reviews, photos or logged history.
+The former coach immediately loses access to the client's records.
+
+**Refresh clients** reloads the active client list and shows progress and a
+completion message. If loading fails, the error appears beside the list with a
+retry button.
+
+The PDF contains bodyweight milestones, a rolling seven-day average chart for
+the final 56 days, completed working-set counts, exercise bests and final coach
+notes. Statistics cover the assignment's start date through the day coaching
+ends. Only recorded weights and completed sets with positive reps contribute;
+missing values stay missing, and unloaded sets still count as working sets.
+Each exercise best pairs its load, reps and date from the same completed set.
+Long notes continue on additional pages without reducing the font size.
+
+Clients can preview, open and download their PDFs in **Coaching handovers**.
+When no active coach remains, this section opens automatically on their next
+login if they have a handover. Clients with another active coach keep their usual
+overview and can open handovers from the navigation. Multiple coaching periods
+produce separate reports, including when the same coach starts coaching again.
+
+Reports are saved as immutable snapshots and PDF bytes in the database, with
+authenticated access restricted to the client who owns them. Later record edits
+do not rewrite a report. Ending the assignment and saving the PDF share a database
+transaction: if generation fails, coaching stays active.
+
+Run `composer install` for the locked Dompdf dependency and `php artisan migrate`
+for `coaching_handovers` when updating. PDF generation runs in PHP and does not
+require Python, a browser binary or an external PDF service. The standalone
+[design preview](docs/handover/README.md) remains available with fictional data.
+
+For assignments ended before this feature was installed, run
+`php artisan coaching:backfill-handovers` after migrating. It creates missing
+reports for inactive assignments with recorded end dates, using records within
+each assignment's dates. It preserves accounts, assignments and existing PDFs;
+rerunning it does not rewrite reports. Historical final notes that were never
+recorded are left missing.
 
 ### Daily check-ins
 
@@ -417,6 +463,10 @@ existing James demo coach if its public demo password still matches; otherwise i
 creates `sample.coach@stage-ready.test` with the same demo password. Sample photos
 and clips are labelled placeholders copied to private storage. Keep this data local;
 the original JSON fixtures are unchanged.
+
+The development sample loader also adds one PDF from an earlier fictional
+coaching period per sample client. These reports do not end their current sample
+assignments, and repeated loads preserve existing reports.
 
 The setup seed command creates the accounts below. To add them later to a new,
 empty local database, run:

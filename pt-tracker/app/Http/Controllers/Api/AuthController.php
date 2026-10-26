@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\CoachingHandover;
 use App\Rules\SafePassword;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -39,24 +38,12 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        return response()->json(['data' => $request->user()?->only(self::USER_FIELDS)]);
-    }
+        $user = $request->user();
 
-    public function coachingType(Request $request): JsonResponse
-    {
-        abort_unless($request->user()?->role === 'coach', 403);
-        $data = $request->validate(['is_bodybuilding_coach' => ['required', 'boolean']]);
-        $coach = DB::transaction(function () use ($request, $data): User {
-            $coach = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
-            abort_unless($coach->role === 'coach' && $coach->is_active, 403);
-            $coach->forceFill($data)->save();
-
-            return $coach;
-        });
-
-        Auth::setUser($coach);
-
-        return response()->json(['data' => $coach->only(self::USER_FIELDS)]);
+        return response()->json(['data' => $user ? [...$user->only(self::USER_FIELDS),
+            'has_active_coaching' => $user->role === 'client' && $user->hasActiveCoach(),
+            'has_coaching_handovers' => $user->role === 'client' && CoachingHandover::where('client_id', $user->id)->exists(),
+        ] : null]);
     }
 
     public function logout(Request $request): JsonResponse

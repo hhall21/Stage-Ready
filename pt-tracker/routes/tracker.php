@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BodyweightTrendController;
 use App\Http\Controllers\Api\CheckInPosingController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientInvitationController;
+use App\Http\Controllers\Api\CoachingHandoverController;
 use App\Http\Controllers\Api\CoachingPlanController;
 use App\Http\Controllers\Api\CoachingReviewController;
 use App\Http\Controllers\Api\CompetitionController;
@@ -28,7 +29,8 @@ Route::prefix('api')->group(function () {
     Route::post('invitations/{token}/accept', [ClientInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth.session', 'throttle:invitation-accept']);
     Route::middleware(['auth', 'auth.session', EnsureAccountIsActive::class])->group(function () {
         Route::get('user', [AuthController::class, 'user']);
-        Route::patch('user/coaching-type', [AuthController::class, 'coachingType']);
+        Route::get('coaching-handovers', [CoachingHandoverController::class, 'index']);
+        Route::get('coaching-handovers/{handover}/pdf', [CoachingHandoverController::class, 'pdf'])->whereNumber('handover');
         Route::get('clients', [ClientController::class, 'index']);
         Route::get('competitions', [CompetitionController::class, 'index']);
         Route::get('client-invitations', [ClientInvitationController::class, 'index']);

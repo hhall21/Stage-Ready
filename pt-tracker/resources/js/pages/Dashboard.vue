@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import CheckInSection from '@/components/CheckInSection.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
 import CoachingReviews from '@/components/CoachingReviews.vue';
+import CoachingHandovers from '@/components/CoachingHandovers.vue';
 import CoachDiscipline from '@/components/CoachDiscipline.vue';
 import CompetitionsSection from '@/components/CompetitionsSection.vue';
 import ExerciseProgress from '@/components/ExerciseProgress.vue';
@@ -37,34 +38,34 @@ type DashboardTab =
     | 'nutrition'
     | 'practice'
     | 'reviews'
+    | 'handover'
     | 'clients'
     | 'competitions';
 const tab = ref<DashboardTab>('overview');
-const navigation = computed<
-    { id: DashboardTab; label: string; number: string }[]
->(() => [
-    { id: 'overview', label: 'Overview', number: '01' },
-    { id: 'checkins', label: 'Daily check-ins', number: '02' },
-    { id: 'workouts', label: 'Workouts', number: '03' },
+const navigation = computed<{ id: DashboardTab; label: string }[]>(() => [
+    { id: 'overview', label: 'Overview' },
+    { id: 'checkins', label: 'Daily check-ins' },
+    { id: 'workouts', label: 'Workouts' },
     {
         id: 'progress',
         label:
             user.value?.role === 'coach'
                 ? 'Training analytics'
                 : 'Exercise progress',
-        number: '04',
     },
-    { id: 'health', label: 'Weekly health', number: '05' },
-    { id: 'nutrition', label: 'Meal plans', number: '06' },
-    { id: 'practice', label: 'Cardio and practice', number: '07' },
-    { id: 'reviews', label: 'Coach reviews', number: '08' },
+    { id: 'health', label: 'Weekly health' },
+    { id: 'nutrition', label: 'Meal plans' },
+    { id: 'practice', label: 'Cardio and practice' },
+    { id: 'reviews', label: 'Coach reviews' },
+    ...(user.value?.role === 'client'
+        ? [{ id: 'handover' as const, label: 'Coaching handovers' }]
+        : []),
     ...(user.value?.role === 'coach'
         ? [
-              { id: 'clients' as const, label: 'Clients', number: '09' },
+              { id: 'clients' as const, label: 'Clients' },
               {
                   id: 'competitions' as const,
                   label: 'Competitions',
-                  number: '10',
               },
           ]
         : []),
@@ -81,20 +82,17 @@ const activeClient = computed(() =>
 const heading = computed(() => {
     const coach = user.value?.role === 'coach';
     const headings: Record<DashboardTab, string> = {
-        overview: coach ? 'Your coaching overview.' : 'Let’s get to work.',
-        checkins: coach
-            ? 'Review client check-ins.'
-            : 'Check in. Move forward.',
-        workouts: coach ? 'Plan and review training.' : 'Train with intent.',
-        progress: coach ? 'Explore client performance.' : 'See your progress.',
-        health: coach ? 'Monitor client health.' : 'Your health readings.',
-        nutrition: coach ? 'Build client meal plans.' : 'Fuel your progress.',
-        practice: coach
-            ? 'Prescribe cardio and practice.'
-            : 'Your daily prescriptions.',
-        reviews: coach ? 'Review. Adjust. Progress.' : 'Your coach’s feedback.',
-        clients: 'Your coaching roster.',
-        competitions: 'Plan your clients’ competition dates.',
+        overview: coach ? 'Client overview' : 'Your daily overview',
+        checkins: coach ? 'Client check-ins' : 'Your daily check-in',
+        workouts: coach ? 'Training plans and logs' : 'Your workouts',
+        progress: coach ? 'Training analytics' : 'Your exercise progress',
+        health: coach ? 'Client health readings' : 'Your health readings',
+        nutrition: coach ? 'Client meal plans' : 'Your meal plans',
+        practice: 'Cardio and practice',
+        reviews: coach ? 'Client reviews' : 'Your coach’s feedback',
+        handover: 'Your coaching handovers',
+        clients: 'Your clients',
+        competitions: 'Client competitions',
     };
     return headings[tab.value];
 });
@@ -108,6 +106,12 @@ async function initialize() {
     error.value = '';
     try {
         user.value = (await api<{ data: TrackerUser }>('/api/user')).data;
+        if (
+            user.value.role === 'client' &&
+            !user.value.has_active_coaching &&
+            user.value.has_coaching_handovers
+        )
+            tab.value = 'handover';
         if (user.value.role === 'coach')
             clients.value = await allPages<TrackerUser>('/api/clients');
         selected.value =
@@ -121,14 +125,9 @@ async function initialize() {
     }
 }
 async function refreshClients() {
-    error.value = '';
-    try {
-        clients.value = await allPages<TrackerUser>('/api/clients');
-        if (!clients.value.some((client) => client.id === selected.value))
-            selected.value = clients.value[0]?.id ?? null;
-    } catch (cause) {
-        handleError(cause);
-    }
+    clients.value = await allPages<TrackerUser>('/api/clients');
+    if (!clients.value.some((client) => client.id === selected.value))
+        selected.value = clients.value[0]?.id ?? null;
 }
 function selectTab(next: DashboardTab) {
     tab.value = next;
@@ -151,12 +150,12 @@ onMounted(initialize);
             user?.role === 'coach' ? 'Coach workspace' : 'Your training space'
         "
     />
-    <SiteHeader dashboard
+    <SiteHeader dashboard skip-target="#main-content"
         ><span class="account-role">{{
             user?.role === 'coach' ? 'COACH SPACE' : 'MEMBER SPACE'
         }}</span
         ><button class="text-link" :disabled="saving" @click="logout">
-            Sign out ↗
+            {{ saving ? 'Signing out…' : 'Sign out' }}
         </button></SiteHeader
     >
     <div class="dashboard-layout">
@@ -171,8 +170,7 @@ onMounted(initialize);
                     :aria-current="tab === item.id ? 'page' : undefined"
                     @click="selectTab(item.id)"
                 >
-                    <span>{{ item.number }}</span
-                    >{{ item.label }}<span aria-hidden="true">↗</span>
+                    {{ item.label }}
                 </button>
             </nav>
             <div class="sidebar-bottom">
@@ -183,24 +181,31 @@ onMounted(initialize);
                 />
             </div>
         </aside>
-        <main class="dashboard-main" :data-section="tab">
+        <main
+            id="main-content"
+            class="dashboard-main"
+            :data-section="tab"
+            tabindex="-1"
+        >
             <div class="workspace-heading">
                 <div>
                     <p class="eyebrow">
                         {{
                             user?.role === 'coach'
                                 ? 'COACH DASHBOARD'
-                                : 'YOUR DAILY STANDARD'
+                                : 'CLIENT DASHBOARD'
                         }}
                     </p>
-                    <h1 :key="tab" class="workspace-title">{{ heading }}</h1>
+                    <h1 :key="tab" class="workspace-title" aria-live="polite">
+                        {{ heading }}
+                    </h1>
                     <p>
                         {{
                             user
                                 ? 'Welcome back, ' +
                                   user.name.split(' ')[0] +
                                   '.'
-                                : 'Loading your training space…'
+                                : 'Loading your workspace…'
                         }}
                     </p>
                 </div>
@@ -246,11 +251,11 @@ onMounted(initialize);
                 >
             </div>
             <template v-if="user?.role === 'coach' && tab === 'clients'">
-                <CoachDiscipline :user="user" @updated="user = $event" />
+                <CoachDiscipline :user="user" />
                 <ClientManagement
                     data-section="clients"
                     :clients="clients"
-                    @changed="refreshClients"
+                    :refresh-clients="refreshClients"
                 />
             </template>
             <p v-else-if="loading" class="loading-message" role="status">
@@ -260,8 +265,17 @@ onMounted(initialize);
                 v-else-if="user?.role === 'coach' && tab === 'competitions'"
                 :clients="clients"
             />
+            <CoachingHandovers
+                v-else-if="user?.role === 'client' && tab === 'handover'"
+            />
             <div v-else-if="!selected" class="empty-state">
-                <h2>Your workspace is ready.</h2>
+                <h2>
+                    {{
+                        user?.role === 'coach'
+                            ? 'No clients yet'
+                            : 'No client selected'
+                    }}
+                </h2>
                 <p>
                     {{
                         user?.role === 'coach'
@@ -274,7 +288,7 @@ onMounted(initialize);
                     class="button button-small"
                     @click="selectTab('clients')"
                 >
-                    Manage clients ↗
+                    Manage clients
                 </button>
             </div>
             <template v-else-if="user && activeClient">

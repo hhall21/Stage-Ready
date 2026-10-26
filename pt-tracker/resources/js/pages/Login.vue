@@ -2,10 +2,8 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AthleteVisual from '@/components/AthleteVisual.vue';
-import JordanPetersQuote from '@/components/JordanPetersQuote.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
-import { jordanPetersQuotes } from '@/lib/jordan-peters-quotes';
 import { api, message } from '@/lib/tracker-api';
 const props = withDefaults(
     defineProps<{ next?: string; passwordReset?: boolean }>(),
@@ -34,12 +32,14 @@ async function login() {
 </script>
 <template>
     <Head title="Member login" />
-    <SiteHeader />
-    <main class="login-layout">
+    <SiteHeader skip-target="#main-content" />
+    <main id="main-content" class="login-layout" tabindex="-1">
         <section class="login-copy" data-section="overview">
-            <p class="eyebrow">YOUR TRAINING SPACE</p>
-            <h1>WELCOME<br /><span class="outline-text">BACK.</span></h1>
-            <JordanPetersQuote :quote="jordanPetersQuotes.patience" />
+            <p class="eyebrow">STAGE-READY</p>
+            <h1 class="sign-in-title">Sign in to your workspace</h1>
+            <p class="sign-in-intro">
+                Access your training plans, check-ins and coaching records.
+            </p>
             <form class="login-form" @submit.prevent="login">
                 <p v-if="passwordReset" class="notice" role="status">
                     Password updated. Sign in with your new password.
@@ -63,7 +63,6 @@ async function login() {
                 /></label>
                 <button class="button" :disabled="busy">
                     {{ busy ? 'Signing in…' : 'Sign in' }}
-                    <span aria-hidden="true">↗</span>
                 </button>
                 <p class="form-help">
                     <Link href="/forgot-password" class="text-link"
@@ -71,10 +70,26 @@ async function login() {
                     >
                 </p>
                 <p class="form-help">
-                    Need access or help with your account? Contact your coach.
+                    Clients: use the invitation from your coach to join.
                 </p>
             </form>
         </section>
         <AthleteVisual :src="athleteImages.login" />
     </main>
 </template>
+
+<style scoped>
+.login-copy .sign-in-title {
+    max-width: 14ch;
+    margin-block: 24px;
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+}
+.sign-in-intro {
+    max-width: 36ch;
+    font-size: 16px;
+    line-height: 1.75;
+}
+</style>

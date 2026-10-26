@@ -3,72 +3,65 @@ import { Head, Link } from '@inertiajs/vue3';
 import AthleteVisual from '@/components/AthleteVisual.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
-import { vReveal } from '@/lib/motion';
 
 const description =
-    'Stage-Ready brings training plans, nutrition, client check-ins and progress tracking together for bodybuilding and powerlifting coaches.';
+    'Training plans, meal plans and client check-ins for bodybuilding and powerlifting coaches. Review what you prescribed alongside what your clients recorded.';
 const features = [
     {
-        label: 'TRAINING & SPLITS',
-        title: 'Programme with control.',
-        text: 'Build repeating splits with training and rest days. Prescribe sets, reps, load and RIR, then see what your client actually completed. Adjust upcoming sessions while keeping logged training intact.',
+        category: 'Training',
+        title: 'Training splits and session logs',
+        text: 'Build repeating splits with training and rest days. Set the exercises, working sets, reps, load and RIR. Clients log against your plan; changes to upcoming sessions preserve their recorded history.',
     },
     {
-        label: 'MEALS & NUTRITION',
-        title: 'Give nutrition a clear structure.',
-        text: 'Create separate training-day and rest-day meal plans, each with its own meal times. Review hunger, appetite and digestion alongside your prescriptions, and schedule new plans in advance.',
+        category: 'Nutrition',
+        title: 'Meal plans for training and rest days',
+        text: 'Prescribe separate meals and times for each day type, with future-dated changes when needed. Review hunger, appetite and digestion in the client’s end-of-day check-in.',
     },
     {
-        label: 'CHECK-INS & HEALTH',
-        title: 'Get the context behind the numbers.',
-        text: 'Bring bodyweight, sleep, energy, stress, steps and daily notes into the same view. Enable weekly blood pressure and resting heart rate readings for clients who need them.',
+        category: 'Check-ins',
+        title: 'Daily records with room for context',
+        text: 'Review bodyweight, sleep, energy, stress, steps and notes. Enable weekly blood pressure and resting heart rate readings for clients who need them. Missing readings stay missing.',
     },
     {
-        label: 'PROGRESS & ANALYTICS',
-        title: 'See the trend. Inform the next step.',
-        text: 'Follow rolling seven-day bodyweight averages and exercise progress. Compare training weight and reps with calories and bodyweight, with reading counts that show how much information you have.',
-    },
-    {
-        label: 'BODYBUILDING POSING & FEEDBACK',
-        title: 'Make posing part of the process.',
-        text: 'Bodybuilding coaches can review up to thirteen private pose photos with ratings and written feedback. During prep, add separate flatness and fullness ratings to give your client more specific direction.',
-    },
-    {
-        label: 'COACH REVIEWS',
-        title: 'Turn check-ins into a clear direction.',
-        text: 'Keep written feedback and next steps together, with weekly reviews in prep and fortnightly reviews in the off-season. Published plans and reviews remain available for your client to revisit.',
+        category: 'Progress',
+        title: 'Trends you can trace back to the log',
+        text: 'Follow seven-day bodyweight averages and exercise progress. Compare weight and reps with calories and bodyweight, with reading counts alongside the trends.',
     },
 ];
 const steps = [
     {
-        title: 'Invite your client.',
-        text: 'Send an invitation from your dashboard. Coaching starts as soon as they accept, with a personal workspace for their plans and logs.',
+        title: 'Invite a client',
+        text: 'Send an invitation from your dashboard. Coaching starts when they accept.',
     },
     {
-        title: 'Set their direction.',
-        text: 'Prescribe their training, meals, cardio and practice. Your client sees what to do and records how it went against the plan you set.',
+        title: 'Prescribe their plan',
+        text: 'Set their training split, meals, cardio and practice in their workspace.',
     },
     {
-        title: 'Review. Adjust. Progress.',
-        text: 'Use check-ins and performance trends to guide your feedback, with private posing photos available in bodybuilding coaching. Update upcoming plans as their needs change.',
+        title: 'Review their records',
+        text: 'Clients log sessions and check-ins against the work you prescribed.',
+    },
+    {
+        title: 'Publish your feedback',
+        text: 'Write the review and adjust upcoming plans while keeping logged history.',
     },
 ];
 const questions = [
     {
-        title: 'Is Stage-Ready only for competition prep?',
-        text: 'It supports both off-season coaching and competition preparation. Training, nutrition and progress tracking stay together throughout, with weekly written reviews in prep and fortnightly reviews in the off-season.',
+        title: 'Do powerlifting clients need posing photos?',
+        text: 'No. Each coach has a fixed Bodybuilding or Powerlifting discipline. Posing photos and posing reviews are available to bodybuilding coaches and clients with an active bodybuilding coach.',
     },
     {
-        title: 'Can clients rewrite the workouts I prescribe?',
-        text: 'You control the training plan. Clients log their performance against prescribed sessions. When circumstances change, they can choose another prescribed split day or take extra rest without rewriting the workout.',
+        title: 'Can clients change the workouts I prescribe?',
+        text: 'Clients log their performance against your plan. They can choose another prescribed split day or take extra rest, but cannot rewrite the workout.',
     },
     {
         title: 'Does every check-in field have to be completed?',
-        text: 'All check-in measurements, notes and pose photos are optional. Clients can save or submit partial check-ins, leaving you to follow up on what matters for their coaching.',
+        text: 'No. Measurements, notes and pose photos are optional. Clients can save or submit partial check-ins; you decide what to follow up on.',
     },
     {
         title: 'What happens to records when coaching ends?',
-        text: 'Your client keeps their account, logged history, published plans and reviews. Ending coaching removes your access to their records while preserving their progress.',
+        text: 'Clients keep their account, logged history, published plans and written reviews. Ending coaching removes the coach’s access to their records.',
     },
 ];
 </script>
@@ -78,165 +71,121 @@ const questions = [
         <meta name="description" :content="description" />
         <meta
             property="og:title"
-            content="Stage-Ready | Your coaching. Every detail. One place."
+            content="Stage-Ready | Training plans and client check-ins"
         />
         <meta property="og:description" :content="description" />
         <meta property="og:type" content="website" />
     </Head>
     <div class="public-page coach-home">
-        <SiteHeader />
-        <main>
-            <section class="hero" aria-labelledby="home-title">
-                <div class="hero-copy">
-                    <p class="eyebrow">
-                        <span class="status-dot" aria-hidden="true"></span>
-                        BUILT FOR BODYBUILDING AND POWERLIFTING COACHES
+        <SiteHeader skip-target="#main-content" />
+        <main id="main-content" tabindex="-1">
+            <section class="home-hero" aria-labelledby="home-title">
+                <div class="home-hero-copy">
+                    <p class="home-label">
+                        For bodybuilding and powerlifting coaches
                     </p>
                     <h1 id="home-title">
-                        YOUR COACHING.<br />EVERY DETAIL.<br /><span
-                            class="outline-text"
-                            >ONE PLACE.</span
-                        >
+                        See how your clients are following the plan.
                     </h1>
-                    <p class="intro">
-                        Bring training, nutrition, check-ins and competition
-                        prep into one connected workspace. Give your clients a
-                        clear plan and make your next coaching decision with the
-                        full picture.
+                    <p class="home-intro">
+                        Prescribe training and meals, review check-ins and
+                        adjust upcoming sessions. Stage-Ready keeps your
+                        clients’ logs beside the work you set.
                     </p>
-                    <div class="hero-actions">
-                        <a class="button" href="#features">
-                            Explore coach features
-                            <span aria-hidden="true">↓</span>
-                        </a>
-                        <Link class="text-link" href="/login">
-                            Coach sign in <span aria-hidden="true">↗</span>
-                        </Link>
-                    </div>
-                    <div class="hero-footnote">
-                        <span>OFF-SEASON TO SHOW DAY</span>
-                        <span>YOUR PLAN. THEIR PROGRESS.</span>
-                    </div>
+                    <a class="button" href="#features">View coaching tools</a>
                 </div>
                 <AthleteVisual :src="athleteImages.hero" />
             </section>
 
-            <div class="capability-strip" aria-label="Platform features">
-                <span>TRAINING</span>
-                <span>NUTRITION</span>
-                <span>CHECK-INS</span>
-                <span>POSING</span>
-                <span>PROGRESS</span>
-                <span>COMPETITIONS</span>
-            </div>
-
             <section
                 id="features"
-                class="approach"
+                class="workspace-section home-section"
                 aria-labelledby="features-title"
             >
-                <div v-reveal class="section-heading">
-                    <p class="eyebrow">YOUR COACHING WORKSPACE</p>
+                <div class="home-section-heading">
+                    <p class="home-label">The coaching workspace</p>
                     <h2 id="features-title">
-                        Every detail.<br />A clearer decision.
+                        Review the plan alongside the results.
                     </h2>
                     <p>
-                        Stage-Ready keeps the work you prescribe beside the
-                        progress your clients record, so your next adjustment
-                        starts with context.
+                        Training, nutrition and check-ins share the same client
+                        record, so you can review them together.
                     </p>
                 </div>
-                <div class="approach-grid feature-grid">
+                <div class="feature-list">
                     <article
-                        v-for="(feature, index) in features"
-                        :key="feature.label"
-                        v-reveal
+                        v-for="feature in features"
+                        :key="feature.category"
                     >
-                        <p class="eyebrow feature-label">
-                            <span>{{
-                                String(index + 1).padStart(2, '0')
-                            }}</span>
-                            {{ feature.label }}
-                        </p>
-                        <h3>{{ feature.title }}</h3>
+                        <div>
+                            <p class="home-label">{{ feature.category }}</p>
+                            <h3>{{ feature.title }}</h3>
+                        </div>
                         <p>{{ feature.text }}</p>
                     </article>
                 </div>
             </section>
 
-            <section class="prep-spotlight" aria-labelledby="prep-title">
+            <section class="prep-section" aria-labelledby="prep-title">
                 <AthleteVisual :src="athleteImages.detail" />
-                <div v-reveal class="prep-copy">
-                    <p class="eyebrow">BUILT FOR THE ROAD TO THE STAGE</p>
-                    <h2 id="prep-title">Keep the whole<br />prep in view.</h2>
+                <div class="prep-copy">
+                    <p class="home-label">Bodybuilding and competition prep</p>
+                    <h2 id="prep-title">The work between training sessions.</h2>
                     <p class="section-intro">
-                        Training is one part of the picture. Keep the work
-                        between sessions and the next show date in the same
-                        coaching platform.
+                        Keep posing practice, check-in feedback and competition
+                        dates with the rest of your client’s plan.
                     </p>
-                    <ul class="prep-details">
-                        <li>
-                            <h3>Prescribe the daily work.</h3>
-                            <p>
+                    <dl class="prep-details">
+                        <div>
+                            <dt>Cardio and posing prescriptions</dt>
+                            <dd>
                                 Set cardio, mandatory posing rounds and vacuum
-                                sets and holds. Schedule future changes as prep
-                                progresses.
-                            </p>
-                        </li>
-                        <li>
-                            <h3>Keep competition dates close.</h3>
-                            <p>
-                                View shows by client and filter upcoming or past
-                                competitions. Record placing and show notes once
-                                the show date has passed.
-                            </p>
-                        </li>
-                        <li>
-                            <h3>Give each client a clear plan.</h3>
-                            <p>
-                                Keep prescribed meals, training and practice
-                                available in their workspace, with feedback they
-                                can return to between check-ins.
-                            </p>
-                        </li>
-                    </ul>
+                                sets and holds. Schedule increases in advance.
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Private posing check-ins</dt>
+                            <dd>
+                                Review up to thirteen optional pose photos. Give
+                                a posing rating and feedback, with separate
+                                flatness and fullness ratings during prep.
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Reviews and competition dates</dt>
+                            <dd>
+                                Write weekly reviews in prep and fortnightly
+                                reviews off-season. Track shows by client, then
+                                record placings and notes after the show.
+                            </dd>
+                        </div>
+                    </dl>
                 </div>
             </section>
 
             <section
                 id="how-it-works"
-                class="approach workflow-section"
+                class="workflow-section home-section"
                 aria-labelledby="workflow-title"
             >
-                <div v-reveal class="section-heading">
-                    <p class="eyebrow">HOW IT WORKS</p>
-                    <h2 id="workflow-title">Your process.<br />Connected.</h2>
-                    <p>
-                        From the first invitation to the next review, give your
-                        coaching a consistent home.
-                    </p>
+                <div class="home-section-heading">
+                    <p class="home-label">How it works</p>
+                    <h2 id="workflow-title">From invitation to review.</h2>
                 </div>
-                <ol class="approach-grid coaching-steps">
-                    <li
-                        v-for="(step, index) in steps"
-                        :key="step.title"
-                        v-reveal
-                    >
-                        <span class="step-number" aria-hidden="true">
-                            {{ String(index + 1).padStart(2, '0') }}
-                        </span>
+                <ol class="coaching-steps">
+                    <li v-for="step in steps" :key="step.title">
                         <h3>{{ step.title }}</h3>
                         <p>{{ step.text }}</p>
                     </li>
                 </ol>
             </section>
 
-            <section class="home-questions" aria-labelledby="questions-title">
-                <div v-reveal>
-                    <p class="eyebrow">BEFORE YOUR NEXT CHECK-IN</p>
-                    <h2 id="questions-title">
-                        Made for the way<br />you coach.
-                    </h2>
+            <section
+                class="home-questions home-section"
+                aria-labelledby="questions-title"
+            >
+                <div class="home-section-heading">
+                    <h2 id="questions-title">Before you invite a client</h2>
                 </div>
                 <div class="question-list">
                     <details
@@ -248,38 +197,13 @@ const questions = [
                     </details>
                 </div>
             </section>
-
-            <section
-                v-reveal
-                class="closing coach-closing"
-                aria-labelledby="closing-title"
-            >
-                <p class="eyebrow">STAGE-READY</p>
-                <h2 id="closing-title">
-                    Your expertise.<br />A workspace to match.
-                </h2>
-                <p>
-                    Bring your plans, your client feedback and your next
-                    coaching decision together.
-                </p>
-                <div class="hero-actions">
-                    <Link href="/login" class="button">
-                        Sign in to your workspace
-                        <span aria-hidden="true">↗</span>
-                    </Link>
-                    <a href="#features" class="text-link"
-                        >Explore the features ↑</a
-                    >
-                </div>
-            </section>
         </main>
-        <footer class="site-footer">
-            <span>STAGE-READY</span>
-            <span
-                >BUILT FOR BODYBUILDING AND POWERLIFTING COACHES AND THEIR
-                CLIENTS.</span
-            >
-            <Link href="/login">Member login ↗</Link>
+        <footer class="site-footer home-footer">
+            <div>
+                <span class="footer-name">Stage-Ready</span>
+                <p>Coaching software for bodybuilding and powerlifting.</p>
+            </div>
+            <Link href="/login">Member sign in</Link>
         </footer>
     </div>
 </template>
@@ -287,118 +211,167 @@ const questions = [
 <style scoped>
 .coach-home {
     --section-accent: #fff;
+    --home-gutter: clamp(24px, 5.5vw, 96px);
 }
-.hero h1 {
-    font-size: clamp(44px, 5.4vw, 88px);
-    line-height: 1;
-}
-.hero .intro {
-    max-width: 450px;
-    padding-right: 20px;
-}
-.capability-strip {
+.home-hero {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 20px;
-    padding: 28px 5.5%;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    min-height: 600px;
+    padding-left: var(--home-gutter);
+}
+.home-hero-copy {
+    min-width: 0;
+    padding-block: 64px;
+}
+.home-label {
+    margin: 0 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+.home-hero h1 {
+    max-width: 15ch;
+    margin: 24px 0;
+    font-size: clamp(40px, 4.7vw, 76px);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+.home-intro {
+    max-width: 44ch;
+    margin: 0 0 32px;
+    font-size: 17px;
+    line-height: 1.75;
+}
+.home-hero :deep(.athlete-visual) {
+    align-self: stretch;
+    min-height: 520px;
+}
+.coach-home :deep(.athlete-caption) {
+    display: none;
+}
+.home-section {
+    padding: 80px var(--home-gutter);
     border-top: 1px solid var(--line);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-align: center;
 }
 #features,
 #how-it-works {
-    scroll-margin-top: 25px;
+    scroll-margin-top: 24px;
 }
-.feature-grid {
-    row-gap: 46px;
-}
-.feature-label {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 0;
-    font-size: 9px;
-}
-.feature-grid h3 {
-    margin-top: 24px;
-}
-.feature-grid p:last-child {
-    max-width: 340px;
-}
-.prep-spotlight {
+.workspace-section,
+.home-questions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    gap: clamp(32px, 6vw, 96px);
+}
+.home-section-heading h2,
+.prep-copy h2 {
+    max-width: 20ch;
+    margin: 0;
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+}
+.home-section-heading > p:last-child:not(.home-label) {
+    max-width: 36ch;
+    margin: 24px 0 0;
+    font-size: 16px;
+    line-height: 1.75;
+}
+.feature-list article {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 32px;
+    padding: 32px 0;
     border-top: 1px solid var(--line);
 }
-.prep-spotlight :deep(.athlete-visual) {
-    min-height: 700px;
+.feature-list article:first-child {
+    padding-top: 0;
+    border-top: 0;
 }
-.prep-spotlight :deep(.athlete-caption) {
-    display: none;
+.feature-list article:last-child {
+    padding-bottom: 0;
+}
+.feature-list .home-label {
+    margin-bottom: 8px;
+}
+.feature-list h3,
+.coaching-steps h3 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+}
+.feature-list article > p,
+.coaching-steps p,
+.section-intro,
+.prep-details dd,
+.question-list p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.8;
+}
+.prep-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    border-top: 1px solid var(--line);
+}
+.prep-section :deep(.athlete-visual) {
+    min-height: 560px;
 }
 .prep-copy {
-    padding: 80px 11% 80px 5%;
-}
-.prep-copy h2,
-.home-questions h2 {
-    margin: 0;
-    font-size: clamp(34px, 4vw, 55px);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.045em;
-}
-.section-intro,
-.prep-details p,
-.question-list p,
-.coach-closing > p:not(.eyebrow) {
-    font-size: 13px;
-    line-height: 1.9;
+    min-width: 0;
+    padding: 64px var(--home-gutter) 64px 32px;
 }
 .section-intro {
-    margin: 24px 0 32px;
-    max-width: 430px;
-}
-.prep-details,
-.coaching-steps {
-    list-style: none;
-    padding: 0;
+    margin-top: 24px;
+    max-width: 48ch;
 }
 .prep-details {
-    margin: 0;
+    margin: 32px 0 0;
 }
-.prep-details li {
-    padding: 22px 0;
+.prep-details > div {
+    padding: 24px 0;
     border-top: 1px solid var(--line);
 }
-.prep-details h3 {
+.prep-details > div:last-child {
+    padding-bottom: 0;
+}
+.prep-details dt {
     margin: 0 0 8px;
     font-size: 17px;
     font-weight: 500;
+    line-height: 1.5;
 }
-.prep-details p {
-    margin: 0;
-    max-width: 430px;
+.workflow-section {
+    padding-block: 64px;
 }
 .coaching-steps {
-    margin-bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 40px;
+    margin: 40px 0 0;
+    padding-left: 20px;
 }
 .coaching-steps li {
-    min-width: 0;
-    border-top: 1px solid #444;
-    padding-top: 25px;
+    padding-left: 8px;
 }
-.step-number {
-    font-size: 36px;
-    font-weight: 500;
-    letter-spacing: -0.04em;
+.coaching-steps li::marker {
+    font-size: 14px;
+    font-weight: 600;
+}
+.coaching-steps h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
 }
 .home-questions {
-    display: grid;
-    grid-template-columns: 1fr 1.3fr;
-    gap: 70px;
-    padding: 80px 5.5%;
-    border-top: 1px solid var(--line);
+    padding-block: 64px;
 }
 .question-list details {
     border-top: 1px solid var(--line);
@@ -407,86 +380,94 @@ const questions = [
     border-bottom: 1px solid var(--line);
 }
 .question-list summary {
-    padding: 24px 0;
+    min-height: 56px;
+    padding: 20px 8px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
 }
-.question-list summary:focus-visible {
-    outline: 2px solid #fff;
-    outline-offset: 4px;
-}
 .question-list p {
-    margin: 0 0 24px;
-    max-width: 560px;
+    max-width: 64ch;
+    padding: 0 8px 24px;
 }
-.coach-closing {
-    border-top: 1px solid var(--line);
-    padding-top: 80px;
-    padding-bottom: 80px;
-    background: linear-gradient(115deg, #141414, var(--ink) 75%);
-}
-.coach-closing > p:not(.eyebrow) {
-    max-width: 450px;
-    margin: 0;
-}
-.coach-closing .button {
-    margin-top: 0;
-}
-.site-footer {
-    border-top: 1px solid var(--line);
+.home-footer {
     align-items: center;
-    line-height: 1.8;
+    padding: 32px var(--home-gutter);
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    line-height: 1.7;
+    letter-spacing: 0;
+}
+.footer-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+.home-footer p {
+    margin: 8px 0 0;
+}
+.home-footer > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: underline;
+    text-underline-offset: 5px;
 }
 @media (max-width: 1000px) {
-    .feature-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 35px;
-    }
-    .prep-copy {
-        padding: 65px 11% 65px 0;
-    }
+    .workspace-section,
     .home-questions {
-        gap: 35px;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        gap: 32px;
+    }
+    .feature-list article {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .coaching-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 32px;
     }
 }
 @media (max-width: 720px) {
-    .hero h1 {
-        font-size: clamp(36px, 8.8vw, 64px);
+    .home-hero,
+    .workspace-section,
+    .prep-section,
+    .home-questions {
+        grid-template-columns: minmax(0, 1fr);
     }
-    .hero .intro {
-        padding-right: 0;
+    .home-hero {
+        min-height: 0;
+        padding-left: 0;
     }
-    .capability-strip {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px 12px;
-        padding: 28px 6%;
-        font-size: 9px;
+    .home-hero-copy {
+        padding: 48px var(--home-gutter) 0;
     }
-    .feature-grid {
-        grid-template-columns: 1fr;
-        gap: 30px;
+    .home-hero h1 {
+        max-width: 16ch;
+        font-size: clamp(36px, 9vw, 56px);
     }
-    .feature-grid p:last-child {
-        max-width: none;
+    .home-intro {
+        font-size: 16px;
     }
-    .prep-spotlight {
-        grid-template-columns: 1fr;
+    .home-hero :deep(.athlete-visual) {
+        min-height: 300px;
     }
-    .prep-spotlight :deep(.athlete-visual) {
-        min-height: 280px;
+    .home-section {
+        padding-block: 48px;
+    }
+    .prep-section :deep(.athlete-visual) {
+        min-height: 240px;
     }
     .prep-copy {
-        padding: 25px 6% 55px;
+        padding: 0 var(--home-gutter) 48px;
     }
-    .home-questions {
+    .coaching-steps {
         grid-template-columns: 1fr;
-        gap: 35px;
-        padding: 55px 6%;
+        gap: 24px;
+        margin-top: 32px;
     }
-    .coach-closing {
-        padding-top: 55px;
-        padding-bottom: 55px;
+    .home-footer {
+        align-items: flex-start;
+        gap: 24px;
     }
 }
 </style>

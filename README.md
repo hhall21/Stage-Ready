@@ -8,12 +8,24 @@ posing practice. Clients can see what's planned for the day, record how it went,
 and check in with their coach.
 
 It works on desktop and mobile, with a dark layout, white text and bodybuilding
-artwork that blends into the page.
+artwork that blends into the page. A top-right switch offers an inverted light
+mode and remembers the choice in the current browser.
 
 ## Recent updates
 
-- **Coaching disciplines:** coaches choose Bodybuilding or Powerlifting in the
-  Clients tab. Check-in photos and posing reviews are available to bodybuilding
+- **Light mode:** everyone can switch between dark and inverted light mode from
+  the top-right corner, including before signing in. The choice survives page
+  changes and reloads, and applies to images, charts and forms too.
+- **Clearer pages and navigation:** the homepage describes the coaching tools
+  directly, public navigation stays available on phones, and the dashboard puts
+  scheduled training before supporting records. Sign-in and dashboard headings
+  use task names, with fewer decorative elements and larger controls.
+- **Coaching handovers:** ending coaching creates a private, dated PDF with
+  recorded bodyweight, training bests and optional final coach notes. Former
+  clients can sign in to preview and download it while keeping their history.
+  Run `composer install` and `php artisan migrate` in `pt-tracker/` when updating.
+- **Coaching disciplines:** each coach has a fixed Bodybuilding or Powerlifting
+  discipline. Check-in photos and posing reviews are available to bodybuilding
   coaches and clients with an active bodybuilding coach. Existing photos stay
   stored when discipline changes. Run `php artisan migrate` when updating.
 - **A homepage for coaches:** the public website introduces the platform's
@@ -37,7 +49,8 @@ artwork that blends into the page.
 - **Coach and client dashboards:** each role has its own workspace. Clients see
   their own records; coaches see their currently assigned clients.
 - **Client onboarding:** coaches invite clients by email for immediate access on
-  acceptance, manage invitations, and end coaching while preserving client history.
+  acceptance, manage invitations, and end coaching with a downloadable client
+  handover while preserving their account and history.
 - **Competition dates:** coaches add and manage shows in the Competitions tab,
   filter by client and by All, Upcoming or Past, and view dates grouped by client.
   Only clients with a matching competition appear. Placing and show notes become
@@ -126,7 +139,7 @@ Database models also cover individual meal logging, training clips and feedback,
 supplements, phases, and cycle entries. Their full interfaces and
 management endpoints are still to be built. There is also a standalone
 [handover PDF design preview](pt-tracker/docs/handover/README.md), which uses
-fictional data and is not yet a dashboard export.
+fictional data. The application generates personal handovers when coaching ends.
 
 Creating coach accounts still requires trusted application code. Coaches can
 invite clients and manage coaching from their dashboard. Public self-registration

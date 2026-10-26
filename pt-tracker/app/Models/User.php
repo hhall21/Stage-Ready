@@ -74,13 +74,23 @@ class User extends Authenticatable
 
     public function hasBodybuildingCoach(): bool
     {
+        return $this->activeCoaches()->where('users.is_bodybuilding_coach', true)->exists();
+    }
+
+    public function hasActiveCoach(): bool
+    {
+        return $this->activeCoaches()->exists();
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    private function activeCoaches(): BelongsToMany
+    {
         return $this->trainers()->where('users.role', 'coach')
-            ->where('users.is_active', true)->where('users.is_bodybuilding_coach', true)
+            ->where('users.is_active', true)
             ->wherePivot('status', 'active')
             ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')
-                ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()))
-            ->exists();
+                ->orWhereDate('trainer_clients.end_date', '>=', today()->toDateString()));
     }
 
     /** @return HasMany<TrainerClient, $this> */

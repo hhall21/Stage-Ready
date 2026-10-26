@@ -6,7 +6,8 @@
   README. Update the root overview and/or application README when features,
   behaviour, setup, requirements or limitations change. Keep the wording natural
   and useful; routine internal changes do not need a README entry.
-- Keep the interface dark with white writing throughout.
+- Keep dark mode with white writing as the default. Offer all users a top-right
+  switch for an inverted light mode, with the choice remembered in their browser.
 - Bodybuilding photographs should blend into the dark page and form backgrounds
   with no visible image borders.
 - Each workout can contain at most 10 exercise entries.
@@ -52,3 +53,15 @@
 
 Machine-specific setup belongs in an ignored `AGENTS.local.md`; shared instructions
 must work on any developer machine and in CI.
+
+## Reply style
+
+- When working on Stage-Ready in the PT Website project, follow the reply style
+  in https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md.
+- Answer first. Use short, clear sentences and remove filler while preserving
+  every relevant fact, negation, number and unit.
+- Keep code, commands, paths, API names and quoted errors exact.
+- Use full sentences for questions, confusing steps, warnings and approvals.
+- Apply this preference to chat replies only. Keep website copy, code comments,
+  documentation and other saved artifacts in their appropriate writing style.
+- Continue this preference until the user requests normal replies.
