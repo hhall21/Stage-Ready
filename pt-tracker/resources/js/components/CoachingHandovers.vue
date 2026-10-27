@@ -45,9 +45,9 @@ onMounted(() => {
 <template>
     <section aria-label="Coaching handovers" :aria-busy="loading">
         <p class="form-help">
-            Your handovers remain available when coaching ends. Without an active
-            coach, this is your only dashboard section. Your account and saved
-            coaching history are preserved.
+            Your handovers remain available when coaching ends. Without an
+            active coach, this is your only dashboard section. Your account and
+            saved coaching history are preserved.
         </p>
         <p v-if="loading" class="loading-message" role="status">
             Loading your handovers…

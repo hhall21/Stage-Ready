@@ -43,7 +43,9 @@ type DashboardTab =
     | 'competitions';
 const selectedTab = ref<DashboardTab>('overview');
 const handoverOnly = computed(
-    () => user.value?.role === 'client' && user.value.has_active_coaching !== true,
+    () =>
+        user.value?.role === 'client' &&
+        user.value.has_active_coaching !== true,
 );
 const tab = computed<DashboardTab>(() =>
     handoverOnly.value ? 'handover' : selectedTab.value,
@@ -53,32 +55,32 @@ const navigation = computed<{ id: DashboardTab; label: string }[]>(() => {
     if (handoverOnly.value)
         return [{ id: 'handover', label: 'Coaching handovers' }];
     return [
-    { id: 'overview', label: 'Overview' },
-    { id: 'checkins', label: 'Daily check-ins' },
-    { id: 'workouts', label: 'Workouts' },
-    {
-        id: 'progress',
-        label:
-            user.value?.role === 'coach'
-                ? 'Training analytics'
-                : 'Exercise progress',
-    },
-    { id: 'health', label: 'Weekly health' },
-    { id: 'nutrition', label: 'Meal plans' },
-    { id: 'practice', label: 'Cardio and practice' },
-    { id: 'reviews', label: 'Coach reviews' },
-    ...(user.value?.role === 'client'
-        ? [{ id: 'handover' as const, label: 'Coaching handovers' }]
-        : []),
-    ...(user.value?.role === 'coach'
-        ? [
-              { id: 'clients' as const, label: 'Clients' },
-              {
-                  id: 'competitions' as const,
-                  label: 'Competitions',
-              },
-          ]
-        : []),
+        { id: 'overview', label: 'Overview' },
+        { id: 'checkins', label: 'Daily check-ins' },
+        { id: 'workouts', label: 'Workouts' },
+        {
+            id: 'progress',
+            label:
+                user.value?.role === 'coach'
+                    ? 'Training analytics'
+                    : 'Exercise progress',
+        },
+        { id: 'health', label: 'Weekly health' },
+        { id: 'nutrition', label: 'Meal plans' },
+        { id: 'practice', label: 'Cardio and practice' },
+        { id: 'reviews', label: 'Coach reviews' },
+        ...(user.value?.role === 'client'
+            ? [{ id: 'handover' as const, label: 'Coaching handovers' }]
+            : []),
+        ...(user.value?.role === 'coach'
+            ? [
+                  { id: 'clients' as const, label: 'Clients' },
+                  {
+                      id: 'competitions' as const,
+                      label: 'Competitions',
+                  },
+              ]
+            : []),
     ];
 });
 
