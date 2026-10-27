@@ -27,7 +27,7 @@ class UserPolicy
 
     public function manageCheckIns(User $user, User $client): bool
     {
-        return $user->role === 'client' && $this->viewTracker($user, $client);
+        return $user->role === 'client' && $this->viewTracker($user, $client) && $client->hasActiveCoach();
     }
 
     public function useCheckInPhotos(User $user, User $client): bool

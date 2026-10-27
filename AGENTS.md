@@ -30,6 +30,8 @@
 - Client onboarding starts coaching immediately when an invitation is accepted.
   Do not add assignment start/end date inputs or an upcoming-clients section.
   Ending coaching must preserve the client's account and logged history.
+- Clients without an active coach see only the Coaching handovers dashboard tab.
+  They cannot create or change coaching records until active coaching resumes.
 - All client check-in measurements, notes and pose photos are optional. Clients
   can save or submit partial or blank check-ins; coaches are responsible for
   following up. Missing readings must stay missing, never become zero.
@@ -44,7 +46,7 @@
 - Coaches prescribe daily cardio, mandatory posing rounds and vacuum sets/holds.
   Future-dated versions allow planned posing increases approaching a show.
 - Written coach check-in reviews are weekly in prep and fortnightly off-season.
-  Plans and reviews remain available to clients when coaching ends.
+  Plans and reviews remain stored when coaching ends.
 - Nutrition check-ins record optional hunger, appetite and digestive discomfort
   ratings (1-5), digestion notes and dietary difficulties. Coach review summaries
   exclude missing responses from averages and show reading counts.

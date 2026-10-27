@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\TrainingSplitController;
 use App\Http\Controllers\Api\WeeklyHealthController;
 use App\Http\Controllers\Api\WorkoutController;
 use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsureActiveCoachingForWrites;
 use App\Models\Exercise;
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +41,7 @@ Route::prefix('api')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('exercises', fn () => response()->json(Exercise::orderBy('exercise_name')->paginate(50)));
         Route::get('daily-check-in-photos/{photo}', [CheckInPosingController::class, 'photo'])->whereNumber('photo');
-        Route::prefix('clients/{client}')->whereNumber('client')->group(function () {
+        Route::prefix('clients/{client}')->whereNumber('client')->middleware(EnsureActiveCoachingForWrites::class)->group(function () {
             Route::post('competitions', [CompetitionController::class, 'store']);
             Route::put('competitions/{competition}', [CompetitionController::class, 'update'])->whereNumber('competition');
             Route::delete('competitions/{competition}', [CompetitionController::class, 'destroy'])->whereNumber('competition');

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-const props = defineProps<{ src?: string | null; compact?: boolean }>();
+const props = defineProps<{
+    src?: string | null;
+    compact?: boolean;
+    split?: boolean;
+}>();
 const failed = ref(false);
 watch(
     () => props.src,
@@ -15,6 +19,15 @@ watch(
         <img
             v-if="src && !failed"
             :src="src"
+            :class="{ 'athlete-split-left': split }"
+            alt=""
+            decoding="async"
+            @error="failed = true"
+        />
+        <img
+            v-if="src && !failed && split"
+            :src="src"
+            class="athlete-split-right"
             alt=""
             decoding="async"
             @error="failed = true"
@@ -25,3 +38,20 @@ watch(
         </div>
     </div>
 </template>
+
+<style scoped>
+.athlete-split-left {
+    clip-path: inset(0 50% 0 0);
+    transform: translateY(calc(-1 * var(--hero-split-offset, 0px)));
+}
+.athlete-split-right {
+    clip-path: inset(0 0 0 50%);
+    transform: translateY(var(--hero-split-offset, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+    .athlete-split-left,
+    .athlete-split-right {
+        transform: none;
+    }
+}
+</style>

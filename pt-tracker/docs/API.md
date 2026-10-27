@@ -55,9 +55,15 @@ provisioning code; there is no self-service discipline update endpoint.
 `DELETE /api/clients/{client}/coaching` is restricted to a currently assigned
 coach. It creates a personal handover PDF and marks only that assignment inactive
 in one transaction. It does not set the client's account `is_active` to false.
-Clients can still sign in and read their plans, reviews and logged history. The
-former coach loses access immediately. A PDF generation failure rolls back both
-the report and the assignment change.
+Clients can still sign in. Without an active coach, Coaching handovers is their
+only dashboard tab. Their plans, reviews and logged history remain stored; the
+existing read endpoints retain access to the client's own saved records. All
+client writes under `/api/clients/{client}` return 403 without an active coaching
+assignment, including requests from a dashboard opened before coaching ended.
+Signing out and accepting a new coaching invitation remain available. Clients
+with another active coach keep their full dashboard. The former coach loses
+access immediately. A PDF generation failure rolls back both the report and
+the assignment change.
 
 The optional JSON body accepts `feedback` (10,000 characters), `next_steps`
 (5,000 characters), and `notes` (a list of at most ten objects). Each supplied

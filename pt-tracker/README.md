@@ -42,6 +42,36 @@ competition preparation. It includes an invitation-to-review workflow, FAQs and
 feature navigation, with member sign-in for existing accounts. The page has a
 descriptive title and search/social metadata.
 
+The hero pairs a bodybuilder opening into a front lat spread under golden
+lighting with a powerlifter making a centred, vertical ascent in a red-lit rack
+with five equal-sized dark red plates on each side. Scrolling drives both SVG
+scenes and reverses them on the way up. Where the full hero fits on screen, it
+stays visible for 360px of scrolling.
+Reduced-motion mode shows the finished poses without a scroll hold.
+
+The four coaching tool cards slide in one at a time with blue lighting that
+remains after each reveal. When the full section fits below the header, it stays
+in view for 1080px of scrolling and releases after the fourth card arrives.
+Short screens reveal cards in normal page flow; reduced-motion mode shows all
+four immediately.
+
+Scroll animations reveal the coaching tools and workflow and shift the dark
+background gradients. While the dumbbell artwork is in view, its six plates drift
+apart as you scroll down and reassemble as you scroll up, with the handle staying
+in place.
+The dumbbell has shaded plate faces, collars and a textured steel grip. On
+screens tall enough to show the full section, competition prep stays in view for
+720px of scrolling while a soft animated glow highlights the coaching details.
+Short screens and reduced-motion mode use the normal page flow without the hold.
+The navigation stays visible and gains a solid background on scroll.
+These effects use the existing Vue setup without extra animation libraries,
+preserve normal scrolling and both themes, and respect reduced-motion settings.
+
+FAQ answers smoothly expand and fade into view when opened, inside a blue-glowing
+panel. Each arrow brightens, grows slightly and emits a blue halo when it enters
+view. Reduced-motion mode shows answers immediately and keeps static blue
+highlights.
+
 ### Coach workspace
 
 - View clients with a current, active coaching assignment.
@@ -122,8 +152,9 @@ Run `php artisan migrate` when upgrading an existing installation.
 - Reviews include a recent summary of recorded weights, steps, and completed
   workouts. Missing readings are excluded from averages. This summary is separate
   from the existing rolling seven-day bodyweight chart.
-- Clients can read their plans and review history after coaching ends. Former
-  coaches lose access; clients cannot write prescriptions or coach reviews.
+- Plans and review history remain stored after coaching ends. Clients without an
+  active coach see only Coaching handovers. Former coaches lose access; clients
+  cannot write prescriptions or coach reviews.
 
 Existing installations require `php artisan migrate` for these features.
 
@@ -163,7 +194,7 @@ posing API routes enforce the same rules. Measurements and evening nutrition
 remain available. Ending the last bodybuilding assignment
 preserves existing photos and reviews; access returns when the client has an
 active bodybuilding coach again. Published nutrition/practice plans and written
-coaching reviews remain available to clients when coaching ends.
+coaching reviews remain stored when coaching ends.
 
 ### Ending coaching and client handovers
 
@@ -188,9 +219,12 @@ Each exercise best pairs its load, reps and date from the same completed set.
 Long notes continue on additional pages without reducing the font size.
 
 Clients can preview, open and download their PDFs in **Coaching handovers**.
-When no active coach remains, this section opens automatically on their next
-login if they have a handover. Clients with another active coach keep their usual
-overview and can open handovers from the navigation. Multiple coaching periods
+When no active coach remains, this is the only dashboard tab, even if no report
+has been created yet. Clients cannot add or change check-ins, nutrition responses,
+workout logs, health readings or other coaching records without active coaching.
+Their account and saved history remain intact. Signing out and accepting a new
+coach's invitation still work. Clients with another active coach keep their usual
+dashboard and can open handovers from the navigation. Multiple coaching periods
 produce separate reports, including when the same coach starts coaching again.
 
 Reports are saved as immutable snapshots and PDF bytes in the database, with

@@ -41,8 +41,18 @@ type DashboardTab =
     | 'handover'
     | 'clients'
     | 'competitions';
-const tab = ref<DashboardTab>('overview');
-const navigation = computed<{ id: DashboardTab; label: string }[]>(() => [
+const selectedTab = ref<DashboardTab>('overview');
+const handoverOnly = computed(
+    () => user.value?.role === 'client' && user.value.has_active_coaching !== true,
+);
+const tab = computed<DashboardTab>(() =>
+    handoverOnly.value ? 'handover' : selectedTab.value,
+);
+const navigation = computed<{ id: DashboardTab; label: string }[]>(() => {
+    if (!user.value) return [];
+    if (handoverOnly.value)
+        return [{ id: 'handover', label: 'Coaching handovers' }];
+    return [
     { id: 'overview', label: 'Overview' },
     { id: 'checkins', label: 'Daily check-ins' },
     { id: 'workouts', label: 'Workouts' },
@@ -69,7 +79,8 @@ const navigation = computed<{ id: DashboardTab; label: string }[]>(() => [
               },
           ]
         : []),
-]);
+    ];
+});
 
 const loading = ref(true),
     saving = ref(false),
@@ -106,12 +117,6 @@ async function initialize() {
     error.value = '';
     try {
         user.value = (await api<{ data: TrackerUser }>('/api/user')).data;
-        if (
-            user.value.role === 'client' &&
-            !user.value.has_active_coaching &&
-            user.value.has_coaching_handovers
-        )
-            tab.value = 'handover';
         if (user.value.role === 'coach')
             clients.value = await allPages<TrackerUser>('/api/clients');
         selected.value =
@@ -130,7 +135,8 @@ async function refreshClients() {
         selected.value = clients.value[0]?.id ?? null;
 }
 function selectTab(next: DashboardTab) {
-    tab.value = next;
+    if (navigation.value.some((item) => item.id === next))
+        selectedTab.value = next;
 }
 async function logout() {
     saving.value = true;
@@ -147,7 +153,11 @@ onMounted(initialize);
 <template>
     <Head
         :title="
-            user?.role === 'coach' ? 'Coach workspace' : 'Your training space'
+            handoverOnly
+                ? 'Coaching handovers'
+                : user?.role === 'coach'
+                  ? 'Coach workspace'
+                  : 'Your training space'
         "
     />
     <SiteHeader dashboard skip-target="#main-content"

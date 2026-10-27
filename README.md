@@ -22,7 +22,8 @@ mode and remembers the choice in the current browser.
   use task names, with fewer decorative elements and larger controls.
 - **Coaching handovers:** ending coaching creates a private, dated PDF with
   recorded bodyweight, training bests and optional final coach notes. Former
-  clients can sign in to preview and download it while keeping their history.
+  clients without an active coach see only Coaching handovers when signed in.
+  Their account and history stay saved, and further coaching entries are blocked.
   Run `composer install` and `php artisan migrate` in `pt-tracker/` when updating.
 - **Coaching disciplines:** each coach has a fixed Bodybuilding or Powerlifting
   discipline. Check-in photos and posing reviews are available to bodybuilding
@@ -88,8 +89,8 @@ mode and remembers the choice in the current browser.
 - **Daily prescriptions:** coach-set cardio, mandatory posing rounds and vacuum
   practice, including planned increases nearer a show.
 - **Written coach reviews:** weekly in prep and fortnightly in the off-season,
-  with due dates, check-in summaries, feedback and next steps. Clients keep access
-  to published plans and reviews after coaching ends.
+  with due dates, check-in summaries, feedback and next steps. Published plans
+  and reviews remain stored after coaching ends.
 - **Protected accounts:** session authentication, CSRF protection, login rate
   limiting, role-based access, inactive-account blocking and emailed password resets.
 - **Contact enquiries:** a validated public API with privacy consent and spam controls.

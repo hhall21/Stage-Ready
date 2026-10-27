@@ -1,19 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="650" viewBox="0 0 1000 650">
   <defs>
-    <radialGradient id="glow"><stop stop-color="#394a48" stop-opacity=".5"/><stop offset="1" stop-color="#050505" stop-opacity="0"/></radialGradient>
-    <linearGradient id="steel" x1="0" x2="1"><stop stop-color="#101214"/><stop offset=".48" stop-color="#737d7e"/><stop offset=".55" stop-color="#252d30"/><stop offset="1" stop-color="#080a0b"/></linearGradient>
-    <linearGradient id="plate"><stop stop-color="#3d4749"/><stop offset=".45" stop-color="#151b1e"/><stop offset="1" stop-color="#050607"/></linearGradient>
-    <linearGradient id="fade" x2="0" y2="1"><stop offset=".5" stop-color="#050505" stop-opacity="0"/><stop offset="1" stop-color="#050505"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#303e3c" stop-opacity=".35"/><stop offset="1" stop-color="#050505" stop-opacity="0"/></radialGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#172124"/><stop offset=".16" stop-color="#4d5d60"/>
+      <stop offset=".32" stop-color="#879193"/><stop offset=".48" stop-color="#3d4b4e"/>
+      <stop offset=".72" stop-color="#1d282b"/><stop offset="1" stop-color="#0c1214"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="1" y2=".25">
+      <stop stop-color="#354143"/><stop offset=".2" stop-color="#1f292c"/>
+      <stop offset=".62" stop-color="#0f171a"/><stop offset="1" stop-color="#080d0f"/>
+    </linearGradient>
+    <linearGradient id="plate-edge">
+      <stop stop-color="#0f1618"/><stop offset=".16" stop-color="#536162"/>
+      <stop offset=".3" stop-color="#263235"/><stop offset=".78" stop-color="#101719"/>
+      <stop offset=".94" stop-color="#414d50"/><stop offset="1" stop-color="#0c1214"/>
+    </linearGradient>
+    <pattern id="knurl" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M0 0l8 8M8 0 0 8" fill="none" stroke="#d0dad9" stroke-opacity=".24" stroke-width=".8"/>
+    </pattern>
   </defs>
-  <path fill="#050505" d="M0 0h1000v650H0z"/><ellipse cx="570" cy="310" rx="500" ry="330" fill="url(#glow)"/>
+  <ellipse cx="570" cy="310" rx="500" ry="330" fill="url(#glow)"/>
   <g transform="translate(120 70) rotate(-17 400 300)">
-    <rect x="40" y="280" width="740" height="30" rx="8" fill="url(#steel)"/>
+    <rect class="dumbbell-shaft" x="40" y="280" width="740" height="30" rx="8" fill="url(#steel)" stroke="#7b8a8c" stroke-opacity=".22"/>
+    <g class="dumbbell-handle">
+      <rect x="249" y="277" width="301" height="36" rx="5" fill="url(#steel)"/>
+      <rect x="254" y="280" width="291" height="30" rx="3" fill="url(#knurl)"/>
+      <path d="M253 279h292m-292 32h292" stroke="#dce4e2" stroke-opacity=".3"/>
+      <rect x="232" y="270" width="17" height="50" rx="5" fill="url(#steel)" stroke="#7a8889" stroke-opacity=".25"/>
+      <rect x="550" y="270" width="17" height="50" rx="5" fill="url(#steel)" stroke="#7a8889" stroke-opacity=".25"/>
+      <path d="M237 274v42m318-42v42" stroke="#d7dfdc" stroke-opacity=".34"/>
+      <ellipse cx="43" cy="295" rx="4" ry="13" fill="#1a2629" stroke="#7a8889" stroke-opacity=".24"/>
+      <ellipse cx="777" cy="295" rx="4" ry="13" fill="#1a2629" stroke="#7a8889" stroke-opacity=".24"/>
+    </g>
     <g fill="url(#plate)" stroke="#a7b5b6" stroke-opacity=".15" stroke-width="2">
-      <rect x="160" y="120" width="70" height="350" rx="24"/><rect x="105" y="150" width="50" height="290" rx="18"/><rect x="65" y="185" width="35" height="220" rx="13"/>
-      <rect x="570" y="120" width="70" height="350" rx="24"/><rect x="645" y="150" width="50" height="290" rx="18"/><rect x="700" y="185" width="35" height="220" rx="13"/>
+      <g class="dumbbell-plate dumbbell-plate-left dumbbell-plate-inner">
+        <rect x="160" y="120" width="70" height="350" rx="24" fill="url(#plate-edge)"/>
+        <rect x="165" y="126" width="60" height="338" rx="20" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M169 144v302" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M224 144v302" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
+      <g class="dumbbell-plate dumbbell-plate-left dumbbell-plate-middle">
+        <rect x="105" y="150" width="50" height="290" rx="18" fill="url(#plate-edge)"/>
+        <rect x="110" y="156" width="40" height="278" rx="14" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M114 168v254" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M149 168v254" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
+      <g class="dumbbell-plate dumbbell-plate-left dumbbell-plate-outer">
+        <rect x="65" y="185" width="35" height="220" rx="13" fill="url(#plate-edge)"/>
+        <rect x="70" y="191" width="25" height="208" rx="9" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M74 198v194" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M94 198v194" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
+      <g class="dumbbell-plate dumbbell-plate-right dumbbell-plate-inner">
+        <rect x="570" y="120" width="70" height="350" rx="24" fill="url(#plate-edge)"/>
+        <rect x="575" y="126" width="60" height="338" rx="20" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M579 144v302" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M634 144v302" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
+      <g class="dumbbell-plate dumbbell-plate-right dumbbell-plate-middle">
+        <rect x="645" y="150" width="50" height="290" rx="18" fill="url(#plate-edge)"/>
+        <rect x="650" y="156" width="40" height="278" rx="14" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M654 168v254" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M689 168v254" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
+      <g class="dumbbell-plate dumbbell-plate-right dumbbell-plate-outer">
+        <rect x="700" y="185" width="35" height="220" rx="13" fill="url(#plate-edge)"/>
+        <rect x="705" y="191" width="25" height="208" rx="9" fill="url(#plate)" stroke="#718184" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M709 198v194" fill="none" stroke="#b7c4c1" stroke-opacity=".2" stroke-width="1"/>
+        <path d="M729 198v194" fill="none" stroke="#030708" stroke-opacity=".7" stroke-width="2"/>
+      </g>
     </g>
     <path d="M249 286h301m-301 17h301" stroke="#c6d4d2" stroke-opacity=".25"/>
-    <path d="M184 150v290m410-290v290" stroke="#6afbf0" stroke-opacity=".24" stroke-width="2"/>
   </g>
-  <path fill="url(#fade)" d="M0 0h1000v650H0z"/>
 </svg>

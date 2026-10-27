@@ -43,4 +43,12 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function coached(): static
+    {
+        return $this->state(['role' => 'client'])->afterCreating(function (User $client): void {
+            $coach = User::factory()->create(['role' => 'coach']);
+            $client->trainers()->attach($coach->id, ['status' => 'active', 'start_date' => today()->toDateString()]);
+        });
+    }
 }
