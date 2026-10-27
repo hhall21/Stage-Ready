@@ -171,8 +171,7 @@ onMounted(load);
                     />
                 </label>
                 <p class="form-help">
-                    Leave anything you did not record blank. Previous days can
-                    be completed or corrected here too.
+                    Previous days can be completed or corrected here too.
                 </p>
                 <button v-if="canEdit" class="button">
                     {{ saving ? 'Saving…' : 'Save end-of-day nutrition' }}

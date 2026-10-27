@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import PerformanceChart from '@/components/PerformanceChart.vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
@@ -128,7 +130,7 @@ onBeforeUnmount(() => version++);
             </p>
             <div class="analytics-filters">
                 <label
-                    >Exercise<select
+                    >Exercise<DropdownSelect
                         v-model="selectedExercise"
                         aria-label="Exercise"
                         :disabled="loading || !exercises.length"
@@ -144,10 +146,10 @@ onBeforeUnmount(() => version++);
                         >
                             {{ exercise.exercise_name }}
                         </option>
-                    </select></label
+                    </DropdownSelect></label
                 >
                 <label
-                    >History<select
+                    >History<DropdownSelect
                         v-model="period"
                         aria-label="History"
                         :disabled="loading"
@@ -158,7 +160,7 @@ onBeforeUnmount(() => version++);
                         <option value="90">Last 90 days</option>
                         <option value="180">Last 180 days</option>
                         <option value="365">Last 365 days</option>
-                    </select></label
+                    </DropdownSelect></label
                 >
             </div>
             <div
@@ -184,13 +186,13 @@ onBeforeUnmount(() => version++);
             <label
                 v-if="comparison === 'calories'"
                 class="analytics-calorie-source"
-                >Calorie source<select
+                >Calorie source<DropdownSelect
                     v-model="calorieSource"
                     aria-label="Calorie source"
                 >
                     <option value="prescribed">Prescribed calories</option>
                     <option value="logged">Logged food calories</option>
-                </select></label
+                </DropdownSelect></label
             >
             <p v-if="comparison === 'time'" class="form-help">
                 Dates are spaced by calendar time. Gaps in recorded weights
@@ -331,8 +333,8 @@ onBeforeUnmount(() => version++);
                     </div>
                 </dl>
             </section>
-            <details class="panel progress-history">
-                <summary>View all session readings</summary>
+            <DropdownDetails class="panel progress-history">
+                <template #summary>View all session readings</template>
                 <div class="table-scroll">
                     <table>
                         <caption>
@@ -410,7 +412,7 @@ onBeforeUnmount(() => version++);
                         </tbody>
                     </table>
                 </div>
-            </details>
+            </DropdownDetails>
         </template>
         <p v-else-if="!error" class="panel empty-state">
             No logged working sets in this history range. Choose another

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { api, displayDate, message } from '@/lib/tracker-api';
 import type { Page, TrackerUser } from '@/lib/tracker-api';
@@ -244,7 +245,7 @@ onMounted(load);
                 <legend class="sr-only">Competition details</legend>
                 <label class="full-width">
                     Client
-                    <select
+                    <DropdownSelect
                         v-model="form.client_id"
                         required
                         :disabled="editing !== null"
@@ -259,7 +260,7 @@ onMounted(load);
                         >
                             {{ client.name }}
                         </option>
-                    </select>
+                    </DropdownSelect>
                 </label>
                 <label>
                     Competition name
@@ -334,7 +335,7 @@ onMounted(load);
         <div class="competition-filters">
             <label class="competition-filter">
                 Show period
-                <select
+                <DropdownSelect
                     v-model="period"
                     :disabled="busy || loading"
                     @change="changeFilters"
@@ -342,11 +343,11 @@ onMounted(load);
                     <option value="all">All shows</option>
                     <option value="upcoming">Upcoming shows</option>
                     <option value="past">Past shows</option>
-                </select>
+                </DropdownSelect>
             </label>
             <label class="competition-filter">
                 Filter by client
-                <select
+                <DropdownSelect
                     v-model="clientFilter"
                     :disabled="busy || loading || !clientOptions.length"
                     @change="changeFilters"
@@ -359,7 +360,7 @@ onMounted(load);
                     >
                         {{ client.name }}
                     </option>
-                </select>
+                </DropdownSelect>
             </label>
         </div>
         <p class="form-help">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import PlanVersions from '@/components/PlanVersions.vue';
 import { defaultMeals } from '@/lib/coaching';
@@ -326,8 +327,10 @@ onMounted(load);
                                 required
                             />
                         </label>
-                        <details>
-                            <summary>Meal calories and macros</summary>
+                        <DropdownDetails>
+                            <template #summary
+                                >Meal calories and macros</template
+                            >
                             <div class="form-grid">
                                 <label
                                     v-for="macro in macroFields"
@@ -341,7 +344,7 @@ onMounted(load);
                                         step="0.1"
                                 /></label>
                             </div>
-                        </details>
+                        </DropdownDetails>
                         <button
                             type="button"
                             class="text-link"

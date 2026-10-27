@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { displayDate, localDate } from '@/lib/tracker-api';
 import type { Page } from '@/lib/tracker-api';
 import type { PlanVersion } from '@/lib/coaching';
@@ -14,10 +15,10 @@ defineEmits<{
 }>();
 </script>
 <template>
-    <details v-if="versions.total" class="panel">
-        <summary>
+    <DropdownDetails v-if="versions.total" class="panel">
+        <template #summary>
             Scheduled plans and version history ({{ versions.total }})
-        </summary>
+        </template>
         <p class="form-help">
             Plans take effect on their start date. When versions share a start
             date, the most recently published version applies.
@@ -78,5 +79,5 @@ defineEmits<{
                 Next
             </button>
         </div>
-    </details>
+    </DropdownDetails>
 </template>

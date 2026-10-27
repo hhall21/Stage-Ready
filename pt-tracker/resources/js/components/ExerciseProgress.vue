@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, ref, watch } from 'vue';
 import { api, displayDate, message } from '@/lib/tracker-api';
 import type { Exercise } from '@/lib/tracker-api';
@@ -105,7 +107,7 @@ watch(
             {{ error }} <button class="text-link" @click="load()">Retry</button>
         </p>
         <label v-if="exercises.length" for="progress-exercise"
-            >Exercise<select
+            >Exercise<DropdownSelect
                 id="progress-exercise"
                 v-model="selected"
                 :disabled="loading"
@@ -118,7 +120,7 @@ watch(
                 >
                     {{ exercise.exercise_name }}
                 </option>
-            </select></label
+            </DropdownSelect></label
         >
         <p v-if="loading" class="loading-message" role="status">
             Loading exercise history…
@@ -249,8 +251,8 @@ watch(
                 completed set counts towards volume without a recorded weight.
                 Weight and rep records can come from different sets.
             </p>
-            <details class="progress-history">
-                <summary>View session readings</summary>
+            <DropdownDetails class="progress-history">
+                <template #summary>View session readings</template>
                 <div class="table-scroll">
                     <table>
                         <caption class="form-help">
@@ -294,7 +296,7 @@ watch(
                     exercise in each session. Programmed sets are working sets;
                     uncompleted and zero-rep sets are excluded.
                 </p>
-            </details>
+            </DropdownDetails>
         </template>
         <p v-else-if="!error" class="empty-state">
             No exercise history yet. Complete a working set with its reps to

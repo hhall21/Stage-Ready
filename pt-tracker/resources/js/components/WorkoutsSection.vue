@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import TrainingDayPanel from '@/components/TrainingDayPanel.vue';
 import TrainingSplitPanel from '@/components/TrainingSplitPanel.vue';
@@ -275,7 +276,7 @@ onMounted(loadRecords);
                     </button>
                 </div>
                 <label
-                    >Exercise<select v-model="row.exercise_id" required>
+                    >Exercise<DropdownSelect v-model="row.exercise_id" required>
                         <option value="" disabled>Select an exercise</option>
                         <option
                             v-for="exercise in exercises"
@@ -284,7 +285,7 @@ onMounted(loadRecords);
                         >
                             {{ exercise.exercise_name }}
                         </option>
-                    </select></label
+                    </DropdownSelect></label
                 >
                 <div class="set-grid">
                     <label

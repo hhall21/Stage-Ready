@@ -206,7 +206,7 @@ onUnmounted(() => cleanup?.());
 }
 .feature-cue {
     margin-top: 36px;
-    color: #a4c6ef;
+    color: rgb(var(--dropdown-flash));
     font-size: 12px;
     visibility: hidden;
 }
@@ -221,12 +221,14 @@ onUnmounted(() => cleanup?.());
 .feature-progress span {
     flex: 1;
     height: 2px;
-    background: #233349;
+    background: rgb(var(--dropdown-blue) / 22%);
     transition: background-color 0.2s;
 }
 .feature-progress .is-complete {
-    background: #6bb6ff;
-    box-shadow: 0 0 12px rgb(77 158 255 / 40%);
+    background: rgb(var(--dropdown-blue));
+    box-shadow:
+        var(--glow-core),
+        0 0 12px rgb(var(--dropdown-blue) / calc(40% * var(--glow-strength)));
 }
 .feature-cue p {
     display: flex;
@@ -250,16 +252,19 @@ onUnmounted(() => cleanup?.());
     min-width: 0;
     padding: 18px 20px;
     overflow: hidden;
-    border: 1px solid rgb(84 163 255 / 34%);
+    border: 1px solid
+        rgb(var(--dropdown-blue) / calc(34% * var(--glow-strength)));
     border-radius: 12px;
     background: linear-gradient(
         135deg,
-        rgb(34 95 171 / 13%),
-        rgb(17 40 70 / 5%)
+        rgb(var(--dropdown-blue) / calc(13% * var(--glow-strength))),
+        rgb(var(--dropdown-blue) / calc(5% * var(--glow-strength)))
     );
     box-shadow:
-        0 0 26px rgb(54 132 241 / 13%),
-        inset 0 0 22px rgb(63 145 255 / 3%);
+        var(--glow-core),
+        0 0 26px rgb(var(--dropdown-blue) / calc(13% * var(--glow-strength))),
+        inset 0 0 22px
+            rgb(var(--dropdown-blue) / calc(3% * var(--glow-strength)));
 }
 .features-enhanced .feature-card {
     opacity: var(--feature-reveal, 1);
@@ -277,7 +282,7 @@ onUnmounted(() => cleanup?.());
     background: linear-gradient(
         100deg,
         transparent 20%,
-        rgb(114 190 255 / 9%) 45%,
+        rgb(var(--dropdown-flash) / calc(9% * var(--glow-strength))) 45%,
         transparent 70%
     );
     transform: translateX(calc(-130% + var(--feature-reveal, 1) * 270%));
@@ -286,12 +291,12 @@ onUnmounted(() => cleanup?.());
     display: flex;
     gap: 12px;
     margin: 0 0 8px;
-    color: #a8cbf4;
+    color: rgb(var(--dropdown-flash));
     font-size: 12px;
     line-height: 1.6;
 }
 .feature-category span {
-    color: #6faef8;
+    color: rgb(var(--dropdown-blue));
 }
 .feature-card h3 {
     margin: 0;

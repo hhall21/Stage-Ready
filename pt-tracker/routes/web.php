@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::inertia('/', 'Welcome')->name('home');
+Route::inertia('/payment', 'Payment')->name('payment');
 Route::get('/login', function (Request $request) {
     $next = $request->query('next', '');
 

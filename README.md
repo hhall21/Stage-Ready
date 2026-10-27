@@ -9,17 +9,32 @@ and check in with their coach.
 
 It works on desktop and mobile, with a dark layout, white text and bodybuilding
 artwork that blends into the page. A top-right switch offers an inverted light
-mode and remembers the choice in the current browser.
+mode with softer grey backgrounds. Your browser remembers the choice.
 
 ## Recent updates
 
+- **Payment page preview:** an initial layout at `/payment` reviews the plan and
+  previews the handoff to Stripe Checkout. Prices and billing periods remain
+  unset, and the preview does not take payments.
 - **Light mode:** everyone can switch between dark and inverted light mode from
   the top-right corner, including before signing in. The choice survives page
-  changes and reloads, and applies to images, charts and forms too.
+  changes and reloads, and applies to images, charts and forms too. Its muted grey
+  backgrounds reduce glare across the website. Deep blue outlines and stronger
+  glow cores give cards, panels and controls clear contrast in light mode.
+  The homepage's powerlifter plates stay red and its bodybuilder lighting stays
+  golden in light mode.
 - **Clearer pages and navigation:** the homepage describes the coaching tools
   directly, public navigation stays available on phones, and the dashboard puts
   scheduled training before supporting records. Sign-in and dashboard headings
   use task names, with fewer decorative elements and larger controls.
+  Coach and client dashboards use larger text and more space between fields,
+  supporting notes and buttons, including workout logging on phones.
+  Dropdowns share blue arrow highlights and opening effects, and homepage artwork
+  now holds in view on phones when it fits below the header.
+  Navigation, buttons, links, form fields and chart points share blue hover and
+  keyboard-focus highlights in both themes.
+  Homepage feature cards, preparation panels and workflow accents also stay blue
+  in both themes.
 - **Coaching handovers:** ending coaching creates a private, dated PDF with
   recorded bodyweight, training bests and optional final coach notes. Former
   clients without an active coach see only Coaching handovers when signed in.

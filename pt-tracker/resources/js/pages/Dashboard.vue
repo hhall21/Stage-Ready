@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 import CheckInSection from '@/components/CheckInSection.vue';
@@ -242,7 +243,7 @@ onMounted(initialize);
                 class="client-picker"
             >
                 <label for="client-select">Assigned client</label
-                ><select
+                ><DropdownSelect
                     id="client-select"
                     v-model="selected"
                     :disabled="loading || saving || !clients.length"
@@ -256,7 +257,7 @@ onMounted(initialize);
                         :value="client.id"
                     >
                         {{ client.name }}
-                    </option></select
+                    </option></DropdownSelect
                 ><span
                     >{{ clients.length }} active
                     {{ clients.length === 1 ? 'client' : 'clients' }}</span

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { ref, watch } from 'vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
 import type { TrainingSchedule, Workout } from '@/lib/tracker-api';
@@ -165,17 +166,15 @@ defineExpose({ reload: load });
                     @submit.prevent="select"
                 >
                     <label
-                        >What did you complete on this day?<select
+                        >What did you complete on this day?<DropdownSelect
                             v-model="selectedDay"
                             :disabled="busy || state.history_locked"
                         >
                             <option :value="null">
-                                Follow the planned split (Day
+                                Planned split (Day
                                 {{ state.expected_day }})
                             </option>
-                            <option :value="0">
-                                Extra rest day — pause the split
-                            </option>
+                            <option :value="0">Extra rest — pause split</option>
                             <option
                                 v-for="(day, index) in state.split.days"
                                 :key="index"
@@ -184,7 +183,7 @@ defineExpose({ reload: load });
                                 Day {{ index + 1 }} —
                                 {{ day.is_rest_day ? 'Rest day' : day.name }}
                             </option>
-                        </select></label
+                        </DropdownSelect></label
                     >
                     <p class="form-help">
                         Choose a different training or rest day when agreed with
@@ -319,12 +318,27 @@ defineExpose({ reload: load });
 
 <style scoped>
 .split-selection {
-    margin: 24px 0;
-    padding: 20px 0;
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    margin: 32px 0;
+    padding: 28px 0;
     border-top: 1px solid #333;
     border-bottom: 1px solid #333;
 }
+.split-selection > label {
+    width: 100%;
+}
+.split-selection > .form-help {
+    margin: 0;
+}
 .section-bar > label {
-    max-width: 200px;
+    width: 220px;
+    max-width: 100%;
+}
+@media (max-width: 720px) {
+    .section-bar > label {
+        width: 100%;
+    }
 }
 </style>

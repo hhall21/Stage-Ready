@@ -9,6 +9,11 @@ log what they did, and see how their progress is building over time.
 
 The interface uses dark backgrounds, white text and original bodybuilding
 illustrations that blend into the page. It works on desktop and mobile screens.
+A top-right switch offers an inverted light mode with muted grey backgrounds,
+deep blue outlines and stronger glow cores on cards, panels and controls.
+It remembers your choice in the browser.
+The homepage preserves red powerlifter plates and golden bodybuilder lighting
+in light mode.
 
 This README covers running and developing the application. For a shorter tour,
 start with the [project overview](../README.md).
@@ -46,12 +51,15 @@ The hero pairs a bodybuilder opening into a front lat spread under golden
 lighting with a powerlifter making a centred, vertical ascent in a red-lit rack
 with five equal-sized dark red plates on each side. Scrolling drives both SVG
 scenes and reverses them on the way up. Where the full hero fits on screen, it
-stays visible for 360px of scrolling.
+stays visible for 480px of scrolling. On phones, the artwork holds separately
+for 480px so the introductory text stays in normal page flow.
 Reduced-motion mode shows the finished poses without a scroll hold.
 
 The four coaching tool cards slide in one at a time with blue lighting that
-remains after each reveal. When the full section fits below the header, it stays
-in view for 1080px of scrolling and releases after the fourth card arrives.
+remains after each reveal in both themes. Preparation panels, workflow accents
+and other interface highlights also stay blue in both themes.
+When the full section fits below the header, it stays in view for 1080px of
+scrolling and releases after the fourth card arrives.
 Short screens reveal cards in normal page flow; reduced-motion mode shows all
 four immediately.
 
@@ -62,17 +70,44 @@ in place.
 The dumbbell has shaded plate faces, collars and a textured steel grip. On
 screens tall enough to show the full section, competition prep stays in view for
 720px of scrolling while a soft animated glow highlights the coaching details.
-Short screens and reduced-motion mode use the normal page flow without the hold.
+On phones, the dumbbell holds separately for 480px before the coaching details.
+Artwork only holds when it fits below the header; very short viewports and
+reduced-motion mode use normal page flow without a hold.
 The navigation stays visible and gains a solid background on scroll.
 These effects use the existing Vue setup without extra animation libraries,
 preserve normal scrolling and both themes, and respect reduced-motion settings.
 
-FAQ answers smoothly expand and fade into view when opened, inside a blue-glowing
-panel. Each arrow brightens, grows slightly and emits a blue halo when it enters
-view. Reduced-motion mode shows answers immediately and keeps static blue
-highlights.
+Expandable panels throughout the website smoothly expand and fade into view
+inside a blue-glowing panel. Away from the homepage, their arrows and select-field
+arrows keep a steady glow that brightens on hover or keyboard focus. Homepage
+FAQ arrows still brighten, grow slightly and emit a blue halo when they enter
+view. Select fields retain keyboard controls and mobile pickers. Reduced-motion
+mode shows panels immediately and keeps static blue highlights.
+
+Navigation, buttons, links, form fields and interactive chart points share blue
+hover and keyboard-focus glows in both themes. Disabled controls do not gain a
+hover highlight.
+
+### Payment page preview
+
+The public `/payment` route is an initial Stage-Ready payment-page design with a
+plan summary, signed-in account context and a preview of the handoff to
+[Stripe Checkout](https://docs.stripe.com/payments/checkout). It shares the site's
+dark and light themes, blue hover highlights and responsive layout.
+
+Prices and billing periods remain unset. Stripe is not connected: the preview
+does not collect payment details, call a payment API, record a successful payment
+or change account access. The checkout button previews the next step and can
+return to the summary. Live billing still needs confirmed prices and payment
+terms, a server-side Stripe integration and verified payment events.
 
 ### Coach workspace
+
+Coach and client dashboards use 16px body text, larger labels and supporting
+notes, and more space between fields and actions. Workout logging and coach
+prescription rows adapt to narrow screens without shrinking their text.
+Posing history opens photos and feedback immediately, with an arrow to hide or
+reopen each photo menu.
 
 - View clients with a current, active coaching assignment.
 - View the coach's fixed Bodybuilding or Powerlifting discipline in the Clients
@@ -416,6 +451,7 @@ Open **http://localhost:8000**.
 | ------------------------- | ------------ |
 | Public website            | `/`          |
 | Member login              | `/login`     |
+| Payment design preview    | `/payment`   |
 | Client or coach dashboard | `/dashboard` |
 
 For live frontend development, run `npm run dev` in a second terminal while the

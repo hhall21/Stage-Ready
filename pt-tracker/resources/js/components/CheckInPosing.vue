@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    reactive,
+    ref,
+    watch,
+} from 'vue';
+import DropdownArrow from '@/components/DropdownArrow.vue';
 import SlidePanel from '@/components/SlidePanel.vue';
 import { motionScrollBehavior } from '@/lib/motion';
 import { api, ApiError, displayDate, message } from '@/lib/tracker-api';
@@ -12,7 +21,7 @@ const props = defineProps<{
     initiallyOpen?: boolean;
 }>();
 const emit = defineEmits<{ updated: [record: Partial<CheckIn>] }>();
-const open = ref(false);
+const open = ref(true);
 const loading = ref(false);
 const busy = ref('');
 const error = ref('');
@@ -343,6 +352,9 @@ onBeforeUnmount(() => {
     request++;
     Object.keys(pending).forEach(discard);
 });
+onMounted(() => {
+    if (!data.value && !loading.value) void load();
+});
 </script>
 
 <template>
@@ -358,16 +370,15 @@ onBeforeUnmount(() => {
             </div>
             <button
                 type="button"
-                class="text-link"
+                class="dropdown-toggle"
+                :aria-label="
+                    open ? 'Hide poses and feedback' : 'Show poses and feedback'
+                "
                 :aria-expanded="open"
                 :aria-controls="'posing-' + checkIn.id"
                 @click="toggle"
             >
-                {{
-                    open
-                        ? 'Hide poses and feedback'
-                        : 'Poses and coach feedback ↗'
-                }}
+                <DropdownArrow :expanded="open" />
             </button>
         </div>
         <SlidePanel :open="open" :id="'posing-' + checkIn.id">

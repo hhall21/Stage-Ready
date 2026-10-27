@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { reactive, ref, watch } from 'vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
 import type {
@@ -266,7 +267,7 @@ watch(
                             maxlength="150"
                             placeholder="e.g. Push / Pull / Legs" /></label
                     ><label
-                        >Repeat every<select v-model="template.weekday">
+                        >Repeat every<DropdownSelect v-model="template.weekday">
                             <option
                                 v-for="(day, dayIndex) in weekdays"
                                 :key="day"
@@ -274,7 +275,7 @@ watch(
                             >
                                 {{ day }}
                             </option>
-                        </select></label
+                        </DropdownSelect></label
                     >
                 </div>
                 <label class="notes-label"
@@ -301,7 +302,7 @@ watch(
                         </button>
                     </div>
                     <label
-                        >Exercise<select
+                        >Exercise<DropdownSelect
                             v-model="exercise.exercise_id"
                             required
                         >
@@ -313,7 +314,7 @@ watch(
                             >
                                 {{ option.exercise_name }}
                             </option>
-                        </select></label
+                        </DropdownSelect></label
                     >
                     <label class="notes-label"
                         >Technique / injury notes<input

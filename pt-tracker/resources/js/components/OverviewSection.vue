@@ -218,7 +218,7 @@ onBeforeUnmount(() => version++);
 .overview-action p {
     max-width: 52ch;
     margin: 0;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.7;
 }
 .overview-records {
@@ -232,7 +232,7 @@ onBeforeUnmount(() => version++);
 }
 .overview-records dt,
 .overview-records .record-context {
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.7;
 }
 .overview-records dd {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed } from 'vue';
 import { displayDate } from '@/lib/tracker-api';
 import type { WeightPoint } from '@/lib/tracker-api';
@@ -122,8 +123,8 @@ const trend = computed(() =>
             days before it. Missing weigh-ins are excluded. Gaps show periods
             with no readings.
         </p>
-        <details v-if="observed.length" class="trend-history">
-            <summary>View daily averages and reading counts</summary>
+        <DropdownDetails v-if="observed.length" class="trend-history">
+            <template #summary>View daily averages and reading counts</template>
             <div class="trend-table-wrap">
                 <table>
                     <thead>
@@ -153,6 +154,6 @@ const trend = computed(() =>
                     </tbody>
                 </table>
             </div>
-        </details>
+        </DropdownDetails>
     </section>
 </template>

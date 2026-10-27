@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 import DumbbellVisual from '@/components/DumbbellVisual.vue';
@@ -11,8 +12,10 @@ const home = ref<HTMLElement | null>(null);
 const scrolled = ref(false);
 const activeStep = ref(-1);
 const heroPinned = ref(false);
+const heroArtworkPinned = ref(false);
 const heroMotion = ref(0);
 const prepPinned = ref(false);
+const dumbbellPinned = ref(false);
 const prepReading = ref(false);
 let cleanupMotion: (() => void) | undefined;
 
@@ -25,9 +28,15 @@ onMounted(() => {
     const hero = root.querySelector<HTMLElement>('.home-hero');
     const heroScene = root.querySelector<HTMLElement>('.hero-scroll-section');
     const heroArtwork = root.querySelector<HTMLElement>('.hero-athletes');
+    const heroArtworkScene = root.querySelector<HTMLElement>(
+        '.hero-artwork-scroll',
+    );
     const dumbbell = root.querySelector<HTMLElement>('.dumbbell-visual');
     const prep = root.querySelector<HTMLElement>('.prep-scroll-section');
     const prepContent = root.querySelector<HTMLElement>('.prep-section');
+    const dumbbellScene = root.querySelector<HTMLElement>(
+        '.dumbbell-scroll-section',
+    );
     const workflow = root.querySelector<HTMLElement>('.workflow-section');
     let frame = 0;
 
@@ -40,6 +49,15 @@ onMounted(() => {
         const viewportSpace = Math.max(1, window.innerHeight - headerHeight);
         const heroBounds = heroScene?.getBoundingClientRect();
         const heroArtworkBounds = heroArtwork?.getBoundingClientRect();
+        const heroArtworkSceneBounds =
+            heroArtworkScene?.getBoundingClientRect();
+        const heroArtworkHeight = heroArtwork?.offsetHeight || 0;
+        const mobile = window.innerWidth <= 720;
+        const canPinHeroArtwork =
+            !reducedMotion.matches &&
+            mobile &&
+            heroArtworkHeight > 0 &&
+            heroArtworkHeight <= viewportSpace - 16;
         const canPinHero =
             !reducedMotion.matches &&
             window.innerWidth > 720 &&
@@ -48,6 +66,13 @@ onMounted(() => {
         const prepBounds = prep?.getBoundingClientRect();
         const prepContentBounds = prepContent?.getBoundingClientRect();
         const dumbbellBounds = dumbbell?.getBoundingClientRect();
+        const dumbbellSceneBounds = dumbbellScene?.getBoundingClientRect();
+        const dumbbellHeight = dumbbell?.offsetHeight || 0;
+        const canPinDumbbell =
+            !reducedMotion.matches &&
+            mobile &&
+            dumbbellHeight > 0 &&
+            dumbbellHeight <= viewportSpace - 32;
         const canPin =
             !reducedMotion.matches &&
             window.innerWidth > 720 &&
@@ -62,7 +87,9 @@ onMounted(() => {
 
         scrolled.value = scrollTop > 24;
         heroPinned.value = canPinHero;
+        heroArtworkPinned.value = canPinHeroArtwork;
         prepPinned.value = canPin;
+        dumbbellPinned.value = canPinDumbbell;
         prepReading.value = Boolean(
             prepContentBounds &&
             prepContentBounds.top < window.innerHeight * 0.75 &&
@@ -78,8 +105,16 @@ onMounted(() => {
         root.style.setProperty('--home-header-height', `${headerHeight}px`);
         root.style.setProperty('--hero-content-height', `${heroHeight}px`);
         root.style.setProperty(
+            '--hero-artwork-height',
+            `${heroArtworkHeight}px`,
+        );
+        root.style.setProperty(
+            '--dumbbell-artwork-height',
+            `${dumbbellHeight}px`,
+        );
+        root.style.setProperty(
             '--hero-hold-distance',
-            canPinHero ? '360px' : '0px',
+            canPinHero ? '480px' : '0px',
         );
         root.style.setProperty('--prep-content-height', `${prepHeight}px`);
         root.style.setProperty('--prep-hold-distance', `${holdDistance}px`);
@@ -116,7 +151,9 @@ onMounted(() => {
                     0,
                     canPinHero && heroBounds
                         ? (headerHeight - heroBounds.top) / 360
-                        : (scrollTop - start) / range,
+                        : canPinHeroArtwork && heroArtworkSceneBounds
+                          ? (headerHeight - heroArtworkSceneBounds.top) / 360
+                          : (scrollTop - start) / range,
                 ),
             );
         }
@@ -136,8 +173,12 @@ onMounted(() => {
                 1,
                 Math.max(
                     0,
-                    (window.innerHeight - animationTop - viewportSpace * 0.1) /
-                        (viewportSpace * 0.8 + animationHeight),
+                    canPinDumbbell && dumbbellSceneBounds
+                        ? (headerHeight + 16 - dumbbellSceneBounds.top) / 480
+                        : (window.innerHeight -
+                              animationTop -
+                              viewportSpace * 0.1) /
+                              (viewportSpace * 0.8 + animationHeight),
                 ),
             );
             dumbbell?.style.setProperty('--dumbbell-progress', `${progress}`);
@@ -161,71 +202,16 @@ onMounted(() => {
     if (heroArtwork) resizeObserver?.observe(heroArtwork);
     if (prepContent) resizeObserver?.observe(prepContent);
 
-    const faqObserver =
-        typeof IntersectionObserver === 'undefined'
-            ? undefined
-            : new IntersectionObserver(
-                  (entries) => {
-                      entries.forEach((entry) => {
-                          entry.target.classList.toggle(
-                              'is-glinting',
-                              entry.isIntersecting &&
-                                  entry.intersectionRatio >= 0.75,
-                          );
-                      });
-                  },
-                  { threshold: 0.75 },
-              );
-    root.querySelectorAll('.faq-indicator').forEach((arrow) => {
-        faqObserver?.observe(arrow);
-    });
-
     cleanupMotion = () => {
         window.cancelAnimationFrame(frame);
         window.removeEventListener('scroll', scheduleUpdate);
         window.removeEventListener('resize', scheduleUpdate);
         reducedMotion.removeEventListener('change', scheduleUpdate);
         resizeObserver?.disconnect();
-        faqObserver?.disconnect();
     };
 });
 
 onUnmounted(() => cleanupMotion?.());
-
-function unveilFaqAnswer(event: Event) {
-    const details = event.currentTarget;
-    if (!(details instanceof HTMLDetailsElement)) return;
-
-    const answer = details.querySelector<HTMLElement>('.faq-answer-reveal');
-    answer?.getAnimations().forEach((animation) => animation.cancel());
-    if (
-        !answer ||
-        !details.open ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    )
-        return;
-
-    answer.animate(
-        [
-            {
-                height: '0px',
-                opacity: 0,
-                overflow: 'hidden',
-                transform: 'translateY(-8px)',
-            },
-            {
-                height: `${answer.offsetHeight}px`,
-                opacity: 1,
-                overflow: 'hidden',
-                transform: 'translateY(0)',
-            },
-        ],
-        {
-            duration: 450,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        },
-    );
-}
 
 const description =
     'Training plans, meal plans and client check-ins for bodybuilding and powerlifting coaches. Review what you prescribed alongside what your clients recorded.';
@@ -328,7 +314,12 @@ const questions = [
                             >View coaching tools</a
                         >
                     </div>
-                    <HeroAthletes :progress="heroMotion" />
+                    <div
+                        class="hero-artwork-scroll"
+                        :class="{ 'hero-art-is-pinned': heroArtworkPinned }"
+                    >
+                        <HeroAthletes :progress="heroMotion" />
+                    </div>
                 </div>
             </section>
 
@@ -341,7 +332,12 @@ const questions = [
                 aria-labelledby="prep-title"
             >
                 <div class="prep-section">
-                    <DumbbellVisual />
+                    <div
+                        class="dumbbell-scroll-section"
+                        :class="{ 'dumbbell-is-pinned': dumbbellPinned }"
+                    >
+                        <DumbbellVisual />
+                    </div>
                     <div class="prep-copy">
                         <p class="home-label">
                             Bodybuilding and competition prep
@@ -420,30 +416,16 @@ const questions = [
                     <h2 id="questions-title">Before you invite a client</h2>
                 </div>
                 <div class="question-list">
-                    <details
+                    <DropdownDetails
                         v-for="question in questions"
                         :key="question.title"
                         v-reveal
-                        @toggle="unveilFaqAnswer"
+                        content-class="faq-answer"
+                        glint
                     >
-                        <summary>
-                            <span class="faq-indicator" aria-hidden="true">
-                                <svg viewBox="0 0 20 20" fill="none">
-                                    <path
-                                        d="m7 5 5 5-5 5"
-                                        stroke="currentColor"
-                                        stroke-width="1.8"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                            </span>
-                            <span>{{ question.title }}</span>
-                        </summary>
-                        <div class="faq-answer-reveal">
-                            <p class="faq-answer">{{ question.text }}</p>
-                        </div>
-                    </details>
+                        <template #summary>{{ question.title }}</template>
+                        <p>{{ question.text }}</p>
+                    </DropdownDetails>
                 </div>
             </section>
         </main>
@@ -477,9 +459,9 @@ const questions = [
 .coach-home::before {
     background: linear-gradient(
         165deg,
-        rgb(106 251 240 / 7%),
+        rgb(var(--dropdown-blue) / calc(7% * var(--glow-strength))),
         transparent 28%,
-        rgb(251 195 116 / 5%) 60%,
+        rgb(var(--dropdown-flash) / calc(5% * var(--glow-strength))) 60%,
         transparent 88%
     );
 }
@@ -487,8 +469,8 @@ const questions = [
     background: linear-gradient(
         195deg,
         transparent 15%,
-        rgb(106 251 240 / 6%) 48%,
-        rgb(251 195 116 / 6%)
+        rgb(var(--dropdown-blue) / calc(6% * var(--glow-strength))) 48%,
+        rgb(var(--dropdown-flash) / calc(6% * var(--glow-strength)))
     );
     opacity: var(--home-progress);
 }
@@ -516,6 +498,10 @@ const questions = [
 }
 .hero-scroll-section.hero-is-pinned {
     min-height: calc(var(--hero-content-height) + var(--hero-hold-distance));
+}
+.hero-artwork-scroll,
+.dumbbell-scroll-section {
+    display: contents;
 }
 .hero-is-pinned .home-hero {
     position: sticky;
@@ -644,14 +630,17 @@ const questions = [
     position: absolute;
     inset: 32px 32px 32px 0;
     z-index: -1;
-    border: 1px solid rgb(106 251 240 / 32%);
+    border: 1px solid
+        rgb(var(--dropdown-blue) / calc(32% * var(--glow-strength)));
     border-radius: 18px;
     background: linear-gradient(
         135deg,
-        rgb(106 251 240 / 5%),
-        rgb(251 195 116 / 2%)
+        rgb(var(--dropdown-blue) / calc(5% * var(--glow-strength))),
+        rgb(var(--dropdown-blue) / calc(2% * var(--glow-strength)))
     );
-    box-shadow: 0 0 36px rgb(106 251 240 / 9%);
+    box-shadow:
+        var(--glow-core),
+        0 0 36px rgb(var(--dropdown-blue) / calc(9% * var(--glow-strength)));
     opacity: 0.45;
     pointer-events: none;
     transition: opacity 0.4s;
@@ -663,14 +652,24 @@ const questions = [
 @keyframes prep-read-glow {
     0%,
     100% {
-        border-color: rgb(106 251 240 / 34%);
-        box-shadow: 0 0 30px rgb(106 251 240 / 11%);
+        border-color: rgb(
+            var(--dropdown-blue) / calc(34% * var(--glow-strength))
+        );
+        box-shadow:
+            var(--glow-core),
+            0 0 30px
+                rgb(var(--dropdown-blue) / calc(11% * var(--glow-strength)));
     }
     50% {
-        border-color: rgb(106 251 240 / 65%);
+        border-color: rgb(
+            var(--dropdown-blue) / calc(65% * var(--glow-strength))
+        );
         box-shadow:
-            0 0 48px rgb(106 251 240 / 20%),
-            inset 0 0 20px rgb(106 251 240 / 4%);
+            var(--glow-core),
+            0 0 48px
+                rgb(var(--dropdown-blue) / calc(20% * var(--glow-strength))),
+            inset 0 0 20px
+                rgb(var(--dropdown-blue) / calc(4% * var(--glow-strength)));
     }
 }
 .section-intro {
@@ -713,20 +712,20 @@ const questions = [
         border-color 0.4s;
 }
 .coaching-steps .is-current {
-    border-top-color: var(--accent-sand);
+    border-top-color: rgb(var(--dropdown-flash));
 }
 .coaching-steps .is-passed {
-    border-top-color: var(--accent-teal);
+    border-top-color: rgb(var(--dropdown-blue));
 }
 .coaching-steps li::marker {
     font-size: 14px;
     font-weight: 600;
 }
 .coaching-steps .is-current::marker {
-    color: var(--accent-sand);
+    color: rgb(var(--dropdown-flash));
 }
 .coaching-steps .is-passed::marker {
-    color: var(--accent-teal);
+    color: rgb(var(--dropdown-blue));
 }
 .coaching-steps h3 {
     margin-bottom: 12px;
@@ -735,149 +734,15 @@ const questions = [
 .home-questions {
     padding-block: 64px;
 }
-.question-list {
-    --faq-blue: 79 161 255;
-    --faq-flash: 177 220 255;
-}
-:global(html[data-theme='light'] .coach-home .question-list) {
-    /* Keep the FAQ accents blue after the page's light-mode inversion. */
-    --faq-blue: 208 122 16;
-    --faq-flash: 239 171 67;
-}
 .question-list details {
     border-top: 1px solid var(--line);
 }
 .question-list details:last-child {
     border-bottom: 1px solid var(--line);
 }
-.question-list summary {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    min-height: 56px;
-    padding: 20px 8px;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1.6;
-    list-style: none;
-}
-.question-list summary::-webkit-details-marker {
-    display: none;
-}
-.faq-indicator {
-    position: relative;
-    display: grid;
-    place-items: center;
-    flex: 0 0 20px;
-    height: 1.6em;
-}
-.faq-indicator::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgb(var(--faq-blue) / 75%);
-    border-radius: 50%;
-    background: radial-gradient(
-        circle,
-        rgb(var(--faq-blue) / 45%),
-        rgb(var(--faq-blue) / 8%) 65%,
-        transparent 75%
-    );
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.55);
-    pointer-events: none;
-}
-.faq-indicator svg {
-    position: relative;
-    display: block;
-    width: 20px;
-    height: 20px;
-    transition: transform 0.2s var(--motion-ease);
-}
-.question-list details[open] .faq-indicator {
-    color: rgb(var(--faq-blue));
-}
-.question-list details[open] .faq-indicator svg {
-    transform: rotate(90deg);
-}
-.faq-answer-reveal {
-    display: flow-root;
-}
-.question-list .faq-answer {
+.question-list :deep(.faq-answer) {
     max-width: 64ch;
-    margin: 0 8px 24px;
-    padding: 20px;
-    border: 1px solid rgb(var(--faq-blue) / 55%);
-    border-radius: 12px;
-    background: linear-gradient(
-        135deg,
-        rgb(var(--faq-blue) / 12%),
-        rgb(var(--faq-blue) / 3%)
-    );
-    box-shadow:
-        0 0 28px rgb(var(--faq-blue) / 22%),
-        inset 0 0 24px rgb(var(--faq-blue) / 6%);
-}
-@media (prefers-reduced-motion: no-preference) {
-    .faq-indicator.is-glinting {
-        animation: faq-arrow-glint 1.8s ease-out 0.15s;
-    }
-    .faq-indicator.is-glinting svg {
-        animation: faq-arrow-emphasis 1.8s ease-out 0.15s;
-    }
-    .faq-indicator.is-glinting::before {
-        animation: faq-arrow-halo 1.8s ease-out 0.15s;
-    }
-}
-@keyframes faq-arrow-glint {
-    0%,
-    100% {
-        filter: drop-shadow(0 0 0 rgb(var(--faq-blue) / 0%));
-    }
-    18%,
-    42% {
-        color: rgb(var(--faq-flash));
-        filter: drop-shadow(0 0 5px rgb(var(--faq-blue) / 100%))
-            drop-shadow(0 0 16px rgb(var(--faq-blue) / 100%));
-    }
-    65% {
-        color: rgb(var(--faq-blue));
-        filter: drop-shadow(0 0 8px rgb(var(--faq-blue) / 65%));
-    }
-}
-@keyframes faq-arrow-emphasis {
-    0%,
-    100% {
-        scale: 1;
-    }
-    18%,
-    42% {
-        scale: 1.3;
-    }
-    65% {
-        scale: 1.12;
-    }
-}
-@keyframes faq-arrow-halo {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.55);
-    }
-    24% {
-        opacity: 0.9;
-        transform: translate(-50%, -50%) scale(1);
-    }
-    55% {
-        opacity: 0.45;
-        transform: translate(-50%, -50%) scale(1.25);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(1.5);
-    }
+    margin-inline: 8px;
 }
 .home-footer {
     align-items: center;
@@ -912,6 +777,25 @@ const questions = [
     }
 }
 @media (max-width: 720px) {
+    .hero-artwork-scroll,
+    .dumbbell-scroll-section {
+        display: block;
+        min-width: 0;
+    }
+    .hero-artwork-scroll.hero-art-is-pinned {
+        min-height: calc(var(--hero-artwork-height) + 480px);
+    }
+    .hero-art-is-pinned :deep(.hero-athletes) {
+        position: sticky;
+        top: var(--home-header-height);
+    }
+    .dumbbell-scroll-section.dumbbell-is-pinned {
+        min-height: calc(var(--dumbbell-artwork-height) + 480px);
+    }
+    .dumbbell-is-pinned :deep(.dumbbell-visual) {
+        position: sticky;
+        top: calc(var(--home-header-height) + 16px);
+    }
     .home-hero,
     .prep-section,
     .home-questions {
@@ -960,6 +844,14 @@ const questions = [
     }
 }
 @media (prefers-reduced-motion: reduce) {
+    .hero-artwork-scroll.hero-art-is-pinned,
+    .dumbbell-scroll-section.dumbbell-is-pinned {
+        min-height: 0;
+    }
+    .hero-art-is-pinned :deep(.hero-athletes),
+    .dumbbell-is-pinned :deep(.dumbbell-visual) {
+        position: static;
+    }
     .coach-home::after {
         opacity: 0;
     }

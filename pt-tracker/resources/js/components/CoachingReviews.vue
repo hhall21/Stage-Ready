@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
 import type { Page } from '@/lib/tracker-api';
@@ -220,7 +222,7 @@ onMounted(load);
                     <form v-if="coachId" @submit.prevent="setSchedule">
                         <fieldset :disabled="busy" class="coaching-fields">
                             <label
-                                >Current coaching phase<select
+                                >Current coaching phase<DropdownSelect
                                     v-model="phase"
                                     aria-label="Current coaching phase"
                                 >
@@ -230,7 +232,7 @@ onMounted(load);
                                     <option value="offseason">
                                         Off-season — fortnightly reviews
                                     </option>
-                                </select></label
+                                </DropdownSelect></label
                             >
                             <p class="form-help">
                                 Changing phase starts the new review interval
@@ -321,10 +323,13 @@ onMounted(load);
                             </p>
                         </article>
                     </div>
-                    <details v-if="state.summary.nutrition.reports.length" open>
-                        <summary>
+                    <DropdownDetails
+                        v-if="state.summary.nutrition.reports.length"
+                        open
+                    >
+                        <template #summary>
                             Digestion notes and dietary difficulties
-                        </summary>
+                        </template>
                         <article
                             v-for="report in state.summary.nutrition.reports"
                             :key="report.date"
@@ -345,7 +350,7 @@ onMounted(load);
                                 {{ report.dietary_difficulties }}
                             </p>
                         </article>
-                    </details>
+                    </DropdownDetails>
                     <p v-else class="form-help">
                         No digestion notes or dietary difficulties reported in
                         this review window.

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { reactive, ref, watch } from 'vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
 import type {
@@ -278,10 +279,10 @@ watch(
                         </div>
                     </div>
                     <label
-                        >Day type<select v-model="day.is_rest_day">
+                        >Day type<DropdownSelect v-model="day.is_rest_day">
                             <option :value="false">Training day</option>
                             <option :value="true">Rest day</option>
-                        </select></label
+                        </DropdownSelect></label
                     >
                     <label v-if="!day.is_rest_day"
                         >Workout name<input
@@ -316,7 +317,7 @@ watch(
                                 </button>
                             </div>
                             <label
-                                >Exercise<select
+                                >Exercise<DropdownSelect
                                     v-model="exercise.exercise_id"
                                     required
                                 >
@@ -330,7 +331,7 @@ watch(
                                     >
                                         {{ option.exercise_name }}
                                     </option>
-                                </select></label
+                                </DropdownSelect></label
                             >
                             <label
                                 >Technique / injury notes<input
@@ -524,9 +525,18 @@ watch(
 
 <style scoped>
 .split-fields {
+    display: grid;
+    gap: 24px;
     border: 0;
     padding: 0;
     margin: 0;
     min-width: 0;
+}
+.split-fields > .notes-label,
+.split-fields > .form-actions {
+    margin: 0;
+}
+.split-fields > .template-editor {
+    margin-top: 8px;
 }
 </style>

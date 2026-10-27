@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
 import { computed, onMounted, ref } from 'vue';
 import { api, displayDate, message } from '@/lib/tracker-api';
 import type { Page } from '@/lib/tracker-api';
@@ -63,7 +64,7 @@ onMounted(() => {
             <template v-else>
                 <label class="handover-picker">
                     Coaching period
-                    <select v-model="selectedId">
+                    <DropdownSelect v-model="selectedId">
                         <option
                             v-for="handover in handovers"
                             :key="handover.id"
@@ -73,7 +74,7 @@ onMounted(() => {
                             {{ handover.discipline }} /
                             {{ displayDate(handover.ended_at) }}
                         </option>
-                    </select>
+                    </DropdownSelect>
                 </label>
                 <article v-if="selected" class="panel handover-document">
                     <h2>Your handover from {{ selected.coach_name }}</h2>

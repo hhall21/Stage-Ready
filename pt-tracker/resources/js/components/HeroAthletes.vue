@@ -105,11 +105,18 @@ const squat = computed(() => {
                         <stop offset="1" stop-color="#111a1d" />
                     </linearGradient>
                     <radialGradient id="hero-pose-gold">
-                        <stop stop-color="#f0ca7c" stop-opacity=".38" />
+                        <stop
+                            stop-color="#f0ca7c"
+                            style="
+                                stop-opacity: calc(0.38 * var(--glow-strength));
+                            "
+                        />
                         <stop
                             offset=".5"
                             stop-color="#d4a452"
-                            stop-opacity=".16"
+                            style="
+                                stop-opacity: calc(0.16 * var(--glow-strength));
+                            "
                         />
                         <stop
                             offset="1"
@@ -316,11 +323,18 @@ const squat = computed(() => {
                         <stop offset="1" stop-color="#14070b" />
                     </linearGradient>
                     <radialGradient id="hero-lift-glow">
-                        <stop stop-color="#b43d48" stop-opacity=".33" />
+                        <stop
+                            stop-color="#b43d48"
+                            style="
+                                stop-opacity: calc(0.33 * var(--glow-strength));
+                            "
+                        />
                         <stop
                             offset=".55"
                             stop-color="#801f2f"
-                            stop-opacity=".15"
+                            style="
+                                stop-opacity: calc(0.15 * var(--glow-strength));
+                            "
                         />
                         <stop
                             offset="1"
@@ -329,11 +343,18 @@ const squat = computed(() => {
                         />
                     </radialGradient>
                     <radialGradient id="hero-lift-plate-glow">
-                        <stop stop-color="#c84255" stop-opacity=".24" />
+                        <stop
+                            stop-color="#c84255"
+                            style="
+                                stop-opacity: calc(0.24 * var(--glow-strength));
+                            "
+                        />
                         <stop
                             offset=".5"
                             stop-color="#851e32"
-                            stop-opacity=".1"
+                            style="
+                                stop-opacity: calc(0.1 * var(--glow-strength));
+                            "
                         />
                         <stop
                             offset="1"
@@ -621,6 +642,14 @@ const squat = computed(() => {
 }
 .posing-scene figcaption {
     color: #c9b58d;
+}
+html[data-theme='light'] .pose-golden-light,
+html[data-theme='light'] .posing-scene figcaption,
+html[data-theme='light'] .squat-red-light,
+html[data-theme='light'] .squat-plate-light,
+html[data-theme='light'] .squat-red-plates {
+    /* Counter the page inversion only on the gold lighting and red plates. */
+    filter: invert(1);
 }
 @media (max-width: 720px) {
     .hero-athletes {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import CheckInPosing from '@/components/CheckInPosing.vue';
 import EndOfDayNutrition from '@/components/EndOfDayNutrition.vue';
@@ -253,8 +254,8 @@ onMounted(loadRecords);
                 Leave the date blank to use today, or keep the original date
                 when editing.
             </p>
-            <details class="checkin-details" :open="!!editCheck">
-                <summary>Recovery and notes</summary>
+            <DropdownDetails class="checkin-details" :open="!!editCheck">
+                <template #summary>Recovery and notes</template>
                 <div class="form-grid">
                     <label v-for="field in recoveryFields" :key="field.key"
                         >{{ field.label
@@ -274,7 +275,7 @@ onMounted(loadRecords);
                         />
                     </label>
                 </div>
-            </details>
+            </DropdownDetails>
             <div class="form-actions">
                 <button class="button" :disabled="saving">
                     {{ saving ? 'Saving…' : 'Save check-in' }}
@@ -372,8 +373,11 @@ onMounted(loadRecords);
                 :initially-open="openPosing === record.id"
                 @updated="Object.assign(record, $event)"
             />
-            <details v-if="hasRecoveryDetails(record)" class="checkin-details">
-                <summary>Recovery and notes</summary>
+            <DropdownDetails
+                v-if="hasRecoveryDetails(record)"
+                class="checkin-details"
+            >
+                <template #summary>Recovery and notes</template>
                 <div class="checkin-values">
                     <span
                         >Sleep
@@ -408,9 +412,13 @@ onMounted(loadRecords);
                 <p v-if="record.notes" class="record-notes">
                     {{ record.notes }}
                 </p>
-            </details>
-            <details v-if="hasNutrition(record)" class="checkin-details" open>
-                <summary>End-of-day nutrition responses</summary>
+            </DropdownDetails>
+            <DropdownDetails
+                v-if="hasNutrition(record)"
+                class="checkin-details"
+                open
+            >
+                <template #summary>End-of-day nutrition responses</template>
                 <div class="checkin-values">
                     <span v-for="field in nutritionFields" :key="field.key"
                         >{{ field.label
@@ -433,7 +441,7 @@ onMounted(loadRecords);
                         {{ record.dietary_difficulties }}
                     </p></template
                 >
-            </details>
+            </DropdownDetails>
         </div>
         <div v-if="checkLast > 1" class="pagination">
             <button

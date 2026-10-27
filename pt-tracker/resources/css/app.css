@@ -3,18 +3,30 @@
 .coaching-fields {
     border: 0;
     padding: 0;
-    margin: 20px 0 0;
+    margin: 24px 0 0;
     min-width: 0;
+    display: grid;
+    gap: 24px;
+}
+.coaching-fields > .notes-label,
+.coaching-fields > .form-actions {
+    margin: 0;
+}
+.coaching-fields > .button,
+.coaching-fields > .text-link {
+    justify-self: start;
 }
 .meal-prescription,
 .practice-editor {
-    padding: 20px 0;
+    padding: 24px 0;
     border-bottom: 1px solid #444;
 }
 .practice-editor summary,
 .meal-prescription summary {
     cursor: pointer;
-    padding: 12px 0;
+    padding: 16px 0;
+    font-size: 16px;
+    line-height: 1.6;
 }
 .practice-grid {
     display: grid;
@@ -33,8 +45,8 @@
 }
 .logged-set-grid {
     display: grid;
-    grid-template-columns: 45px repeat(3, minmax(0, 1fr)) 55px 90px;
-    gap: 12px;
+    grid-template-columns: 52px repeat(3, minmax(0, 1fr)) 90px 112px;
+    gap: 16px;
     align-items: end;
     grid-column: 1 / -1;
 }
@@ -42,18 +54,19 @@
     padding-bottom: 15px;
 }
 .logged-set-grid label {
-    font-size: 10px;
+    font-size: 15px;
 }
 .logged-set-grid input {
-    min-height: 40px;
-    padding: 10px;
-    font-size: 12px;
+    min-height: 48px;
+    padding: 12px;
+    font-size: 16px;
 }
 .set-check {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding-bottom: 10px;
+    gap: 10px;
+    padding-bottom: 0;
+    min-height: 48px;
 }
 .set-check input {
     width: 18px;
@@ -82,6 +95,18 @@
     --accent-teal: #6afbf0;
     --section-accent: #fff;
     --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --dropdown-blue: 79 161 255;
+    --dropdown-flash: 177 220 255;
+    --glow-strength: 1;
+    --glow-core: 0 0 10px rgb(var(--dropdown-blue) / 0%);
+    --interaction-glow:
+        var(--glow-core),
+        0 0 24px rgb(var(--dropdown-blue) / calc(30% * var(--glow-strength))),
+        inset 0 0 18px
+            rgb(var(--dropdown-blue) / calc(10% * var(--glow-strength)));
+    --interaction-text-glow:
+        0 0 8px rgb(var(--dropdown-blue) / calc(70% * var(--glow-strength))),
+        0 0 18px rgb(var(--dropdown-blue) / calc(40% * var(--glow-strength)));
 }
 .trend-stats {
     display: flex;
@@ -97,8 +122,8 @@
     font-size: 13px;
 }
 .trend-stats p {
-    font-size: 11px;
-    margin-top: 10px;
+    font-size: 14px;
+    margin-top: 12px;
 }
 .trend-chart {
     width: 100%;
@@ -108,7 +133,7 @@
 }
 .trend-history {
     margin-top: 22px;
-    font-size: 12px;
+    font-size: 14px;
 }
 .trend-history summary {
     cursor: pointer;
@@ -121,7 +146,7 @@
     width: 100%;
     border-collapse: collapse;
     white-space: nowrap;
-    font-size: 11px;
+    font-size: 14px;
 }
 .trend-history td,
 .trend-history th {
@@ -136,11 +161,11 @@
 }
 .plan-set-row {
     display: grid;
-    grid-template-columns: 50px repeat(3, minmax(0, 1fr)) 65px;
+    grid-template-columns: 56px repeat(3, minmax(0, 1fr)) 90px;
     align-items: end;
-    gap: 15px;
-    margin: 20px 0;
-    font-size: 11px;
+    gap: 16px;
+    margin: 24px 0;
+    font-size: 14px;
 }
 .plan-set-row > span,
 .plan-set-row > button {
@@ -152,12 +177,12 @@
 }
 .mesocycle-workout > strong {
     display: block;
-    font-size: 14px;
+    font-size: 16px;
 }
 .mesocycle-workout > span {
     display: block;
-    font-size: 11px;
-    margin: 10px 0 15px;
+    font-size: 14px;
+    margin: 12px 0 16px;
 }
 .mesocycle-workout .form-help {
     margin-top: 8px;
@@ -181,7 +206,12 @@ html {
     background: var(--ink);
 }
 html[data-theme='light'] {
-    filter: invert(1);
+    filter: invert(1) brightness(0.76);
+    --glow-strength: 3;
+    --glow-core: 0 0 10px rgb(var(--dropdown-blue) / 65%);
+    /* Keep the FAQ accents blue after the page's light-mode inversion. */
+    --dropdown-blue: 255 153 0;
+    --dropdown-flash: 255 204 64;
 }
 body {
     margin: 0;
@@ -225,6 +255,38 @@ select:focus-visible,
 textarea:focus-visible {
     outline: 2px solid #fff;
     outline-offset: 5px;
+}
+:where(button, a[href], summary, input, select, textarea) {
+    transition:
+        background-color 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s,
+        color 0.2s,
+        text-shadow 0.2s;
+}
+:is(
+        button:not(.text-link),
+        a.button,
+        summary,
+        input:not([type='hidden']),
+        select,
+        textarea
+    ):not(:disabled, [aria-disabled='true']):is(:hover, :focus-visible) {
+    border-color: rgb(var(--dropdown-blue) / calc(75% * var(--glow-strength)));
+    box-shadow: var(--interaction-glow);
+}
+:is(a[href]:not(.button), button.text-link):not(
+        :disabled,
+        [aria-disabled='true']
+    ):is(:hover, :focus-visible) {
+    color: rgb(var(--dropdown-flash));
+    text-shadow: var(--interaction-text-glow);
+}
+.pose-card a img {
+    transition: box-shadow 0.2s;
+}
+.pose-card a:is(:hover, :focus-visible) img {
+    box-shadow: var(--interaction-glow);
 }
 .site-header {
     min-height: 106px;
@@ -276,7 +338,8 @@ textarea:focus-visible {
     letter-spacing: 0.03em;
     transition:
         background 0.2s,
-        border-color 0.2s;
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 .button:hover:not(:disabled) {
     background: #383838;
@@ -571,7 +634,7 @@ textarea {
     margin-left: 15px;
 }
 .account-role {
-    font-size: 9px;
+    font-size: 12px;
     letter-spacing: 0.13em;
 }
 .dashboard-layout {
@@ -587,11 +650,11 @@ textarea {
 }
 .sidebar > .eyebrow {
     margin-left: 10px;
-    font-size: 8px;
+    font-size: 12px;
 }
 .sidebar nav {
     display: grid;
-    gap: 9px;
+    gap: 12px;
 }
 .sidebar nav button {
     background: none;
@@ -602,11 +665,13 @@ textarea {
     gap: 14px;
     text-align: left;
     min-height: 44px;
-    font-size: 13px;
+    font-size: 15px;
     position: relative;
     transition:
         background 0.18s,
-        border-color 0.18s;
+        border-color 0.18s,
+        box-shadow 0.18s;
+    line-height: 1.5;
 }
 .sidebar nav button.active {
     border-color: #888;
@@ -626,6 +691,88 @@ textarea {
     padding: 44px 5%;
     max-width: 1450px;
     width: 100%;
+    font-size: 16px;
+    line-height: 1.65;
+}
+.dashboard-main h2 {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.dashboard-main h3 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+.dashboard-main h4 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+.dashboard-main label {
+    min-width: 0;
+    gap: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+.dashboard-main input:not([type='checkbox']):not([type='radio']),
+.dashboard-main select,
+.dashboard-main textarea {
+    min-width: 0;
+    min-height: 48px;
+}
+.dashboard-main .button {
+    min-height: 48px;
+    padding: 12px 20px;
+    gap: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+.dashboard-main .text-link {
+    font-size: 15px;
+    line-height: 1.5;
+}
+.dashboard-main .eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+}
+.dashboard-main .form-help,
+.dashboard-main .notice,
+.dashboard-main .loading-message {
+    font-size: 15px;
+    line-height: 1.7;
+}
+.dashboard-main .panel > .form-help + .form-help,
+.practice-grid p + p {
+    margin-top: 12px;
+}
+.dashboard-main .panel > label + .form-help,
+.dashboard-main .panel > .form-grid + .form-help,
+.dashboard-main .panel > .form-help + .button,
+.dashboard-main .panel > .form-help + .status-pill,
+.dashboard-main .panel > .button + .form-help {
+    margin-top: 16px;
+}
+.dashboard-main .panel > .form-help + label,
+.dashboard-main .panel > .form-help + form {
+    margin-top: 24px;
+}
+.dashboard-main .section-bar > :is(h2, h3, h4) {
+    margin-bottom: 0;
+}
+.dashboard-main .section-bar > div > .eyebrow {
+    margin-bottom: 12px;
+}
+.dashboard-main details > summary {
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1.6;
+}
+.dashboard-main details[open] > summary {
+    margin-bottom: 20px;
 }
 .workspace-heading {
     display: flex;
@@ -637,7 +784,7 @@ textarea {
 }
 .workspace-heading .eyebrow {
     margin-bottom: 14px;
-    font-size: 9px;
+    font-size: 13px;
 }
 .workspace-heading h1 {
     font-size: clamp(26px, 3vw, 42px);
@@ -649,10 +796,10 @@ textarea {
 }
 .workspace-heading p:last-child {
     margin: 0;
-    font-size: 12px;
+    font-size: 15px;
 }
 .today {
-    font-size: 11px;
+    font-size: 14px;
     white-space: nowrap;
 }
 .client-picker {
@@ -664,8 +811,8 @@ textarea {
 .client-picker select {
     max-width: 290px;
 }
-.client-picker > span {
-    font-size: 10px;
+.client-picker > span:not(.dropdown-select) {
+    font-size: 14px;
 }
 .dashboard-banner {
     display: grid;
@@ -688,7 +835,7 @@ textarea {
     margin: 20px 0;
 }
 .dashboard-banner p:not(.eyebrow) {
-    font-size: 12px;
+    font-size: 16px;
     margin-bottom: 28px;
 }
 .athlete-visual.compact {
@@ -706,7 +853,7 @@ textarea {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 15px;
+    gap: 24px;
     margin: 28px 0 42px;
 }
 .stats-grid article {
@@ -715,7 +862,7 @@ textarea {
     padding: 25px;
 }
 .stats-grid .eyebrow {
-    font-size: 8px;
+    font-size: 13px;
     margin-bottom: 20px;
 }
 .stats-grid strong {
@@ -726,44 +873,46 @@ textarea {
     margin-bottom: 14px;
 }
 .stats-grid small {
-    font-size: 13px;
+    font-size: 14px;
 }
 .stats-grid article > span {
-    font-size: 10px;
+    font-size: 14px;
 }
 .section-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 24px;
+    gap: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
 }
 .section-bar h2 {
-    font-size: 21px;
+    font-size: 24px;
     font-weight: 500;
     letter-spacing: -0.025em;
     margin: 0;
 }
 .section-bar h3 {
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 500;
     margin: 0;
 }
 .section-bar .eyebrow {
     margin-bottom: 0;
-    font-size: 8px;
+    font-size: 13px;
 }
 .workout-summary {
     border-top: 1px solid var(--line);
-    padding: 25px 0;
+    padding: 28px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 24px;
+    flex-wrap: wrap;
 }
 .workout-summary .eyebrow {
     margin-bottom: 10px;
-    font-size: 9px;
+    font-size: 13px;
 }
 .workout-summary h3 {
     margin: 0 0 8px;
@@ -771,14 +920,16 @@ textarea {
     font-weight: 500;
 }
 .workout-summary p:last-child {
-    font-size: 11px;
+    font-size: 15px;
     margin: 0;
 }
 .status-pill {
     border: 1px solid #444;
     padding: 8px 12px;
-    font-size: 9px;
-    white-space: nowrap;
+    font-size: 13px;
+    white-space: normal;
+    display: inline-block;
+    line-height: 1.5;
 }
 .empty-state {
     border-top: 1px solid var(--line);
@@ -786,20 +937,20 @@ textarea {
 }
 .empty-state p,
 .loading-message {
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.8;
 }
 .panel {
     background: var(--surface);
     border: 1px solid var(--line);
-    padding: 28px;
+    padding: 32px;
     margin-bottom: 40px;
     scroll-margin-top: 20px;
 }
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    gap: 24px 28px;
 }
 .full-width {
     grid-column: 1 / -1;
@@ -808,13 +959,13 @@ textarea {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 20px;
-    margin: 25px 0;
+    gap: 20px 24px;
+    margin: 32px 0;
 }
 .row-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 22px;
+    gap: 16px 24px;
     align-items: center;
 }
 .checkin-record,
@@ -830,16 +981,16 @@ textarea {
     gap: 22px 32px;
 }
 .checkin-values span {
-    font-size: 10px;
+    font-size: 14px;
     display: grid;
     gap: 10px;
 }
 .checkin-values strong {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 500;
 }
 .record-notes {
-    font-size: 12px;
+    font-size: 15px;
     line-height: 1.8;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -853,6 +1004,10 @@ textarea {
 .exercise-editor .section-bar {
     margin-bottom: 18px;
 }
+.exercise-editor > label + label,
+.template-editor > label + label {
+    margin-top: 20px;
+}
 .set-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -864,19 +1019,22 @@ textarea {
 }
 .exercise-detail {
     border-top: 1px solid #333;
-    margin-top: 20px;
-    padding: 20px 0;
+    margin-top: 24px;
+    padding: 24px 0;
 }
 .exercise-detail > strong {
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 500;
 }
 .set-detail {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    font-size: 11px;
-    padding: 12px 0;
+    gap: 16px;
+    font-size: 14px;
+    padding: 16px 0;
+}
+.set-detail > .form-help {
+    grid-column: 1 / -1;
 }
 .pagination {
     display: flex;
@@ -884,12 +1042,13 @@ textarea {
     justify-content: space-between;
     gap: 18px;
     margin: 30px 0;
-    font-size: 12px;
+    font-size: 14px;
 }
 .pagination button {
     background: none;
     border: 1px solid #444;
     padding: 10px 15px;
+    min-height: 48px;
 }
 @media (min-width: 1600px) {
     .public-page {
@@ -1019,7 +1178,7 @@ textarea {
     .sidebar {
         border-right: none;
         border-bottom: 1px solid var(--line);
-        padding: 12px 5%;
+        padding: 16px 5%;
     }
     .sidebar > .eyebrow,
     .sidebar-bottom {
@@ -1028,10 +1187,10 @@ textarea {
     .sidebar nav {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
+        gap: 8px;
     }
     .sidebar nav button {
-        font-size: 12px;
+        font-size: 14px;
         gap: 5px;
         padding: 12px 5px;
         justify-content: center;
@@ -1050,7 +1209,7 @@ textarea {
         font-size: 29px;
     }
     .today {
-        font-size: 9px;
+        font-size: 13px;
     }
     .account-role {
         display: none;
@@ -1069,7 +1228,7 @@ textarea {
     }
     .stats-grid {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 16px;
     }
     .stats-grid article {
         padding: 20px;
@@ -1093,7 +1252,7 @@ textarea {
     .panel,
     .checkin-record,
     .workout-record {
-        padding: 20px 16px;
+        padding: 24px 20px;
     }
     .form-grid {
         grid-template-columns: 1fr;
@@ -1105,7 +1264,7 @@ textarea {
         flex-wrap: wrap;
     }
     .section-bar h2 {
-        font-size: 19px;
+        font-size: 22px;
     }
     .client-picker {
         flex-wrap: wrap;
@@ -1118,8 +1277,18 @@ textarea {
         gap: 25px;
     }
     .set-detail {
-        font-size: 10px;
-        gap: 6px;
+        font-size: 14px;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 480px) {
+    .logged-set-grid,
+    .plan-set-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .logged-set-grid > .button {
+        grid-column: 1 / -1;
     }
 }
 .reveal-on-scroll {
@@ -1148,30 +1317,75 @@ textarea {
     --reveal-delay: 0.14s;
 }
 .slide-panel {
+    display: flow-root;
+}
+.dropdown-details,
+.dropdown-reveal,
+.dropdown-content {
+    min-width: 0;
+}
+.dropdown-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.dropdown-content > :first-child {
+    margin-top: 0;
+}
+.dropdown-content > :last-child {
+    margin-bottom: 0;
+}
+.dropdown-select {
+    display: block;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+.dropdown-select > select {
+    appearance: none;
+    padding-right: 52px;
+}
+.dropdown-select > .dropdown-indicator {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+.dropdown-select:focus-within > select,
+.dropdown-toggle:hover,
+.dropdown-toggle:focus-visible {
+    border-color: rgb(var(--dropdown-blue) / calc(55% * var(--glow-strength)));
+    box-shadow:
+        var(--glow-core),
+        0 0 28px rgb(var(--dropdown-blue) / calc(22% * var(--glow-strength))),
+        inset 0 0 24px
+            rgb(var(--dropdown-blue) / calc(6% * var(--glow-strength)));
+}
+.dropdown-select > select:disabled + .dropdown-indicator {
+    opacity: 0.45;
+}
+.dropdown-toggle {
+    display: inline-grid;
+    place-items: center;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+}
+.checkin-posing > .section-bar {
     display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    visibility: hidden;
-    transition:
-        grid-template-rows 0.3s var(--motion-ease),
-        opacity 0.2s,
-        visibility 0s linear 0.3s;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
 }
-.slide-panel.is-open {
-    grid-template-rows: 1fr;
-    opacity: 1;
-    visibility: visible;
-    transition:
-        grid-template-rows 0.3s var(--motion-ease),
-        opacity 0.2s,
-        visibility 0s;
+.client-picker > .dropdown-select {
+    flex: 1 1 290px;
+    max-width: 290px;
 }
-.slide-panel-inner {
-    min-height: 0;
-    overflow: hidden;
-}
-.slide-panel.is-open:focus-within > .slide-panel-inner {
-    overflow: visible;
+@media (max-width: 720px) {
+    .client-picker > .dropdown-select {
+        max-width: none;
+    }
 }
 @keyframes content-rise {
     from {
@@ -1193,10 +1407,9 @@ textarea {
         transform: none;
     }
 }
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+@media (hover: hover) {
     .sidebar nav button:hover:not(:disabled) {
         background: #1a1a1a;
-        border-color: #444;
     }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1269,7 +1482,7 @@ textarea {
 }
 .checkin-details summary {
     cursor: pointer;
-    font-size: 12px;
+    font-size: 15px;
     line-height: 1.7;
     padding: 8px 0;
 }
@@ -1290,7 +1503,7 @@ textarea {
 .posing-count {
     display: inline-block;
     margin: 10px 12px;
-    font-size: 11px;
+    font-size: 14px;
 }
 .posing-intro {
     align-items: flex-start;
@@ -1312,7 +1525,7 @@ textarea {
     min-width: 0;
 }
 .pose-card h5 {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     margin: 0 0 15px;
 }
@@ -1329,20 +1542,20 @@ textarea {
     min-height: 160px;
     place-items: center;
     background: #111;
-    font-size: 12px;
+    font-size: 14px;
     margin: 0 0 12px;
 }
 .pose-file-label {
     display: grid;
     gap: 10px;
     margin-top: 14px;
-    font-size: 12px;
+    font-size: 15px;
 }
 .pose-file-label input {
     width: 100%;
     min-width: 0;
     padding: 10px;
-    font-size: 11px;
+    font-size: 16px;
 }
 .pose-file-label input::file-selector-button {
     border: 1px solid var(--line);
@@ -1351,6 +1564,8 @@ textarea {
     padding: 8px 10px;
     margin-right: 10px;
     cursor: pointer;
+    min-height: 44px;
+    font-size: 14px;
 }
 .pose-card .row-actions {
     gap: 15px;
@@ -1385,7 +1600,7 @@ textarea {
     gap: 12px;
 }
 .posing-feedback {
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.8;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -1415,7 +1630,7 @@ textarea {
     }
 }
 .progress-stats span {
-    font-size: 11px;
+    font-size: 14px;
 }
 .progress-stats strong {
     display: block;
@@ -1424,7 +1639,7 @@ textarea {
     font-weight: 500;
 }
 .progress-stats small {
-    font-size: 12px;
+    font-size: 14px;
 }
 .progress-switch {
     margin-bottom: 25px;
@@ -1470,21 +1685,33 @@ textarea {
 }
 .performance-plot text {
     fill: white;
-    font-size: 11px;
+    font-size: 14px;
 }
 .performance-plot circle[role='button'] {
     cursor: pointer;
 }
+.performance-plot circle[role='button'] + circle {
+    transition: filter 0.2s;
+}
+.performance-plot circle[role='button']:is(:hover, :focus-visible) + circle {
+    filter: drop-shadow(
+            0 0 4px rgb(var(--dropdown-blue) / calc(85% * var(--glow-strength)))
+        )
+        drop-shadow(
+            0 0 10px
+                rgb(var(--dropdown-blue) / calc(55% * var(--glow-strength)))
+        );
+}
 .performance-axis {
     text-align: center;
-    font-size: 11px;
+    font-size: 14px;
     margin: 12px 0 0;
 }
 .analytics-empty {
     min-height: 264px;
     display: grid;
     align-content: center;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.8;
 }
 .analytics-readings {
@@ -1496,7 +1723,7 @@ textarea {
 .analytics-readings dt,
 .analytics-readings small,
 .training-analytics td small {
-    font-size: 11px;
+    font-size: 14px;
     line-height: 1.7;
 }
 .analytics-readings dd {
@@ -1510,7 +1737,7 @@ textarea {
 .training-analytics caption {
     text-align: left;
     margin-bottom: 16px;
-    font-size: 12px;
+    font-size: 14px;
 }
 @media (max-width: 1100px) {
     .analytics-charts {
@@ -1535,7 +1762,7 @@ textarea {
 }
 .progress-history summary {
     cursor: pointer;
-    font-size: 13px;
+    font-size: 15px;
     padding: 10px 0;
 }
 .table-scroll {
@@ -1545,7 +1772,7 @@ textarea {
 .table-scroll table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: 14px;
     text-align: left;
 }
 .table-scroll caption {
@@ -1578,5 +1805,184 @@ textarea {
     }
     .progress-stats strong {
         margin: 0;
+    }
+}
+
+.dropdown-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 56px;
+    padding: 20px 8px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1.6;
+    list-style: none;
+}
+.dropdown-summary::-webkit-details-marker {
+    display: none;
+}
+.dropdown-indicator {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 20px;
+    height: 1.6em;
+}
+.dropdown-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    border: 1px solid
+        rgb(var(--dropdown-blue) / calc(75% * var(--glow-strength)));
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgb(var(--dropdown-blue) / calc(45% * var(--glow-strength))),
+        rgb(var(--dropdown-blue) / calc(8% * var(--glow-strength))) 65%,
+        transparent 75%
+    );
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55);
+    pointer-events: none;
+}
+.dropdown-indicator svg {
+    position: relative;
+    display: block;
+    width: 20px;
+    height: 20px;
+    transition: transform 0.2s var(--motion-ease);
+}
+.dropdown-indicator.is-expanded {
+    color: rgb(var(--dropdown-blue));
+}
+.dropdown-indicator.is-expanded svg {
+    transform: rotate(90deg);
+}
+.dropdown-indicator.has-steady-glow {
+    color: rgb(var(--dropdown-blue));
+    filter: drop-shadow(
+            0 0 3px rgb(var(--dropdown-blue) / calc(65% * var(--glow-strength)))
+        )
+        drop-shadow(
+            0 0 7px rgb(var(--dropdown-blue) / calc(35% * var(--glow-strength)))
+        );
+    transition:
+        color 0.2s var(--motion-ease),
+        filter 0.2s var(--motion-ease);
+}
+.dropdown-summary:hover > .dropdown-indicator.has-steady-glow,
+.dropdown-summary:focus-visible > .dropdown-indicator.has-steady-glow,
+.dropdown-select
+    > select:not(:disabled):hover
+    + .dropdown-indicator.has-steady-glow,
+.dropdown-select
+    > select:not(:disabled):focus-visible
+    + .dropdown-indicator.has-steady-glow,
+.dropdown-toggle:hover > .dropdown-indicator.has-steady-glow,
+.dropdown-toggle:focus-visible > .dropdown-indicator.has-steady-glow {
+    color: rgb(var(--dropdown-flash));
+    filter: drop-shadow(
+            0 0 5px
+                rgb(var(--dropdown-blue) / calc(100% * var(--glow-strength)))
+        )
+        drop-shadow(
+            0 0 14px
+                rgb(var(--dropdown-blue) / calc(80% * var(--glow-strength)))
+        );
+}
+.dropdown-reveal {
+    display: flow-root;
+}
+.dropdown-content {
+    margin: 0 0 24px;
+    padding: 20px;
+    border: 1px solid
+        rgb(var(--dropdown-blue) / calc(55% * var(--glow-strength)));
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        rgb(var(--dropdown-blue) / calc(12% * var(--glow-strength))),
+        rgb(var(--dropdown-blue) / calc(3% * var(--glow-strength)))
+    );
+    box-shadow:
+        var(--glow-core),
+        0 0 28px rgb(var(--dropdown-blue) / calc(22% * var(--glow-strength))),
+        inset 0 0 24px
+            rgb(var(--dropdown-blue) / calc(6% * var(--glow-strength)));
+}
+@media (prefers-reduced-motion: no-preference) {
+    .dropdown-indicator.is-glinting {
+        animation: dropdown-arrow-glint 1.8s ease-out 0.15s;
+    }
+    .dropdown-indicator.is-glinting svg {
+        animation: dropdown-arrow-emphasis 1.8s ease-out 0.15s;
+    }
+    .dropdown-indicator.is-glinting::before {
+        animation: dropdown-arrow-halo 1.8s ease-out 0.15s;
+    }
+}
+@keyframes dropdown-arrow-glint {
+    0%,
+    100% {
+        filter: drop-shadow(
+            0 0 0 rgb(var(--dropdown-blue) / calc(0% * var(--glow-strength)))
+        );
+    }
+    18%,
+    42% {
+        color: rgb(var(--dropdown-flash));
+        filter: drop-shadow(
+                0 0 5px
+                    rgb(
+                        var(--dropdown-blue) / calc(100% * var(--glow-strength))
+                    )
+            )
+            drop-shadow(
+                0 0 16px
+                    rgb(
+                        var(--dropdown-blue) / calc(100% * var(--glow-strength))
+                    )
+            );
+    }
+    65% {
+        color: rgb(var(--dropdown-blue));
+        filter: drop-shadow(
+            0 0 8px rgb(var(--dropdown-blue) / calc(65% * var(--glow-strength)))
+        );
+    }
+}
+@keyframes dropdown-arrow-emphasis {
+    0%,
+    100% {
+        scale: 1;
+    }
+    18%,
+    42% {
+        scale: 1.3;
+    }
+    65% {
+        scale: 1.12;
+    }
+}
+@keyframes dropdown-arrow-halo {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.55);
+    }
+    24% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    55% {
+        opacity: 0.45;
+        transform: translate(-50%, -50%) scale(1.25);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
     }
 }

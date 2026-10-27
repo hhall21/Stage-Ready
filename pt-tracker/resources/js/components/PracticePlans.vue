@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DropdownSelect from '@/components/DropdownSelect.vue';
+import DropdownDetails from '@/components/DropdownDetails.vue';
 import { computed, onMounted, reactive, ref } from 'vue';
 import PlanVersions from '@/components/PlanVersions.vue';
 import { defaultDays, weekdays } from '@/lib/coaching';
@@ -171,7 +173,7 @@ onMounted(load);
                     </button>
                 </p>
                 <label
-                    >Day of week<select
+                    >Day of week<DropdownSelect
                         v-model.number="selectedWeekday"
                         aria-label="Day of week"
                     >
@@ -182,7 +184,7 @@ onMounted(load);
                         >
                             {{ name }}
                         </option>
-                    </select></label
+                    </DropdownSelect></label
                 >
                 <div v-if="day" class="practice-grid">
                     <article>
@@ -274,18 +276,18 @@ onMounted(load);
                 <button type="button" class="text-link" @click="copyMonday">
                     Copy Monday's prescription to every day
                 </button>
-                <details
+                <DropdownDetails
                     v-for="item in form.days"
                     :key="item.weekday"
                     class="practice-editor"
                     :open="item.weekday === 1"
                 >
-                    <summary>
+                    <template #summary>
                         {{ weekdays[item.weekday - 1] }} ·
                         {{ item.cardio_minutes }} min cardio ·
                         {{ item.posing_rounds }} posing rounds ·
                         {{ item.vacuum_sets }} vacuum sets
-                    </summary>
+                    </template>
                     <div class="form-grid">
                         <label
                             >Cardio type<input
@@ -352,7 +354,7 @@ onMounted(load);
                             maxlength="2000"
                         />
                     </label>
-                </details>
+                </DropdownDetails>
                 <label class="notes-label"
                     >Plan notes<textarea
                         v-model="form.notes"

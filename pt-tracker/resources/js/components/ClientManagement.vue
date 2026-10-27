@@ -467,7 +467,7 @@ onMounted(() => {
 <style scoped>
 .client-refresh-status {
     margin: 0;
-    font-size: 13px;
+    font-size: 15px;
 }
 .client-refresh-status:not(:empty) {
     margin-bottom: 20px;
