@@ -62,6 +62,9 @@ foreach ($samples as $table => $rows) {
             }
             if ($table === 'users' && $name === 'email_verified_at') {
                 $row[$name] = '__NOW__';
+            } elseif ($table === 'users' && $name === 'billing_exempt') {
+                // Fictional demo accounts deliberately bypass coach billing.
+                $row[$name] = true;
             } elseif ($name === 'id') {
                 $row[$name] = $index + 1;
             } else {

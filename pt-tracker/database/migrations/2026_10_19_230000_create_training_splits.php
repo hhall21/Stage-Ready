@@ -38,9 +38,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('workouts', function (Blueprint $table) {
+            $table->dropForeign(['training_split_id']);
             $table->dropUnique(['training_split_id', 'workout_date']);
-            $table->dropConstrainedForeignId('training_split_id');
-            $table->dropColumn('split_day_number');
+            $table->dropColumn(['training_split_id', 'split_day_number']);
         });
         Schema::dropIfExists('split_day_selections');
         Schema::dropIfExists('training_splits');
