@@ -38,6 +38,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('check_in_posing_reviews');
+        // MySQL may have replaced its automatic foreign-key index with this unique index.
+        if (! Schema::hasIndex('progress_photos', ['check_in_id'])) {
+            Schema::table('progress_photos', function (Blueprint $table): void {
+                $table->index('check_in_id');
+            });
+        }
         Schema::table('progress_photos', function (Blueprint $table): void {
             $table->dropUnique(['check_in_id', 'pose_key']);
             $table->dropColumn(['pose_key', 'mime_type']);
