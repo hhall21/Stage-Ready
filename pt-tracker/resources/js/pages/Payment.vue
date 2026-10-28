@@ -1,18 +1,53 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
 import DropdownDetails from '@/components/DropdownDetails.vue';
+import PublicPolicyLinks from '@/components/PublicPolicyLinks.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
-import { motionScrollBehavior } from '@/lib/motion';
+import { useCoachPricing } from '@/composables/useCoachPricing';
+import { api, message } from '@/lib/tracker-api';
+import type { CoachPlan } from '@/types/billing';
 
 const page = usePage();
 const account = computed(() => page.props.auth.user);
-const backHref = computed(() => (account.value ? '/dashboard' : '/'));
-const checkoutPreview = ref(false);
-const previewPanel = ref<HTMLElement | null>(null);
-const checkoutButton = ref<HTMLButtonElement | null>(null);
+const navigation = computed(() => page.props.auth.navigation);
+const backHref = computed(() => navigation.value.workspace_url ?? '/');
+const backLabel = computed(() =>
+    navigation.value.workspace_url
+        ? account.value?.is_admin
+            ? 'Back to admin portal'
+            : 'Back to workspace'
+        : 'Back to Stage-Ready',
+);
+type Billing = CoachPlan & {
+    has_access: boolean;
+    exempt: boolean;
+    payments_configured: boolean;
+    subscription_management_configured: boolean;
+    status: string;
+    last_paid_at: string | null;
+    paid_through: string | null;
+    retention_expires_at: string | null;
+    data_purged_at: string | null;
+    cancel_at_period_end: boolean;
+    can_manage_subscription: boolean;
+    has_subscription: boolean;
+};
+const billing = ref<Billing | null>(null);
+const { plans, coachPlan } = useCoachPricing();
+const plan = computed(() => billing.value ?? coachPlan.value);
+const busy = ref(false);
+const error = ref('');
+const notice = ref('');
+const isCoach = computed(() => account.value?.role === 'coach');
+function timestamp(value: string) {
+    return new Intl.DateTimeFormat('en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(new Date(value));
+}
 
-const features = [
+const features = computed(() => [
     {
         title: 'Training with a plan',
         description:
@@ -20,34 +55,86 @@ const features = [
     },
     {
         title: 'Nutrition and daily practice',
-        description: 'Meal plans, cardio, posing and vacuum practice.',
+        description:
+            plan.value?.discipline === 'powerlifting'
+                ? 'Meal plans and daily cardio targets.'
+                : 'Meal plans and cardio, with posing and vacuum practice for bodybuilding.',
     },
     {
         title: 'Check-ins that keep the detail',
-        description: 'Daily readings, optional photos and bodyweight trends.',
+        description:
+            plan.value?.discipline === 'powerlifting'
+                ? 'Daily readings and bodyweight trends.'
+                : 'Daily readings and bodyweight trends, plus optional bodybuilding photos.',
     },
     {
         title: 'Feedback beside the work',
         description:
             'Coach reviews and adjustments alongside recorded progress.',
     },
-];
+]);
 
-async function previewCheckout() {
-    checkoutPreview.value = true;
-    await nextTick();
-    previewPanel.value?.focus({ preventScroll: true });
-    previewPanel.value?.scrollIntoView({
-        behavior: motionScrollBehavior(),
-        block: 'nearest',
-    });
+async function refreshBilling() {
+    billing.value = (await api<{ data: Billing }>('/api/billing')).data;
 }
-
-async function returnToSummary() {
-    checkoutPreview.value = false;
-    await nextTick();
-    checkoutButton.value?.focus();
+async function checkout() {
+    busy.value = true;
+    error.value = '';
+    try {
+        const result = await api<{ url: string }>(
+            '/api/billing/checkout',
+            'POST',
+        );
+        window.location.assign(result.url);
+    } catch (cause) {
+        error.value = message(cause);
+        busy.value = false;
+    }
 }
+async function manageBilling() {
+    busy.value = true;
+    error.value = '';
+    try {
+        const result = await api<{ url: string }>(
+            '/api/billing/portal',
+            'POST',
+        );
+        window.location.assign(result.url);
+    } catch (cause) {
+        error.value = message(cause);
+        busy.value = false;
+    }
+}
+onMounted(async () => {
+    if (!isCoach.value) return;
+    busy.value = true;
+    try {
+        await refreshBilling();
+        const session = new URLSearchParams(window.location.search).get(
+            'session_id',
+        );
+        if (session) {
+            billing.value = (
+                await api<{ data: Billing }>('/api/billing/confirm', 'POST', {
+                    session_id: session,
+                })
+            ).data;
+            notice.value = billing.value.has_access
+                ? 'Payment confirmed. Your coach workspace is ready.'
+                : 'Payment is still being confirmed. Refresh this page to check again.';
+        }
+        if (
+            billing.value?.has_access !==
+            Boolean(navigation.value.workspace_url)
+        ) {
+            router.reload({ only: ['auth'] });
+        }
+    } catch (cause) {
+        error.value = message(cause);
+    } finally {
+        busy.value = false;
+    }
+});
 </script>
 
 <template>
@@ -55,7 +142,7 @@ async function returnToSummary() {
         <meta name="robots" content="noindex, nofollow" />
         <meta
             name="description"
-            content="Preview the Stage-Ready payment summary and Stripe Checkout flow."
+            :content="`Subscribe to Stage-Ready: powerlifting ${plans.powerlifting.price_label}/month or bodybuilding ${plans.bodybuilding.price_label}/month through Stripe Checkout.`"
         />
     </Head>
     <SiteHeader skip-target="#main-content" />
@@ -63,9 +150,9 @@ async function returnToSummary() {
         <div class="payment-topline">
             <Link :href="backHref" class="text-link payment-back">
                 <span aria-hidden="true">&larr;</span>
-                {{ account ? 'Back to workspace' : 'Back to Stage-Ready' }}
+                {{ backLabel }}
             </Link>
-            <span class="payment-preview-label">Design preview</span>
+            <span class="payment-preview-label">COACH MEMBERSHIP</span>
         </div>
 
         <header class="payment-heading">
@@ -77,12 +164,14 @@ async function returnToSummary() {
             </p>
         </header>
 
+        <p v-if="error" class="notice" role="alert">{{ error }}</p>
+        <p v-if="notice" class="notice" role="status">{{ notice }}</p>
         <ol class="payment-steps" aria-label="Payment steps">
-            <li :aria-current="!checkoutPreview ? 'step' : undefined">
+            <li aria-current="step">
                 <span class="payment-step-number" aria-hidden="true">1</span>
                 <span>Review</span>
             </li>
-            <li :aria-current="checkoutPreview ? 'step' : undefined">
+            <li>
                 <span class="payment-step-number" aria-hidden="true">2</span>
                 <span>Stripe Checkout</span>
             </li>
@@ -151,6 +240,7 @@ async function returnToSummary() {
                     aria-labelledby="questions-title"
                 >
                     <h2 id="questions-title">Before you pay</h2>
+                    <PublicPolicyLinks />
                     <DropdownDetails>
                         <template #summary
                             >Where do I enter my payment details?</template
@@ -163,12 +253,16 @@ async function returnToSummary() {
                     </DropdownDetails>
                     <DropdownDetails>
                         <template #summary
-                            >Will this preview charge me?</template
+                            >How does monthly access work?</template
                         >
                         <p>
-                            No. This page is a design preview. Prices and
-                            billing periods are not set, and checkout does not
-                            take a payment.
+                            Powerlifting membership costs
+                            {{ plans.powerlifting.price_label }} GBP per month.
+                            Bodybuilding membership costs
+                            {{ plans.bodybuilding.price_label }} GBP per month.
+                            Both renew automatically. Cancel in your billing
+                            settings. Access continues until the paid period
+                            ends.
                         </p>
                     </DropdownDetails>
                 </section>
@@ -182,23 +276,36 @@ async function returnToSummary() {
                 <dl class="payment-line-items">
                     <div>
                         <dt>Plan</dt>
-                        <dd>Stage-Ready</dd>
+                        <dd>Stage-Ready{{ plan ? ` ${plan.label}` : '' }}</dd>
                     </div>
                     <div>
                         <dt>Billing period</dt>
-                        <dd>To be confirmed</dd>
+                        <dd>Every month</dd>
                     </div>
-                    <div>
+                    <div v-if="plan">
                         <dt>Price</dt>
-                        <dd>To be confirmed</dd>
+                        <dd>{{ plan.price_label }} GBP</dd>
                     </div>
+                    <template v-else>
+                        <div v-for="option in plans" :key="option.discipline">
+                            <dt>{{ option.label }}</dt>
+                            <dd>{{ option.price_label }} GBP / month</dd>
+                        </div>
+                    </template>
                 </dl>
                 <div class="payment-total">
-                    <p>Amount due</p>
-                    <strong>To be confirmed</strong>
+                    <p>{{ plan ? 'Monthly price' : 'Coach membership' }}</p>
+                    <strong
+                        >{{
+                            plan
+                                ? plan.price_label
+                                : `From ${plans.powerlifting.price_label}`
+                        }}
+                        / month</strong
+                    >
                     <p class="payment-total-note">
-                        Your final amount and billing schedule will be shown
-                        before you confirm payment.
+                        Renews automatically each month. Review the amount
+                        before confirming payment on Stripe.
                     </p>
                 </div>
 
@@ -231,43 +338,118 @@ async function returnToSummary() {
                     >
                 </div>
 
+                <Link
+                    v-if="!account"
+                    href="/register"
+                    class="button payment-continue"
+                    >Create coach account</Link
+                >
+                <Link
+                    v-else-if="!isCoach"
+                    href="/dashboard"
+                    class="button payment-continue"
+                    >Open your client workspace</Link
+                >
+                <Link
+                    v-else-if="!account.email_verified_at && !billing?.exempt"
+                    href="/email/verify"
+                    class="button payment-continue"
+                    >Verify your email to continue</Link
+                >
                 <button
-                    v-if="!checkoutPreview"
-                    ref="checkoutButton"
+                    v-else-if="
+                        billing && !billing.exempt && !billing.has_access
+                    "
                     type="button"
                     class="button payment-continue"
-                    @click="previewCheckout"
+                    :disabled="busy || !billing.payments_configured"
+                    @click="checkout"
                 >
-                    Preview Stripe Checkout
-                    <span aria-hidden="true">&rarr;</span>
+                    {{
+                        busy
+                            ? 'Please wait…'
+                            : billing.can_manage_subscription
+                              ? 'Restore paid access'
+                              : `Subscribe for ${billing.price_label} / month`
+                    }}
                 </button>
-                <div
-                    v-else
-                    ref="previewPanel"
-                    class="payment-checkout-preview"
-                    role="region"
-                    aria-labelledby="checkout-preview-title"
-                    tabindex="-1"
+                <Link
+                    v-if="billing?.has_access"
+                    :href="navigation.workspace_url ?? '/dashboard'"
+                    class="button payment-continue"
+                    >{{
+                        account?.is_admin
+                            ? 'Open admin portal'
+                            : 'Open coach workspace'
+                    }}</Link
                 >
-                    <p class="eyebrow">CHECKOUT PREVIEW</p>
-                    <h3 id="checkout-preview-title">
-                        The next step is Stripe.
-                    </h3>
-                    <p>
-                        Live checkout will show your confirmed price, billing
-                        schedule and available payment methods. No payment has
-                        been taken in this preview.
+                <button
+                    v-if="billing?.can_manage_subscription"
+                    type="button"
+                    class="text-link"
+                    :disabled="
+                        busy || !billing.subscription_management_configured
+                    "
+                    @click="manageBilling"
+                >
+                    Manage payments
+                </button>
+                <Link
+                    v-if="billing?.has_subscription"
+                    href="/subscription/cancel"
+                    class="text-link payment-cancel-link"
+                    >Cancel subscription</Link
+                >
+                <p
+                    v-if="
+                        billing &&
+                        !billing.payments_configured &&
+                        !billing.exempt
+                    "
+                    class="notice"
+                    role="status"
+                >
+                    Payments are not available yet. Your account is saved;
+                    please return when checkout is configured.
+                </p>
+                <div v-if="billing" class="payment-checkout-preview">
+                    <p v-if="billing.exempt">
+                        Your administrator or development account already has
+                        access.
                     </p>
-                    <button
-                        type="button"
-                        class="text-link"
-                        @click="returnToSummary"
+                    <p v-if="billing.last_paid_at">
+                        Last payment: {{ timestamp(billing.last_paid_at) }}
+                    </p>
+                    <p v-if="billing.paid_through">
+                        Paid access ends: {{ timestamp(billing.paid_through) }}
+                    </p>
+                    <p v-if="billing.cancel_at_period_end">
+                        Cancellation is scheduled for the end of your paid
+                        period.
+                    </p>
+                    <p
+                        v-if="
+                            !billing.has_access &&
+                            billing.retention_expires_at &&
+                            !billing.data_purged_at
+                        "
                     >
-                        Back to payment summary
-                    </button>
+                        Coaching data is retained until
+                        {{ timestamp(billing.retention_expires_at) }}. Restore
+                        payment before then to keep it.
+                    </p>
+                    <p v-if="billing.data_purged_at">
+                        The retention period ended and eligible coaching data
+                        was removed. A new payment starts access again; deleted
+                        records cannot be restored.
+                    </p>
                 </div>
                 <p class="payment-preview-note">
-                    Preview only. No payment will be taken.
+                    When paid access ends, coach and client features pause.
+                    Coaching data is kept for seven extra days. If still unpaid,
+                    eligible records are deleted after client handovers are
+                    prepared. Clients must save their handover when opening it;
+                    it is then removed from their account.
                 </p>
             </aside>
         </div>
@@ -279,6 +461,12 @@ async function returnToSummary() {
 </template>
 
 <style scoped>
+.payment-cancel-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 12px;
+}
 .payment-page {
     max-width: 1240px;
     margin: 0 auto;

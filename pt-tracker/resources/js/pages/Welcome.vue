@@ -5,10 +5,13 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import DumbbellVisual from '@/components/DumbbellVisual.vue';
 import FeatureShowcase from '@/components/FeatureShowcase.vue';
 import HeroAthletes from '@/components/HeroAthletes.vue';
+import PublicPolicyLinks from '@/components/PublicPolicyLinks.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
+import { useCoachPricing } from '@/composables/useCoachPricing';
 import { vReveal } from '@/lib/motion';
 
 const home = ref<HTMLElement | null>(null);
+const { plans } = useCoachPricing();
 const scrolled = ref(false);
 const activeStep = ref(-1);
 const heroPinned = ref(false);
@@ -214,48 +217,52 @@ onMounted(() => {
 onUnmounted(() => cleanupMotion?.());
 
 const description =
-    'Training plans, meal plans and client check-ins for bodybuilding and powerlifting coaches. Review what you prescribed alongside what your clients recorded.';
+    'All your client data in one place. Training, nutrition, check-ins, progress and coach feedback together for bodybuilding and powerlifting coaches.';
 const features = [
     {
         category: 'Training',
-        title: 'Training splits and session logs',
-        text: 'Build repeating splits with training and rest days. Set the exercises, working sets, reps, load and RIR. Clients log against your plan; changes to upcoming sessions preserve their recorded history.',
+        title: 'Their training plan and session logs, together',
+        text: 'Build training splits and review completed sessions in the same client workspace. Prescribed exercises, working sets, reps, load and RIR stay connected to the performance your client logs.',
     },
     {
         category: 'Nutrition',
-        title: 'Meal plans for training and rest days',
-        text: 'Prescribe separate meals and times for each day type, with future-dated changes when needed. Review hunger, appetite and digestion in the client’s end-of-day check-in.',
+        title: 'Meal plans connected to daily feedback',
+        text: 'Keep training-day and rest-day meals with the client’s nutrition check-ins. Review hunger, appetite and digestion alongside the food and meal times you prescribed.',
     },
     {
         category: 'Check-ins',
-        title: 'Daily records with room for context',
-        text: 'Review bodyweight, sleep, energy, stress, steps and notes. Enable weekly blood pressure and resting heart rate readings for clients who need them. Missing readings stay missing.',
+        title: 'Check-ins with the client’s plan close at hand',
+        text: 'Bodyweight, sleep, energy, stress, steps and notes belong to the same client record as their plans. Include optional weekly health readings and keep the details you need for your next review together.',
     },
     {
         category: 'Progress',
-        title: 'Trends you can trace back to the log',
-        text: 'Follow seven-day bodyweight averages and exercise progress. Compare weight and reps with calories and bodyweight, with reading counts alongside the trends.',
+        title: 'Progress with the records behind it',
+        text: 'Follow exercise progress and seven-day bodyweight averages with training and calorie records in the same workspace. Make your next adjustment with the client’s progress and prescribed plan together.',
     },
 ];
 const steps = [
     {
         title: 'Invite a client',
-        text: 'Send an invitation from your dashboard. Coaching starts when they accept.',
+        text: 'Bring your client into Stage-Ready from your dashboard. Their plans, check-ins and feedback share one workspace from the start.',
     },
     {
         title: 'Prescribe their plan',
-        text: 'Set their training split, meals, cardio and practice in their workspace.',
+        text: 'Set their training split, meals, cardio and practice in the same place you’ll review their progress.',
     },
     {
         title: 'Review their records',
-        text: 'Clients log sessions and check-ins against the work you prescribed.',
+        text: 'Open their session logs and check-ins from the same workspace as their training and nutrition plans.',
     },
     {
         title: 'Publish your feedback',
-        text: 'Write the review and adjust upcoming plans while keeping logged history.',
+        text: 'Keep your review with the client’s check-in, then adjust upcoming plans with their recorded history close at hand.',
     },
 ];
 const questions = [
+    {
+        title: 'What can I manage in one client workspace?',
+        text: 'Training splits, session logs, meal plans, daily check-ins, bodyweight trends, posing reviews and coach feedback. Competition dates, cardio and posing prescriptions are there too, so the records you use to coach each client stay together.',
+    },
     {
         title: 'Do powerlifting clients need posing photos?',
         text: 'No. Each coach has a fixed Bodybuilding or Powerlifting discipline. Posing photos and posing reviews are available to bodybuilding coaches and clients with an active bodybuilding coach.',
@@ -276,11 +283,11 @@ const questions = [
 </script>
 
 <template>
-    <Head title="Bodybuilding and powerlifting coaching software">
+    <Head title="All your client data in one place">
         <meta name="description" :content="description" />
         <meta
             property="og:title"
-            content="Stage-Ready | Training plans and client check-ins"
+            content="Stage-Ready | All your client data in one place"
         />
         <meta property="og:description" :content="description" />
         <meta property="og:type" content="website" />
@@ -303,15 +310,15 @@ const questions = [
                             For bodybuilding and powerlifting coaches
                         </p>
                         <h1 id="home-title" v-reveal>
-                            See how your clients are following the plan.
+                            All your client data in one place.
                         </h1>
                         <p v-reveal class="home-intro">
-                            Prescribe training and meals, review check-ins and
-                            adjust upcoming sessions. Stage-Ready keeps your
-                            clients’ logs beside the work you set.
+                            Everything you need to coach each client, together.
+                            Plan their training and meals, review check-ins,
+                            track progress and give feedback from one workspace.
                         </p>
                         <a v-reveal class="button" href="#features"
-                            >View coaching tools</a
+                            >See everything together</a
                         >
                     </div>
                     <div
@@ -343,38 +350,39 @@ const questions = [
                             Bodybuilding and competition prep
                         </p>
                         <h2 id="prep-title">
-                            The work between training sessions.
+                            Your client’s whole prep, together.
                         </h2>
                         <p class="section-intro">
-                            Keep posing practice, check-in feedback and
-                            competition dates with the rest of your client’s
-                            plan.
+                            Training, nutrition, posing practice, photos and
+                            competition dates share one client workspace. Review
+                            the details, leave feedback and plan their next step
+                            with their records close at hand.
                         </p>
                         <dl class="prep-details">
                             <div v-reveal>
                                 <dt>Cardio and posing prescriptions</dt>
                                 <dd>
-                                    Set cardio, mandatory posing rounds and
-                                    vacuum sets and holds. Schedule increases in
-                                    advance.
+                                    Keep daily cardio, posing rounds and vacuum
+                                    practice with their training and meals. Plan
+                                    increases from the same client workspace.
                                 </dd>
                             </div>
                             <div v-reveal>
                                 <dt>Private posing check-ins</dt>
                                 <dd>
-                                    Review up to thirteen optional pose photos.
-                                    Give a posing rating and feedback, with
-                                    separate flatness and fullness ratings
-                                    during prep.
+                                    Review optional pose photos and keep your
+                                    rating and feedback with the check-in. Prep
+                                    reviews can include separate flatness and
+                                    fullness ratings.
                                 </dd>
                             </div>
                             <div v-reveal>
                                 <dt>Reviews and competition dates</dt>
                                 <dd>
-                                    Write weekly reviews in prep and fortnightly
-                                    reviews off-season. Track shows by client,
-                                    then record placings and notes after the
-                                    show.
+                                    Keep show dates, placings and review notes
+                                    in the client’s workspace. Publish weekly
+                                    prep reviews or fortnightly off-season
+                                    reviews alongside their plans and check-ins.
                                 </dd>
                             </div>
                         </dl>
@@ -389,7 +397,9 @@ const questions = [
             >
                 <div v-reveal class="home-section-heading">
                     <p class="home-label">How it works</p>
-                    <h2 id="workflow-title">From invitation to review.</h2>
+                    <h2 id="workflow-title">
+                        One workspace, from plan to review.
+                    </h2>
                 </div>
                 <ol class="coaching-steps">
                     <li
@@ -413,7 +423,9 @@ const questions = [
                 aria-labelledby="questions-title"
             >
                 <div v-reveal class="home-section-heading">
-                    <h2 id="questions-title">Before you invite a client</h2>
+                    <h2 id="questions-title">
+                        Your coaching workspace, explained.
+                    </h2>
                 </div>
                 <div class="question-list">
                     <DropdownDetails
@@ -432,9 +444,15 @@ const questions = [
         <footer class="site-footer home-footer">
             <div>
                 <span class="footer-name">Stage-Ready</span>
-                <p>Coaching software for bodybuilding and powerlifting.</p>
+                <p>
+                    Your client plans, progress and feedback. All in one place.
+                </p>
+                <PublicPolicyLinks />
             </div>
-            <Link href="/login">Member sign in</Link>
+            <Link href="/register"
+                >Powerlifting {{ plans.powerlifting.price_label }}/month ·
+                Bodybuilding {{ plans.bodybuilding.price_label }}/month</Link
+            >
         </footer>
     </div>
 </template>

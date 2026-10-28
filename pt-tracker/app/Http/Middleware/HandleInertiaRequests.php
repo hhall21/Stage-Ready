@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AccountNavigation;
+use App\Support\CoachPricing;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,8 +40,15 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'coachPlans' => CoachPricing::plans(),
+            'business' => [
+                'support_email' => config('stage-ready.support_email'),
+                'privacy_url' => config('stage-ready.privacy_url'),
+                'terms_url' => config('stage-ready.terms_url'),
+            ],
             'auth' => [
                 'user' => $request->user(),
+                'navigation' => AccountNavigation::forUser($request->user()),
             ],
         ];
     }

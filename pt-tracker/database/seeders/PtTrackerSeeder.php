@@ -54,6 +54,10 @@ class PtTrackerSeeder extends Seeder
                     if ($table === 'users') {
                         $row['password'] = $password;
                         $row['email_verified_at'] = $timestamp;
+                        $row['billing_exempt'] = true;
+                    }
+                    if ($table === 'progress_photos') {
+                        $row['expires_at'] = now()->addDays(7)->toDateTimeString();
                     }
                 }
                 unset($row);

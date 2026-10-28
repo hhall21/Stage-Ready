@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SaveDailyCheckInRequest;
+use App\Models\DailyCheckIn;
 use App\Models\ProgressPhoto;
 use App\Models\User;
+use App\Services\TemporaryPosePhotos;
 use App\Support\CheckInPhotoCleanup;
 use App\Support\DateBounds;
 use Illuminate\Http\JsonResponse;
@@ -15,12 +17,15 @@ use Illuminate\Validation\ValidationException;
 
 class DailyCheckInController extends Controller
 {
+    public function __construct(private TemporaryPosePhotos $temporary) {}
+
     public function index(User $client): JsonResponse
     {
         Gate::authorize('viewTracker', $client);
 
         return response()->json([
-            ...$client->dailyCheckIns()->withCount('posePhotos')->orderByDesc('check_in_date')->paginate(30)->toArray(),
+            ...$client->dailyCheckIns()->with('retainedPosePhotos')->orderByDesc('check_in_date')->paginate(30)
+                ->through(fn (DailyCheckIn $record) => $this->withPhotoCount($record))->toArray(),
             'posing_enabled' => Gate::allows('useCheckInPhotos', $client),
         ]);
     }
@@ -29,7 +34,7 @@ class DailyCheckInController extends Controller
     {
         Gate::authorize('viewTracker', $client);
 
-        return response()->json(['data' => $client->dailyCheckIns()->withCount('posePhotos')->findOrFail($checkIn)]);
+        return response()->json(['data' => $this->withPhotoCount($client->dailyCheckIns()->with('retainedPosePhotos')->findOrFail($checkIn))]);
     }
 
     public function store(SaveDailyCheckInRequest $request, User $client): JsonResponse
@@ -47,7 +52,7 @@ class DailyCheckInController extends Controller
             return $client->dailyCheckIns()->create($data);
         });
 
-        return response()->json(['data' => $record->refresh()->loadCount('posePhotos')], 201);
+        return response()->json(['data' => $this->withPhotoCount($record->refresh()->load('retainedPosePhotos'))], 201);
     }
 
     public function update(SaveDailyCheckInRequest $request, User $client, int $checkIn): JsonResponse
@@ -75,7 +80,7 @@ class DailyCheckInController extends Controller
             return $record;
         });
 
-        return response()->json(['data' => $record->loadCount('posePhotos')]);
+        return response()->json(['data' => $this->withPhotoCount($record->load('retainedPosePhotos'))]);
     }
 
     public function destroy(User $client, int $checkIn): JsonResponse
@@ -88,8 +93,19 @@ class DailyCheckInController extends Controller
             $paths = array_values($record->posePhotos()->get()->map(fn (ProgressPhoto $photo): string => $photo->file_path)->all());
             $record->delete();
             CheckInPhotoCleanup::afterCommit($paths);
+            $this->temporary->afterCheckInDeletion($client->id, [$checkIn]);
         });
 
         return response()->json(null, 204);
+    }
+
+    private function withPhotoCount(DailyCheckIn $record): DailyCheckIn
+    {
+        $retained = $record->retainedPosePhotos->pluck('pose_key')->all();
+        $temporary = array_filter($this->temporary->photos($record), fn (array $photo) => ! in_array($photo['pose_key'], $retained, true));
+        $record->setAttribute('pose_photos_count', $record->retainedPosePhotos->count() + count($temporary));
+        $record->unsetRelation('retainedPosePhotos');
+
+        return $record;
     }
 }

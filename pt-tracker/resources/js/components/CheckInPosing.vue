@@ -82,6 +82,9 @@ const status = computed(() => {
 const photoCount = computed(
     () => data.value?.photos.length ?? props.checkIn.pose_photos_count ?? 0,
 );
+const retainedCount = computed(
+    () => data.value?.photos.filter((photo) => photo.retained).length ?? 0,
+);
 const reviewAllowed = computed(
     () =>
         !!data.value?.submitted_at &&
@@ -97,6 +100,23 @@ function imageUrl(photo: CheckInPosing['photos'][number]) {
         (photo.url.includes('?') ? '&' : '?') +
         'v=' +
         data.value?.photo_version
+    );
+}
+async function toggleRetention(key: string) {
+    const photo = photoFor(key);
+    if (!photo || !data.value) return;
+    await mutate(
+        'retain:' + key,
+        base.value + '/photos/' + key + '/retention',
+        'PUT',
+        {
+            photo_version: data.value.photo_version,
+            retained: !photo.retained,
+        },
+        photo.retained
+            ? 'Saved copy removed. The original review photo keeps its upload deadline.'
+            : 'Photo kept until seven days after its first coach view.',
+        true,
     );
 }
 function resetReview() {
@@ -233,6 +253,7 @@ async function mutate(
     method: string,
     body: unknown,
     successMessage: string,
+    preserveReview = false,
 ): Promise<boolean> {
     if (busy.value || loading.value) return false;
     busy.value = action;
@@ -242,15 +263,16 @@ async function mutate(
     try {
         const result = await api<{ data: CheckInPosing }>(url, method, body);
         if (!alive || current !== request) return false;
-        apply(result.data, false);
+        apply(result.data, preserveReview);
         success.value = successMessage;
         return true;
     } catch (cause) {
         if (!alive || current !== request) return false;
         error.value = message(cause);
         if (cause instanceof ApiError && cause.status === 409) {
-            error.value =
-                'The photos changed in another session. The latest photos have been reloaded. Your selected files and unsaved feedback are still here.';
+            if (cause.message.startsWith('These photos changed.'))
+                error.value =
+                    'The photos changed in another session. The latest photos have been reloaded. Your selected files and unsaved feedback are still here.';
             await load(true, false);
         }
         return false;
@@ -410,6 +432,24 @@ onMounted(() => {
                             left blank. Replacing or removing a photo requires a
                             fresh submission and review.
                         </p>
+                        <p class="form-help">
+                            Review photos expire seven days after upload. Your
+                            coach can keep up to four photos from any pose until
+                            seven days after first viewing them. Measurements
+                            and coach feedback remain saved.
+                        </p>
+                        <p v-if="!isClient" class="form-help">
+                            Use Download photo to save a copy to your phone or
+                            computer before it expires. Your browser may offer
+                            Save to Files or Save Image.
+                        </p>
+                        <p v-if="!isClient" class="form-help">
+                            {{ retainedCount }} of
+                            {{ data.retained_photo_limit }} photos kept on
+                            Stage-Ready. Remove a saved copy to choose another.
+                            Viewing or keeping a photo again does not extend its
+                            deadline.
+                        </p>
                     </div>
                     <button
                         type="button"
@@ -447,7 +487,56 @@ onMounted(() => {
                                     decoding="async"
                                 />
                             </a>
-                            <span class="form-help">Uploaded</span>
+                            <span class="form-help">{{
+                                photoFor(pose.key)?.retained
+                                    ? 'Kept on Stage-Ready'
+                                    : 'Temporary review photo'
+                            }}</span>
+                            <span
+                                v-if="photoFor(pose.key)?.expires_at"
+                                class="form-help"
+                            >
+                                Available until
+                                {{
+                                    new Date(
+                                        photoFor(pose.key)!.expires_at!,
+                                    ).toLocaleString('en-GB')
+                                }}
+                            </span>
+                            <template v-if="!isClient">
+                                <button
+                                    type="button"
+                                    class="text-link"
+                                    :disabled="
+                                        !!busy ||
+                                        loading ||
+                                        (!photoFor(pose.key)?.retained &&
+                                            retainedCount >=
+                                                data.retained_photo_limit)
+                                    "
+                                    @click="toggleRetention(pose.key)"
+                                >
+                                    {{
+                                        busy === 'retain:' + pose.key
+                                            ? 'Saving…'
+                                            : photoFor(pose.key)?.retained
+                                              ? 'Remove saved copy'
+                                              : 'Keep on Stage-Ready'
+                                    }}
+                                </button>
+                                <a
+                                    :href="
+                                        imageUrl(photoFor(pose.key)!) +
+                                        '&download=1'
+                                    "
+                                    class="text-link"
+                                    download
+                                    :aria-label="
+                                        'Download ' + pose.label + ' photo'
+                                    "
+                                    >Download photo</a
+                                >
+                            </template>
                         </template>
                         <p v-else class="pose-placeholder">Not uploaded</p>
                         <template v-if="isClient">

@@ -3,9 +3,11 @@ export type TrackerUser = {
     name: string;
     email: string;
     role: 'coach' | 'client';
+    is_admin: boolean;
     is_bodybuilding_coach: boolean;
     has_active_coaching?: boolean;
     has_coaching_handovers?: boolean;
+    has_suspended_coaching?: boolean;
 };
 export type Page<T> = {
     data: T[];
@@ -53,7 +55,16 @@ export type CheckInPosing = {
     submitted_at: string | null;
     standard_poses: { key: string; label: string; photo_type: string }[];
     additional_poses: { key: string; label: string; photo_type: string }[];
-    photos: { id: number; pose_key: string; url: string; updated_at: string }[];
+    retained_photo_limit: number;
+    photos: {
+        id: number | string;
+        pose_key: string;
+        url: string;
+        updated_at: string;
+        expires_at: string | null;
+        coach_viewed_at: string | null;
+        retained: boolean;
+    }[];
     reviews: PosingReview[];
 };
 export type Exercise = { id: number; exercise_name: string };
@@ -139,9 +150,20 @@ export class ApiError extends Error {
         public status: number,
         message: string,
         public errors: Record<string, string[]> = {},
+        public retryAfter: number | null = null,
     ) {
         super(message);
     }
+}
+function retryAfter(response: Response): number | null {
+    const value = response.headers.get('Retry-After');
+    const seconds = value && /^\d+$/.test(value) ? Number(value) : 0;
+    return Number.isSafeInteger(seconds) && seconds > 0 ? seconds : null;
+}
+function rateLimitMessage(seconds: number | null): string {
+    return seconds
+        ? `Too many requests. Please try again in ${seconds} seconds.`
+        : 'Too many requests. Please wait a moment and try again.';
 }
 let csrf = '';
 export async function api<T>(
@@ -157,7 +179,11 @@ export async function api<T>(
         if (!response.ok)
             throw new ApiError(
                 response.status,
-                'Unable to start a secure session. Please refresh.',
+                response.status === 429
+                    ? rateLimitMessage(retryAfter(response))
+                    : 'Unable to start a secure session. Please refresh.',
+                {},
+                retryAfter(response),
             );
         const data = (await response.json()) as { csrf_token: string };
         csrf = data.csrf_token;
@@ -185,17 +211,21 @@ export async function api<T>(
         if ([401, 403, 419].includes(response.status)) csrf = '';
         throw new ApiError(
             response.status,
-            data.message ??
-                (response.status === 413
-                    ? 'This upload exceeds the server limit. Choose a smaller photo and try again.'
-                    : response.status === 419
-                      ? 'Your secure session expired. Please refresh and try again.'
-                      : 'Something went wrong. Please try again.'),
+            response.status === 429
+                ? rateLimitMessage(retryAfter(response))
+                : (data.message ??
+                      (response.status === 413
+                          ? 'This upload exceeds the server limit. Choose a smaller photo and try again.'
+                          : response.status === 419
+                            ? 'Your secure session expired. Please refresh and try again.'
+                            : 'Something went wrong. Please try again.')),
             data.errors,
+            retryAfter(response),
         );
     }
     if (
         url === '/api/login' ||
+        url === '/api/register' ||
         url === '/api/logout' ||
         url === '/api/reset-password' ||
         /^\/api\/invitations\/[A-Za-z0-9]{64}\/accept$/.test(url)

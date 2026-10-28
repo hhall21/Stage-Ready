@@ -20,7 +20,7 @@ class EndOfDayNutritionTest extends TestCase
 
     public function test_client_completes_nutrition_without_changing_submitted_poses_or_other_daily_data(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $record = $client->dailyCheckIns()->create(['check_in_date' => '2026-10-18', 'bodyweight' => 80, 'notes' => 'Morning check-in.']);
         $record->forceFill(['submitted_at' => now()->subHours(12), 'photo_version' => 7])->save();
         $submittedAt = $record->submitted_at->toISOString();
@@ -39,7 +39,7 @@ class EndOfDayNutritionTest extends TestCase
 
     public function test_nutrition_can_create_the_day_then_update_it_without_duplicates_and_clear_completion(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $url = '/api/clients/'.$client->id.'/end-of-day-nutrition';
         $this->actingAs($client)->getJson($url.'?date=2026-10-17')->assertJsonPath('data', null);
         $this->putJson($url, ['check_in_date' => '2026-10-17', 'hunger_level' => 3])->assertOk()->assertJsonPath('data.hunger_level', 3);
@@ -69,7 +69,7 @@ class EndOfDayNutritionTest extends TestCase
 
     public function test_dates_scales_and_server_completion_fields_are_validated(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $url = '/api/clients/'.$client->id.'/end-of-day-nutrition';
         $this->actingAs($client)->putJson($url, ['check_in_date' => '2026-10-19', 'hunger_level' => 0, 'appetite_level' => 6, 'nutrition_completed_at' => now()->toISOString(), 'submitted_at' => now()->toISOString(), 'client_id' => $client->id])->assertUnprocessable()->assertJsonValidationErrors(['check_in_date', 'hunger_level', 'appetite_level', 'nutrition_completed_at', 'submitted_at', 'client_id']);
         $this->getJson($url.'?date=2026-10-19')->assertUnprocessable();

@@ -20,7 +20,7 @@ class NutritionCheckInTest extends TestCase
 
     public function test_clients_record_edit_clear_and_retrieve_nutrition_without_pose_photos(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $url = '/api/clients/'.$client->id.'/daily-check-ins';
         $record = $this->actingAs($client)->postJson($url, ['check_in_date' => '2026-10-18', 'hunger_level' => 4, 'appetite_level' => 2, 'digestive_discomfort' => 3, 'digestion_notes' => 'Bloating after dinner.', 'dietary_difficulties' => 'Struggled to finish the last meal.'])->assertCreated()->assertJsonPath('data.submitted_at', null);
         $id = $record->json('data.id');
@@ -32,7 +32,7 @@ class NutritionCheckInTest extends TestCase
 
     public function test_optional_fields_preserve_old_check_ins_and_validate_scales_and_text(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $url = '/api/clients/'.$client->id.'/daily-check-ins';
         $this->actingAs($client)->postJson($url, ['check_in_date' => '2026-10-17', 'bodyweight' => 80])->assertCreated()->assertJsonPath('data.hunger_level', null);
         $this->postJson($url, ['check_in_date' => '2026-10-18', 'hunger_level' => 0, 'appetite_level' => 6, 'digestive_discomfort' => 1.5, 'digestion_notes' => str_repeat('a', 5001), 'dietary_difficulties' => ['invalid']])->assertUnprocessable()->assertJsonValidationErrors(['hunger_level', 'appetite_level', 'digestive_discomfort', 'digestion_notes', 'dietary_difficulties']);

@@ -44,7 +44,7 @@ class SecurityTest extends TestCase
 
     public function test_sql_injection_cannot_authenticate_or_change_query_scope(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $this->postJson('/api/login', ['email' => "' OR 1=1 --", 'password' => 'password'])->assertUnprocessable();
         $this->postJson('/api/login', ['email' => $client->email, 'password' => "' OR 1=1 --"])->assertUnprocessable();
         $this->assertGuest();
@@ -61,7 +61,7 @@ class SecurityTest extends TestCase
         $this->postJson($base.'/daily-check-ins', ['check_in_date' => today()->toDateString(), 'notes' => $text])
             ->assertCreated()->assertJsonPath('data.notes', $text);
         $this->assertDatabaseHas('daily_check_ins', ['client_id' => $client->id, 'notes' => $text]);
-        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('users', 2);
 
         $exercise = Exercise::create(['exercise_name' => 'Squat']);
         $this->postJson($base.'/workouts', [
@@ -149,7 +149,7 @@ class SecurityTest extends TestCase
 
     public function test_authenticated_writes_require_a_valid_csrf_token(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $this->app['env'] = 'local';
         $url = '/api/clients/'.$client->id.'/daily-check-ins';
         $this->actingAs($client)->withSession(['_token' => 'test-csrf-token'])

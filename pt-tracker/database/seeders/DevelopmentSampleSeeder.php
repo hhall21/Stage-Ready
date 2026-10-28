@@ -41,7 +41,7 @@ class DevelopmentSampleSeeder extends Seeder
                     ? (int) $coach->id
                     : $this->ensure('users', ['email' => 'sample.coach@stage-ready.test'], [
                         'name' => 'Sample Coach', 'role' => 'coach', 'password' => $password,
-                        'email_verified_at' => now(), 'is_active' => true,
+                        'email_verified_at' => now(), 'is_active' => true, 'billing_exempt' => true,
                     ]);
             }
 
@@ -127,11 +127,13 @@ class DevelopmentSampleSeeder extends Seeder
                 $checkInId = $id;
             }
         }
-        $pose = $index === 9 ? 'favourite_classic_pose' : 'front_relaxed';
+        $pose = 'front_relaxed';
         $photoPath = 'samples/'.$clientId.'/'.$checkInId.'/sample-pose.png';
         $this->media('checkin_photos', $photoPath, 'sample-pose.png');
         $this->ensure('progress_photos', ['check_in_id' => $checkInId, 'pose_key' => $pose], [
-            'photo_type' => $index === 9 ? 'other' : 'front', 'file_path' => $photoPath, 'mime_type' => 'image/png',
+            'photo_type' => 'front', 'file_path' => $photoPath, 'mime_type' => 'image/png',
+            'expires_at' => now()->addDays(7)->toDateTimeString(),
+            'coach_viewed_at' => now()->toDateTimeString(), 'retained_by_coach_id' => $coachId,
         ]);
         $this->ensure('check_in_posing_reviews', ['check_in_id' => $checkInId, 'coach_id' => $coachId], [
             'photo_version' => 1, 'posing_rating' => 6 + $index % 4,

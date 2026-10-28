@@ -5,6 +5,8 @@ import AthleteVisual from '@/components/AthleteVisual.vue';
 import SiteHeader from '@/components/SiteHeader.vue';
 import { athleteImages } from '@/lib/athlete-images';
 import { api, message } from '@/lib/tracker-api';
+import type { TrackerUser } from '@/lib/tracker-api';
+import type { AccountNavigation } from '@/types';
 const props = withDefaults(
     defineProps<{ next?: string; passwordReset?: boolean }>(),
     { next: '/dashboard', passwordReset: false },
@@ -17,12 +19,17 @@ async function login() {
     busy.value = true;
     error.value = '';
     try {
-        await api('/api/login', 'POST', {
+        const response = await api<{
+            data: TrackerUser;
+            navigation: AccountNavigation;
+        }>('/api/login', 'POST', {
             email: email.value,
             password: password.value,
         });
         password.value = '';
-        router.visit(props.next);
+        router.visit(
+            props.next === '/dashboard' ? response.navigation.href : props.next,
+        );
     } catch (cause) {
         error.value = message(cause);
     } finally {

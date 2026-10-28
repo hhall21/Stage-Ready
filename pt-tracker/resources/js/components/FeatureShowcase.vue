@@ -113,11 +113,12 @@ onUnmounted(() => cleanup?.());
             <div v-reveal class="feature-intro">
                 <p class="feature-label">The coaching workspace</p>
                 <h2 id="features-title">
-                    Review the plan alongside the results.
+                    Everything you need to coach each client.
                 </h2>
                 <p class="feature-description">
-                    Training, nutrition and check-ins share the same client
-                    record, so you can review them together.
+                    Keep training, nutrition, check-ins and progress in one
+                    client workspace, with your feedback beside the details
+                    you’re reviewing.
                 </p>
                 <div class="feature-cue" aria-hidden="true">
                     <div class="feature-progress">

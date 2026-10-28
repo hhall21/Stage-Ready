@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DropdownSelect from '@/components/DropdownSelect.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 import CheckInSection from '@/components/CheckInSection.vue';
 import ClientManagement from '@/components/ClientManagement.vue';
@@ -164,6 +164,7 @@ onMounted(initialize);
         "
     />
     <SiteHeader dashboard skip-target="#main-content"
+        ><Link v-if="user?.role === 'coach'" href="/payment">Billing</Link
         ><span class="account-role">{{
             user?.role === 'coach' ? 'COACH SPACE' : 'MEMBER SPACE'
         }}</span
@@ -233,6 +234,12 @@ onMounted(initialize);
                 >
                     Retry
                 </button>
+            </p>
+            <p v-if="user?.has_suspended_coaching" class="notice" role="status">
+                Your coach’s membership is unpaid, so coaching features are
+                paused. If payment is not restored within seven days of access
+                expiring, eligible coaching data will be removed after your
+                handover is prepared. You can still open available handovers.
             </p>
             <div
                 v-if="

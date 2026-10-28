@@ -75,6 +75,9 @@ Set `APP_ENV=production`, `APP_DEBUG=false`, a fresh `APP_KEY`, the correct HTTP
 with only the required privileges, private upload storage outside the web root,
 and a configured mail service. Serve only `pt-tracker/public/`, and configure
 trusted proxies for the actual infrastructure without trusting arbitrary clients.
+Hosted requests accept the canonical `APP_URL` host only. Outgoing links use that
+origin. Leave `TRUSTED_PROXIES` empty for direct HTTPS hosting, or configure only
+the real proxy IPs/CIDRs so forwarded IPs cannot bypass rate limits.
 See [Laravel's deployment guide](https://laravel.com/framework/docs/deployment).
 
 Run migrations and the queue worker, back up the database and private uploads,

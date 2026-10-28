@@ -54,6 +54,12 @@ class DailyCheckIn extends Model
         return $this->progressPhotos()->whereNotNull('pose_key');
     }
 
+    /** @return HasMany<ProgressPhoto, $this> */
+    public function retainedPosePhotos(): HasMany
+    {
+        return $this->posePhotos()->available();
+    }
+
     /** @return HasMany<CheckInPosingReview, $this> */
     public function posingReviews(): HasMany
     {

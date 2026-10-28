@@ -1,0 +1,14 @@
+[program:stage-ready-worker]
+directory=/var/www/stage-ready/pt-tracker
+command=/usr/bin/php8.4 artisan queue:work --sleep=3 --tries=5 --timeout=60 --max-time=3600
+user=www-data
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/www/stage-ready/pt-tracker/storage/logs/worker.log
+stdout_logfile_maxbytes=10MB
+stdout_logfile_backups=3
+stopwaitsecs=90

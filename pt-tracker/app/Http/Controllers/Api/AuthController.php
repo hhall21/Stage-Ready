@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\CoachingHandover;
 use App\Rules\SafePassword;
+use App\Support\AccountNavigation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    private const USER_FIELDS = ['id', 'name', 'email', 'role', 'is_bodybuilding_coach'];
+    private const USER_FIELDS = ['id', 'name', 'email', 'role', 'is_admin', 'is_bodybuilding_coach'];
 
     public function csrf(Request $request): JsonResponse
     {
@@ -42,8 +43,9 @@ class AuthController extends Controller
 
         return response()->json(['data' => $user ? [...$user->only(self::USER_FIELDS),
             'has_active_coaching' => $user->role === 'client' && $user->hasActiveCoach(),
+            'has_suspended_coaching' => $user->role === 'client' && $user->hasSuspendedCoaching(),
             'has_coaching_handovers' => $user->role === 'client' && CoachingHandover::where('client_id', $user->id)->exists(),
-        ] : null]);
+        ] : null, 'navigation' => AccountNavigation::forUser($user)]);
     }
 
     public function logout(Request $request): JsonResponse

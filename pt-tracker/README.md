@@ -1,428 +1,19 @@
-# Stage-Ready
+﻿# Stage-Ready application
 
-**A training and progress platform for bodybuilding and powerlifting coaches and their clients.**
+Laravel 13 and Vue 3 application for bodybuilding and powerlifting coaching.
+See the [project overview](../README.md) for features and the
+[API reference](docs/API.md) for endpoint details.
 
-Stage-Ready keeps the day-to-day work of coaching in one place: training plans,
-meals, daily check-ins and feedback. Coaches decide what's prescribed and adjust
-upcoming sessions when a client's needs change. Clients follow their schedule,
-log what they did, and see how their progress is building over time.
+## Requirements
 
-The interface uses dark backgrounds, white text and original bodybuilding
-illustrations that blend into the page. It works on desktop and mobile screens.
-A top-right switch offers an inverted light mode with muted grey backgrounds,
-deep blue outlines and stronger glow cores on cards, panels and controls.
-It remembers your choice in the browser.
-The homepage preserves red powerlifter plates and golden bodybuilder lighting
-in light mode.
-
-This README covers running and developing the application. For a shorter tour,
-start with the [project overview](../README.md).
-
-## Recent updates
-
-- **Coach training analytics:** compare exercise weight and reps with historical
-  calorie prescriptions, logged food calories and rolling bodyweight averages.
-  Missing readings and partial calorie logs are clearly identified.
-- **Dashboard sections:** tabs load their own records and forms, with different
-  headings and actions for coaches and clients. Switching tabs does not fetch
-  records for unrelated sections.
-- **Demo history:** optional seeders add ten fictional client scenarios and six
-  weeks of workouts, weigh-ins and food logs for exploring the charts. See
-  [sample accounts](#sample-accounts) for the commands.
-- **Maintenance:** calendar queries have new database indexes, original artwork
-  replaces the earlier photographs, and the frontend build dependencies have
-  been updated. PHP 8.4.1 is the minimum supported version.
-
-If you're updating an existing installation, keep your `.env`, install the locked
-dependencies with `composer install` and `npm ci`, then run `php artisan migrate`
-and `npm run build`. Skip the initial demo seed command; it needs an empty database.
-
-## Features
-
-### Public homepage
-
-The public homepage introduces Stage-Ready to bodybuilding and powerlifting coaches, covering
-training, nutrition, check-ins, health monitoring, analytics, posing, reviews and
-competition preparation. It includes an invitation-to-review workflow, FAQs and
-feature navigation, with member sign-in for existing accounts. The page has a
-descriptive title and search/social metadata.
-
-The hero pairs a bodybuilder opening into a front lat spread under golden
-lighting with a powerlifter making a centred, vertical ascent in a red-lit rack
-with five equal-sized dark red plates on each side. Scrolling drives both SVG
-scenes and reverses them on the way up. Where the full hero fits on screen, it
-stays visible for 480px of scrolling. On phones, the artwork holds separately
-for 480px so the introductory text stays in normal page flow.
-Reduced-motion mode shows the finished poses without a scroll hold.
-
-The four coaching tool cards slide in one at a time with blue lighting that
-remains after each reveal in both themes. Preparation panels, workflow accents
-and other interface highlights also stay blue in both themes.
-When the full section fits below the header, it stays in view for 1080px of
-scrolling and releases after the fourth card arrives.
-Short screens reveal cards in normal page flow; reduced-motion mode shows all
-four immediately.
-
-Scroll animations reveal the coaching tools and workflow and shift the dark
-background gradients. While the dumbbell artwork is in view, its six plates drift
-apart as you scroll down and reassemble as you scroll up, with the handle staying
-in place.
-The dumbbell has shaded plate faces, collars and a textured steel grip. On
-screens tall enough to show the full section, competition prep stays in view for
-720px of scrolling while a soft animated glow highlights the coaching details.
-On phones, the dumbbell holds separately for 480px before the coaching details.
-Artwork only holds when it fits below the header; very short viewports and
-reduced-motion mode use normal page flow without a hold.
-The navigation stays visible and gains a solid background on scroll.
-These effects use the existing Vue setup without extra animation libraries,
-preserve normal scrolling and both themes, and respect reduced-motion settings.
-
-Expandable panels throughout the website smoothly expand and fade into view
-inside a blue-glowing panel. Away from the homepage, their arrows and select-field
-arrows keep a steady glow that brightens on hover or keyboard focus. Homepage
-FAQ arrows still brighten, grow slightly and emit a blue halo when they enter
-view. Select fields retain keyboard controls and mobile pickers. Reduced-motion
-mode shows panels immediately and keeps static blue highlights.
-
-Navigation, buttons, links, form fields and interactive chart points share blue
-hover and keyboard-focus glows in both themes. Disabled controls do not gain a
-hover highlight.
-
-### Payment page preview
-
-The public `/payment` route is an initial Stage-Ready payment-page design with a
-plan summary, signed-in account context and a preview of the handoff to
-[Stripe Checkout](https://docs.stripe.com/payments/checkout). It shares the site's
-dark and light themes, blue hover highlights and responsive layout.
-
-Prices and billing periods remain unset. Stripe is not connected: the preview
-does not collect payment details, call a payment API, record a successful payment
-or change account access. The checkout button previews the next step and can
-return to the summary. Live billing still needs confirmed prices and payment
-terms, a server-side Stripe integration and verified payment events.
-
-### Coach workspace
-
-Coach and client dashboards use 16px body text, larger labels and supporting
-notes, and more space between fields and actions. Workout logging and coach
-prescription rows adapt to narrow screens without shrinking their text.
-Posing history opens photos and feedback immediately, with an arrow to hide or
-reopen each photo menu.
-
-- View clients with a current, active coaching assignment.
-- View the coach's fixed Bodybuilding or Powerlifting discipline in the Clients
-  tab. Existing coach accounts default to Bodybuilding.
-- Invite new clients by name and email from the Clients section, or invite an
-  existing account holder to accept after signing in. Access starts immediately
-  when the invitation is accepted; no coaching dates or upcoming-client list.
-- Resend or cancel invitations. Resending replaces the previous link; links expire
-  after seven days. A copyable link is available if email delivery is unavailable.
-- End coaching to remove the coach's access while preserving the client's account,
-  workouts, check-ins, and logged history.
-- Review each client's check-ins, training sessions, and bodyweight trends.
-- Add, edit and remove competition dates from the **Competitions** tab. View past
-  and upcoming shows grouped by client, with **All**, **Upcoming** and **Past**
-  filters and a client dropdown. Only active assigned clients with a recorded
-  competition appear in the dropdown, and only matching shows appear in the list.
-  Competition name and date are required, with optional location and category. Placing and
-  show notes can be viewed and filled in only after the show date; shows dated
-  today count as upcoming. The period updates from the date automatically.
-- Build a split of 1–15 numbered training/rest days and choose its start date.
-- Write a separate workout for every training day; the split repeats automatically.
-- Edit exercises, sets, reps, weight, RIR, and coaching notes when plans need to change.
-
-### Repeating training splits
-
-A coach can create **Day 1 Push, Day 2 Pull, Day 3 Rest, Day 4 Legs**. Day 1 starts
-on the selected date. Calendar days advance through the sequence, including
-rest days, and wrap to Day 1 after the last day. A newer split takes over on its
-own start date. Missed logins do not stop the calendar count.
-
-- Up to **10 exercises per workout**.
-- Splits can contain 1–15 days and repeat until the next split starts.
-- Each training day has its own workout; rest days have no exercise entries.
-- Today's scheduled workout or rest day appears automatically on login.
-- The client can select a different split day for special circumstances. An extra
-  rest day pauses the count; choosing a training or planned rest day makes the
-  following date continue with the next split day. Skipping the last rest day
-  and selecting Day 1 therefore makes tomorrow Day 2.
-- Choices can be corrected before performance is logged. Earlier choices cannot
-  shift later logged sessions, and client accounts cannot create or rewrite workouts.
-- Upcoming unlogged sessions update when the split changes, including today's
-  session if training has not been logged.
-- Past sessions, completed workouts, sessions with logged sets, and sessions with
-  training clips retain their existing records.
-- Logging a session preserves it from later split changes, even if it is
-  subsequently marked incomplete.
-
-Plans support up to one hundred sets per exercise. Changing a split's start date
-or length after recorded history requires a new split. Previous weekly mesocycles
-and their logged sessions remain available; they are not rewritten into new splits.
-Run `php artisan migrate` when upgrading an existing installation.
-
-### Client workspace
-
-- View assigned training splits and the correct scheduled workout or rest day.
-- Log actual reps, weight, reps in reserve (**RIR**), and completion for each set.
-- Mark workouts as completed.
-- Choose a coach-prescribed split day or extra rest when the schedule changes.
-- Create, edit, and delete personal daily check-ins.
-
-### Meal plans, daily prescriptions and written reviews
-
-- Coaches publish separate training-day and rest-day meal plans with independent
-  meal times, foods/portions, and optional calories/macros. Copying training meals
-  to rest days applies an adjustable delay (60 minutes by default).
-- The client's scheduled workout suggests the day type, while both meal plans
-  remain available to view. Plans can start today or on a future date.
-- Daily prescriptions repeat Monday to Sunday: cardio type, minutes and intensity;
-  rounds of mandatory poses and hold time per pose; vacuum sets and hold time.
-- Coaches can schedule later plan versions with more posing rounds closer to the
-  optional show date. Increases are explicitly prescribed, never automatic.
-- Published plans retain their history. Future versions can be cancelled by their
-  author. Today's changes create another version rather than rewriting old plans.
-- Coaches publish written check-in feedback and next steps every seven days in
-  prep, or every fourteen days in the off-season. Each coach sets the current phase;
-  changing phase starts a new interval today. Review status appears on the overview.
-- Reviews include a recent summary of recorded weights, steps, and completed
-  workouts. Missing readings are excluded from averages. This summary is separate
-  from the existing rolling seven-day bodyweight chart.
-- Plans and review history remain stored after coaching ends. Clients without an
-  active coach see only Coaching handovers. Former coaches lose access; clients
-  cannot write prescriptions or coach reviews.
-
-Existing installations require `php artisan migrate` for these features.
-
-### Weekly health monitoring
-
-Coaches enable weekly monitoring per client in **Weekly health**, for clients
-who need blood pressure and resting heart rate recorded during their cycle.
-Clients may record systolic/diastolic pressure in mmHg, resting heart rate in
-bpm, and notes. Every measurement is optional, including when correcting or
-clearing an earlier reading. Missing measurements stay null and appear as not
-recorded. The overview shows when a full reading is due: immediately when
-monitoring starts, then every seven days after a current full reading. Blank or
-partial entries stay visible to coaches without postponing that reminder.
-
-Clients can correct their readings, and current coaches can view the dated
-history. Disabling monitoring or ending coaching preserves readings. Monitoring
-starts disabled and requires the weekly-health database migration on existing
-installations (`php artisan migrate`).
-
-### Coaching discipline and photo access
-
-Run `php artisan migrate` to add the boolean `is_bodybuilding_coach` field to user
-accounts. For coaches, `true` means bodybuilding and `false` means powerlifting;
-existing accounts default to `true`. Set the discipline in trusted application
-code when provisioning the coach. The dashboard displays it as read-only, and
-there is no client-facing or coach-facing API for switching disciplines.
-
-Clients' photo eligibility follows their current, active coaching assignments,
-not their own stored flag. A client with at least one active bodybuilding coach
-can upload pose photos and submit posing check-ins. Only assigned bodybuilding
-coaches can view those photos or provide posing reviews; an assigned powerlifting
-coach still cannot access them when another coach is a bodybuilding coach.
-
-Without bodybuilding access, the dashboard shows normal daily check-ins and
-hides photo uploads, posing submissions, ratings and photo prompts. Photo and
-posing API routes enforce the same rules. Measurements and evening nutrition
-remain available. Ending the last bodybuilding assignment
-preserves existing photos and reviews; access returns when the client has an
-active bodybuilding coach again. Published nutrition/practice plans and written
-coaching reviews remain stored when coaching ends.
-
-### Ending coaching and client handovers
-
-In **Clients**, choose **End coaching**. The confirmation opens above the active
-client list and receives focus. Optionally record what worked well, next steps
-and up to ten additional notes, each with a title, period and body.
-Confirm **Create handover and end coaching** to save a personal PDF and end only
-that coach's assignment. The account remains active; ending coaching does not
-disable the client's login or delete plans, reviews, photos or logged history.
-The former coach immediately loses access to the client's records.
-
-**Refresh clients** reloads the active client list and shows progress and a
-completion message. If loading fails, the error appears beside the list with a
-retry button.
-
-The PDF contains bodyweight milestones, a rolling seven-day average chart for
-the final 56 days, completed working-set counts, exercise bests and final coach
-notes. Statistics cover the assignment's start date through the day coaching
-ends. Only recorded weights and completed sets with positive reps contribute;
-missing values stay missing, and unloaded sets still count as working sets.
-Each exercise best pairs its load, reps and date from the same completed set.
-Long notes continue on additional pages without reducing the font size.
-
-Clients can preview, open and download their PDFs in **Coaching handovers**.
-When no active coach remains, this is the only dashboard tab, even if no report
-has been created yet. Clients cannot add or change check-ins, nutrition responses,
-workout logs, health readings or other coaching records without active coaching.
-Their account and saved history remain intact. Signing out and accepting a new
-coach's invitation still work. Clients with another active coach keep their usual
-dashboard and can open handovers from the navigation. Multiple coaching periods
-produce separate reports, including when the same coach starts coaching again.
-
-Reports are saved as immutable snapshots and PDF bytes in the database, with
-authenticated access restricted to the client who owns them. Later record edits
-do not rewrite a report. Ending the assignment and saving the PDF share a database
-transaction: if generation fails, coaching stays active.
-
-Run `composer install` for the locked Dompdf dependency and `php artisan migrate`
-for `coaching_handovers` when updating. PDF generation runs in PHP and does not
-require Python, a browser binary or an external PDF service. The standalone
-[design preview](docs/handover/README.md) remains available with fictional data.
-
-For assignments ended before this feature was installed, run
-`php artisan coaching:backfill-handovers` after migrating. It creates missing
-reports for inactive assignments with recorded end dates, using records within
-each assignment's dates. It preserves accounts, assignments and existing PDFs;
-rerunning it does not rewrite reports. Historical final notes that were never
-recorded are left missing.
-
-### Daily check-ins
-
-Optional nutrition responses include hunger and appetite (separate 1-5 ratings),
-digestive discomfort (1 = none, 5 = severe), digestion notes, and dietary difficulties
-such as trouble finishing meals, cravings, or food access. Clients can save these
-at the end of the day using **Save end-of-day nutrition**, independently of posing
-photos. Existing posing submissions and morning measurements are preserved.
-The form shows whether the day has been completed and supports previous days.
-Current coaches can read the responses in daily
-history and the seven/fourteen-day review summary. Missing ratings are excluded
-from averages, with response counts shown. Existing check-ins remain unchanged.
-
-Clients can save or submit a partial or entirely blank check-in. Coaches are
-responsible for agreeing expectations and following up on missed information.
-A blank date uses today when creating a record, or preserves its original date
-when editing. Each client can record one check-in per date, with optional:
-
-| Training and recovery      | Daily habits |
-| -------------------------- | ------------ |
-| Bodyweight                 | Steps        |
-| Sleep duration and quality | Water intake |
-| Energy and stress ratings  | Notes        |
-
-Sleep quality, energy, and stress use a 1–5 rating scale.
-
-### Posing photos and daily coach reviews
-
-Clients can save their daily numbers as a draft, then choose from the eight poses in the
-[NPC men's bodybuilding pose set](https://npcnewsonline.com/official-bodybuilding-rules/).
-The check-in also offers front relaxed, rear relaxed, left side relaxed and
-right side relaxed, plus a **Favourite classic pose**: thirteen photo options.
-Every photo is optional. Clients can submit with any number of photos, including
-none, and coaches can review those submissions. Missing poses stay visible to
-the coach, and the photo count includes every uploaded pose.
-
-- Photos upload individually and stay private to eligible clients and currently
-  assigned bodybuilding coaches. They are not placed on the public storage disk.
-- Clients can replace a pose photo or remove it before submitting again.
-- Coaches record an overall posing score from 1 to 10 and written feedback.
-- A coach can mark the review as a competition-prep check-in and optionally add
-  separate 1-10 flatness and fullness scores. Flatness increases from not flat to
-  very flat; fullness increases from low fullness to very full.
-- Each coach has a separate review. Feedback is preserved when coaching ends;
-  viewing posing history requires an active bodybuilding coaching assignment.
-  Former coaches lose access to the client's photos.
-- Changing a photo marks earlier reviews out of date and requires resubmission.
-  A coach cannot save a review against a photo set that changed while being viewed.
-
-Existing check-ins and their recorded numbers remain available. A saved draft
-only becomes submitted when the client chooses to submit it; missing photos do
-not block that action. Previously submitted photos and review history remain
-available. Run `php artisan migrate` to allow partial weekly health readings on
-existing installations; rolling back that migration leaves the columns nullable
-so omitted measurements are preserved.
-
-The browser prepares JPEG uploads at a maximum 2,000-pixel long edge to keep daily
-uploads smaller. The server accepts JPEG, PNG, and WebP images up to 5 MB and
-6,000 pixels in either dimension. For API uploads above PHP's default limit,
-configure `upload_max_filesize` to at least `6M` and `post_max_size` to at least `8M`.
-
-Photos use the private `checkin_photos` disk, under
-`storage/app/private/check-in-photos` by default. Set `CHECKIN_PHOTOS_ROOT` to use
-another private writable directory. Collaborators can use their own storage; a
-Seagate drive is not required. Replaced and deleted pose files are cleaned up
-after their database transaction commits; filesystem failures are retried through
-the queue, so keep the queue worker running.
-
-### Bodyweight trends
-
-The dashboard displays a **rolling seven-day average**, helping coaches see the
-direction of bodyweight over time.
-
-- Each average uses the recorded weights from that day and the six days before it.
-- Missing weights are excluded rather than counted as zero.
-- Future-dated check-ins are excluded.
-- Each point includes the number of weigh-ins contributing to it.
-- The current average is compared with the average seven days earlier.
-- The chart covers 56 days, with a table of daily averages and reading counts.
-- Windows with no weigh-ins appear as gaps.
-
-### Authentication and access
-
-- Session-based login and logout.
-- The top bar shows the signed-in coach or client's name, including on mobile.
-- CSRF protection on authenticated write requests.
-- Login rate limiting.
-- Password reset by email, with single-use links expiring after 60 minutes,
-  request throttling, and existing-session invalidation after a password change.
-- Clients access their own records.
-- Coaches access clients with an active assignment covering the current date.
-- Inactive accounts cannot sign in or continue accessing protected pages and APIs.
-- Split creation, program changes and workout creation are restricted to assigned coaches.
-
-### Exercise progress
-
-The Exercise Progress section shows weight, rep and working-set charts for a selected exercise
-across the latest 60 logged sessions, plus an accessible table of readings.
-
-- Completed working sets with at least one rep are included, even without a recorded weight.
-- Future sessions and planned or incomplete sets are excluded.
-- Each session shows its heaviest set, highest rep count, and volume in working sets.
-- Workout cards show planned and completed working-set counts across all exercises.
-- All programmed sets are working sets. Missing weights remain unknown and do
-  not appear as zero on the weight chart; their sets still count towards volume.
-- Weight and rep records may come from different sets in the same session.
-- Clients and their current coaches can view the charts.
-
-Coaches use **Training analytics** to view weight over calendar time and compare
-both weight and reps against daily calories or rolling seven-day average
-bodyweight. Select an exercise and history range, then hover, tap or focus a chart
-point to inspect the session. A readings table includes missing values and counts.
-
-Calorie comparisons can use the training-day prescription effective on each
-session date or food calories logged for that date. Logged food may cover only
-part of a day; incomplete calorie entries are shown as subtotals and excluded
-from the calorie plots. Bodyweight averages use that session date and the six
-preceding days, with weigh-in counts and a comparison to seven days earlier.
-Missing readings remain missing. Clients retain their existing Exercise Progress
-view. These comparisons use existing records and do not require a migration.
-
-### Contact enquiries
-
-A public API accepts prospective-client enquiries with validation, required
-privacy consent, a honeypot field, and a limit of five requests per minute per IP.
-
-## Technology
-
-| Layer          | Stack                                                                           |
-| -------------- | ------------------------------------------------------------------------------- |
-| Backend        | Laravel 13, PHP, Eloquent                                                       |
-| Frontend       | Vue 3, TypeScript, Inertia.js 3                                                 |
-| Styling        | Tailwind CSS 4 and custom CSS                                                   |
-| Build tools    | Vite / Vite Plus                                                                |
-| Database       | SQLite for local development; MySQL-compatible tracker schema                   |
-| Quality checks | Pest, PHPStan / Larastan, Laravel Pint, Vue TypeScript and frontend lint checks |
+- PHP 8.4.1 or newer, with the database driver for your chosen database.
+- Composer.
+- Node.js 22.18+ within the 22.x series, or Node.js 24.11+, with npm.
+- SQLite for local development, or a MySQL-compatible database.
 
 ## Local setup
 
-You'll need PHP 8.4.1 or newer with the relevant database driver, Composer, and
-Node.js 22.18+ within the 22.x series, or Node.js 24.11+ with npm. Composer's PHP
-requirement and dependency-resolution platform both specify 8.4.1 to match the
-minimum required by the locked packages.
-
-Run the following from the Laravel application directory, `pt-tracker`:
+Run these commands from `pt-tracker/` for a new local installation:
 
 ```sh
 composer install
@@ -436,162 +27,114 @@ npm run build
 php artisan serve
 ```
 
-Migrations define the schema; `PtTrackerSeeder` and its fictional JSON fixtures
-provide the sample data. No database snapshot or duplicate SQL schema is shipped.
-The seed command above is for a new, empty local database only.
+Open **http://localhost:8000**. Seeding is optional and requires a new, empty
+local database. Keep an existing `.env` and skip seeding when updating an
+installation. For databases created from legacy SQL, read the
+[migration notes](database/MIGRATIONS.md) first.
 
-Keep an existing `.env` when updating an installed project, and skip seeding.
-For a database previously created from
-legacy SQL, read [the migration notes](database/MIGRATIONS.md) before running
-migrations.
+| Page                      | URL                    |
+| ------------------------- | ---------------------- |
+| Public website            | `/`                    |
+| Coach registration        | `/register`            |
+| Member login              | `/login`               |
+| Coach billing             | `/payment`             |
+| Cancel subscription       | `/subscription/cancel` |
+| Coach or client workspace | `/dashboard`           |
+| Administrator portal      | `/admin`               |
 
-Open **http://localhost:8000**.
+For frontend development, run `npm run dev` in a second terminal. Keep
+`php artisan queue:listen` running to retry file-cleanup jobs. After setup,
+`composer run dev` starts the Laravel server, queue listener and frontend server
+together.
 
-| Page                      | URL          |
-| ------------------------- | ------------ |
-| Public website            | `/`          |
-| Member login              | `/login`     |
-| Payment design preview    | `/payment`   |
-| Client or coach dashboard | `/dashboard` |
+## Coach signup and billing
 
-For live frontend development, run `npm run dev` in a second terminal while the
-Laravel server is running. Keep a queue worker running with `php artisan queue:listen`
-so failed photo cleanup jobs can be retried. After setup, `composer run dev` starts
-the Laravel server, queue listener and frontend development server together.
+Coaches register publicly, choose a discipline, verify their email and subscribe
+for **£6 GBP per month for powerlifting or £8 GBP per month for bodybuilding,
+with automatic renewal**. No administrator invitation or
+approval is required. Only server-verified payments grant paid access. Coaches
+then invite clients by email; coaching starts when an invitation is accepted.
+Coach navigation and sign-in lead to email verification or billing until paid
+access is verified; workspace links use the server's current access state.
 
-The `vite` dependency is an alias for the matching Vite+ core package. Keep its
-version aligned with `vite-plus` when upgrading the build tools; the npm
-override ensures plugins use that same copy.
+Billing links to a cancellation page showing the paid-through date and retention
+deadline. Confirmation cancels renewal through Stripe, keeping the existing
+paid period and retention dates. The Stripe customer portal handles invoices,
+payment methods and subscription recovery.
 
-Vite+ and its aliased core are pinned together at 1.4.0. Vue type checks use
-vue-tsc 3, while TypeScript stays on the 5.x series.
+When payment expires, coach and affected client coaching features pause. Login,
+billing and handovers remain available. After seven extra unpaid days, client
+handovers are prepared before eligible coaching records and media are deleted.
+Client accounts and records needed by another active coach are preserved.
+Billing-expiry handovers are removed after the client deliberately opens and
+receives the document. Manual coaching endings keep their existing history.
 
-### Invitation and password reset emails
+See [billing setup](docs/BILLING.md) for Stripe credentials, webhooks, scheduled
+cleanup, queue workers and retention details. Real billing requires provider
+configuration; the local defaults do not charge cards.
 
-Set `APP_URL` to the address clients use to open Stage-Ready. Invitation and reset
-links use that configured address. Invitations create client access immediately
-on acceptance, without scheduling a coaching start or end date. Existing account
-holders must sign in to their own account to accept; their password is unchanged.
+## Administrator setup
 
-Local development defaults to `MAIL_MAILER=log`, so emails appear in
-`storage/logs/laravel.log` rather than an inbox. The invitation form also provides a
-copyable link and reports whether mail delivery succeeded. For real delivery,
-configure an SMTP or supported mail provider using `MAIL_MAILER`, `MAIL_HOST`,
-`MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and `MAIL_FROM_ADDRESS`. Test delivery
-with your own account before inviting clients. Keep credentials in the local
-environment file.
-
-### Sample accounts
-
-For a fuller demo, add ten fictional client scenarios to your local database
-without clearing its existing records:
-
-```sh
-php artisan db:seed --class=DevelopmentSampleSeeder
-```
-
-This adds ten fictional client scenarios across all 27 application tables, including
-training splits, legacy programs, logged sets, meals, prescriptions, reviews,
-invitations and enquiries. Related detail tables can contain more than ten rows.
-The first sample client has ten days of check-ins for a useful bodyweight trend.
-Framework tables (sessions, password resets, cache, queues and migrations) are
-left alone. Repeating the command preserves records and edits without duplicating
-the samples. It only runs in `local` or `testing` and never sends invitations or email.
-
-To give every existing client six weeks of graph history, run this next:
+After migrations, run this command from a trusted terminal on the application host:
 
 ```sh
-php artisan db:seed --class=DevelopmentGraphHistorySeeder
+php artisan stage-ready:make-admin owner@example.com --name="Your name"
 ```
 
-This adds past weigh-ins and twelve completed sessions for each of a client's
-exercises, grouped into workouts of at most ten exercises. It also adds fictional
-food logs on session dates so coaches can select **Logged food calories** in the
-calorie comparison.
-Existing check-ins, food logs, workouts and prescriptions remain unchanged,
-including blank readings. All added records are labelled as fictional samples.
-Repeating the command preserves edits and does not duplicate the history. This
-loader only runs in `local` or `testing`.
+For a new account, it prints a private password setup link valid for 60 minutes.
+The command does not send email. Open the link, choose a password and sign in at
+`/login` to reach `/admin`. Keep the link private.
 
-To try the client and period filters with several shows for one person, run:
+For an existing active coach, the command grants administrator access without
+changing their password or records. `--name` is only needed for a new account.
+Inactive accounts and client accounts cannot be promoted by this command.
+Account activity is managed separately from paid membership.
 
-```sh
-php artisan db:seed --class=DevelopmentCompetitionSeeder
-```
+## Email delivery
 
-This adds six clearly labelled fictional competitions to the Adam Brown demo
-account (`adam@example.com`), or to the first sample client if Adam is absent.
-Three shows are past and three are upcoming when first loaded. One past show has
-blank results so coaches can try adding them. Existing competitions, edits and
-other clients are preserved; repeating the command does not duplicate or move
-shows. The loader is restricted to `local` and `testing` and needs existing demo
-accounts or development samples.
+Set `APP_URL` to the address people use to open Stage-Ready. Verification,
+invitation and password reset links use this address.
 
-Sample client emails are `sample.client01@stage-ready.test` through
-`sample.client10@stage-ready.test`, with password `password`. The loader uses the
-existing James demo coach if its public demo password still matches; otherwise it
-creates `sample.coach@stage-ready.test` with the same demo password. Sample photos
-and clips are labelled placeholders copied to private storage. Keep this data local;
-the original JSON fixtures are unchanged.
+Local development uses `MAIL_MAILER=log`. Emails appear in
+`storage/logs/laravel.log`, not an inbox. For real delivery, configure an SMTP or
+supported mail provider with `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`,
+`MAIL_USERNAME`, `MAIL_PASSWORD` and `MAIL_FROM_ADDRESS`. Test verification,
+invitation and reset emails before using real accounts. Keep credentials out of Git.
 
-The development sample loader also adds one PDF from an earlier fictional
-coaching period per sample client. These reports do not end their current sample
-assignments, and repeated loads preserve existing reports.
+Dynamic requests have server-side rate limits, with tighter budgets for email,
+billing, uploads, reports and analytics. Use a shared database or Redis cache
+across application instances. See [request limits](docs/API.md#request-limits).
 
-The setup seed command creates the accounts below. To add them later to a new,
-empty local database, run:
+## Check-in photo retention
 
-```sh
-php artisan db:seed
-```
+All 13 optional poses are available for temporary review. Coaches can choose any
+four photos per check-in to keep for seven days after their first coach view,
+and download any available photo to their own device. Unselected review photos
+expire seven days after upload. Measurements and feedback remain stored.
 
-The sample seeder only runs in `local` and `testing`, and requires its target
-tables to be empty. It includes coaches,
-clients, assignments, check-ins, workouts, and related tracker records.
+Run migrations and `php artisan photos:expire` when updating. Keep the scheduler
+and queue worker running for automatic cleanup. See [photo storage](docs/PHOTOS.md).
+
+## Sample accounts
+
+`php artisan db:seed` creates these fictional accounts in a new local database:
 
 | Role   | Email                  | Password   |
 | ------ | ---------------------- | ---------- |
 | Coach  | `james@pttracker.test` | `password` |
 | Client | `adam@example.com`     | `password` |
 
-These credentials are public and only for local development. Do not deploy the
-demo database or seed these accounts into staging or production. Start hosted
-installations with a new, empty database. See the repository's
-[security notes](../SECURITY.md) for public-repository and deployment checks.
+Optional loaders add more fictional records without clearing existing data:
 
-## Project structure
-
-```text
-pt-tracker/
-├── app/
-│   ├── Http/Controllers/Api/    # Authentication and tracker endpoints
-│   ├── Http/Requests/           # Request validation
-│   ├── Models/                 # Eloquent models and relationships
-│   ├── Policies/               # Coach/client access rules
-│   └── Services/               # Split/mesocycle scheduling and analytics context
-├── database/
-│   ├── migrations/             # Database schema and incremental changes
-│   └── seeders/                # Development sample data
-├── resources/
-│   ├── js/components/          # Dashboard sections, plan editors and charts
-│   ├── js/pages/               # Public page, login, dashboard
-│   ├── js/lib/                 # API client and image configuration
-│   └── css/                    # Dark theme and responsive layouts
-├── routes/                     # Website and API routes
-├── tests/                      # Model, API and access-control tests
-└── docs/API.md                 # Endpoint and implementation notes
+```sh
+php artisan db:seed --class=DevelopmentSampleSeeder
+php artisan db:seed --class=DevelopmentGraphHistorySeeder
+php artisan db:seed --class=DevelopmentCompetitionSeeder
 ```
 
-### Artwork and branding
-
-The product name is **Stage-Ready** throughout the website. Project preferences
-are recorded in the workspace's `AGENTS.md`.
-
-Image imports are configured in
-[`athlete-images.ts`](resources/js/lib/athlete-images.ts). The original SVG
-illustrations live in [`resources/artwork/`](resources/artwork/README.md) and are
-bundled by Vite. Dark fades blend the artwork into the page without image borders.
-The retired third-party photographs are no longer part of the current source.
+These add ten client scenarios, six weeks of graph history and sample
+competitions respectively. They run only in `local` or `testing`. Never deploy
+the demo database or use these public passwords for real accounts.
 
 ## Verification
 
@@ -608,58 +151,36 @@ npm run build
 php database/verify-demo.php database/database.sqlite
 ```
 
-Tests cover authentication, inactive accounts, record ownership, coach assignments,
-model relationships, repeating schedules, preservation of logged history, exercise
-limits, and rolling bodyweight calculations.
+`composer ci:check` runs frontend checks, PHP formatting, static analysis and
+application tests. GitHub workflows also build assets, check dependencies and
+demo data, test SQLite and MySQL, and verify handover preview pagination.
 
-PHPStan checks the application, configuration, database scripts and seeders, and
-routes. Run `composer ci:check` for the frontend checks, PHP formatting and static
-analysis, and application tests. GitHub also builds the production assets, checks
-dependencies and demo data, tests against SQLite and MySQL, and verifies handover
-preview pagination. The workflow lives in the repository root's `.github/workflows/`
-directory.
+## Deployment requirements
 
-## Current scope
+Serve the application from `public/`, allow writes to `storage/` and
+`bootstrap/cache/`, and use a private environment file with a unique app key.
+Build assets, install production PHP dependencies and run migrations when updating.
+The health endpoint is `/up`. Hosted billing also needs HTTPS, working mail,
+Stripe webhooks, Laravel's scheduler and a supervised queue worker; see
+[billing setup](docs/BILLING.md).
 
-The working website includes authentication, coach/client dashboards, check-ins,
-end-of-day nutrition responses, private posing reviews, workout and set logging,
-repeating training splits, legacy weekly programs, training analytics, bodyweight
-trends, meal plans, daily practice prescriptions, weekly health monitoring,
-competition dates and written coach reviews.
+Use `.env.production.example` for production settings. `deploy/` contains Nginx,
+PHP, Supervisor and scheduler examples. Run
+`php artisan stage-ready:check-launch --verify-stripe` on the host after setup;
+use `--staging` with test credentials.
+The check does not create charges or change application records. It does not
+replace actual email, webhook, worker, scheduler or backup-restore checks.
 
-Models and database tables also exist for individual meal logging, training clips, clip feedback,
-supplements, phases, and cycle entries. Their full user interfaces
-and upload/management endpoints are not yet implemented. Progress photos are
-available through the daily posing check-in workflow. The
-[handover PDF preview](docs/handover/README.md) is a separate design sample with
-fictional data; it is not yet an export from the dashboard.
+Set `SUPPORT_EMAIL`, `PRIVACY_POLICY_URL` and `TERMS_OF_SERVICE_URL` for the public
+support and policy links. The `/privacy` and `/terms` pages render reviewed
+Markdown from `storage/app/policies/privacy.md` and `terms.md`; keep these files
+persistent. Missing or blank documents return 404. They are not supplied legal
+policies: publish the business's approved text before opening signup.
 
-Coach account provisioning still requires trusted application code. Coaches can
-onboard clients through invitations and end coaching from the Clients section.
-Public self-registration and an administration interface are not included. The
-contact-enquiry API is available, but a public contact form is not yet connected.
+## Further documentation
 
-## API documentation
-
-See [API and implementation notes](docs/API.md) for endpoint details, CSRF handling,
-request examples, validation rules, and record-replacement behaviour.
-The [training analytics walkthrough](docs/TRAINING_ANALYTICS.md) explains one
-feature from authorization and logged sets through historical context and charts.
-
-Dashboard owns authentication, client selection and navigation. Each section
-loads its own records when mounted, owns its forms and pagination, and is reset
-when the selected client changes. Changing tabs does not fetch unrelated sections.
-
-## Staging deployment
-
-1. Configure `.env` using `.env.staging.example`, with a unique application key,
-   the staging URL, and database credentials.
-2. Run `composer install --no-dev --optimize-autoloader`, `npm ci`, and
-   `npm run build` with development build dependencies available.
-3. Run `php artisan migrate --force` and `php artisan optimize`.
-4. Point the web server at `public/` and allow writes to `storage/` and
-   `bootstrap/cache/`.
-5. Configure the health check to request `/up` with `Accept: application/json`.
-
-Keep populated environment files, credentials, and real client data out of the
-repository.
+- [API and implementation notes](docs/API.md)
+- [Training analytics](docs/TRAINING_ANALYTICS.md)
+- [Migration guidance](database/MIGRATIONS.md)
+- [Artwork](resources/artwork/README.md)
+- [Security](../SECURITY.md)

@@ -2,6 +2,16 @@
 
 return [
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'prices' => [
+            'powerlifting' => env('STRIPE_POWERLIFTING_PRICE_ID'),
+            'bodybuilding' => env('STRIPE_BODYBUILDING_PRICE_ID'),
+        ],
+        'live_mode' => (bool) env('STRIPE_LIVE_MODE', false),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

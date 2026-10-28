@@ -16,7 +16,7 @@ class UserPolicy
             return $user->is($client);
         }
 
-        return $user->role === 'coach' && $user->clients()
+        return $user->role === 'coach' && $user->hasPaidCoachAccess() && $user->clients()
             ->where('users.id', $client->id)
             ->wherePivot('status', 'active')
             ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))

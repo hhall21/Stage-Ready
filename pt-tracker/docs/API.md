@@ -7,6 +7,50 @@ Laravel backend and website for Stage-Ready.
 The website is called **Stage-Ready**. Always use Stage-Ready in website copy,
 navigation, page titles, and branding. Do not call the website PT Tracker.
 
+## Request limits
+
+All requests reaching Laravel have a baseline limit of **600 per minute per IP**,
+before sessions, authentication or controller work. Normal pages and API routes
+also share a limit of **180 requests per minute per signed-in account**, or per IP
+for guests. Within that budget, writes share **60 requests per minute**. Changing
+URLs or opening another tab does not reset these counters. Different signed-in
+accounts have separate application budgets, while sharing the outer IP cap.
+
+Additional limits apply before the relevant controller executes:
+
+| Action                                                     | Limit                                         | Scope                                                    |
+| ---------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------- |
+| Login                                                      | 5/minute per email/IP and 20/minute per IP    | All login attempts                                       |
+| Request password reset email                               | 5/minute and 20/hour per IP; 5/hour per email | Email is normalised and hashed; shared across IPs        |
+| Submit new password                                        | 5/minute per IP                               | Separate from reset email requests                       |
+| Coach registration                                         | 5/minute and 20/hour per IP                   | Public signup                                            |
+| Verify email or resend verification                        | 6/minute and 20/hour per account              | Both verification routes                                 |
+| Create or resend invitations and administrator setup links | 10/minute and 60/hour per account             | Shared email-delivery budget                             |
+| Open or accept an invitation                               | 20/minute per IP                              | Shared invitation budget                                 |
+| Contact enquiry                                            | 5/minute per IP                               | Public contact API                                       |
+| Billing changes                                            | 10/minute per account                         | Checkout, confirmation, portal and cancellation          |
+| Photo uploads                                              | 20/minute per account                         | Shared across clients and poses; invalid uploads count   |
+| Photo views, downloads and retention choices               | 60/minute per account                         | Shared across all private photos                         |
+| Handover creation and document requests                    | 20/minute per account                         | End coaching, PDF retrieval and temporary-report opening |
+| Progress analytics                                         | 30/minute per account                         | Exercise progress and bodyweight trends                  |
+
+Limits return HTTP `429` with `Retry-After` and rate-limit headers. The API client
+shows the waiting time; the forgot-password form also disables submission until
+that time expires. These controls are enforced on the server even after a reload.
+Blocked requests do not send mail, call Stripe, store uploads or mutate coaching
+records. A throttled handover-open request does not consume the report.
+
+Stripe webhooks have a separate **600 requests per minute per IP** transport
+budget, rather than sharing browser/account counters. Every delivery still needs
+a valid Stripe signature and matching environment before billing work runs.
+
+Limits use Laravel's configured cache. Use a persistent shared database or Redis
+store across workers and application instances; `array` is for tests only.
+Configure trusted proxy addresses on the host when using a reverse proxy, and do
+not trust arbitrary forwarded IP headers. Web-server or proxy limits complement
+these controls by rejecting floods before PHP runs. Static assets served directly
+by the web server do not pass through Laravel.
+
 ## Public API
 
 `POST /api/contact-enquiries` accepts prospective-client enquiries. It is limited to five requests per minute per IP address.
@@ -34,7 +78,7 @@ invitation, or completing a password reset.
 
 - `POST /api/login`: email and password; limited to five attempts per minute per email/IP.
 - `GET /api/user`: signed-in user's ID, name, email, role, fixed
-  `is_bodybuilding_coach` flag, `has_active_coaching` and `has_coaching_handovers`.
+  `is_bodybuilding_coach` flag, `is_admin`, `has_active_coaching` and `has_coaching_handovers`.
 - `GET /api/clients`: coaches' current active assigned clients, paginated.
 - `POST /api/logout`: ends the session.
 - `GET /api/exercises`: paginated exercise catalogue.
@@ -45,10 +89,47 @@ invitation, or completing a password reset.
 Clients can manage their own check-ins and workouts. Coaches can view check-ins
 and manage workouts for clients with an active assignment whose start/end dates
 include today. Inactive accounts and clients cannot access tracker records.
-Coach accounts and user roles require trusted application code. Client onboarding
-and ending coaching are available through the endpoints below; public
-self-registration is not provided. A coach's discipline is set by trusted
-provisioning code; there is no self-service discipline update endpoint.
+Coaches can register publicly, verify their email and subscribe for £6 GBP per
+month for powerlifting or £8 GBP per month for bodybuilding, with automatic renewal.
+User roles and administrator privileges cannot be
+changed through account requests. A coach's discipline is fixed during signup or
+trusted provisioning. See [billing, access expiry and retention](BILLING.md) for
+endpoints, required Stripe settings and the seven-day deletion policy.
+
+### Administrator portal
+
+`/admin` and every `/api/admin/*` endpoint require an authenticated, active
+account with `is_admin = true`, in addition to the normal session and CSRF checks.
+This flag does not grant access to private tracker records or photos; existing
+coach/client authorization still applies. Bootstrap access using
+`php artisan stage-ready:make-admin owner@example.com --name="Your name"` on a
+trusted application host. New accounts receive a password setup link in terminal
+output, not an email. Existing active coach passwords are preserved.
+
+- `GET /api/admin/users?search=&role=&status=&page=1` returns `users` (20 per
+  page) and `summary` counts. `role` accepts `coach`, `client` or `admin`;
+  `status` accepts `active` or `inactive`. Account rows contain identity, role,
+  access flags, discipline, creation date and current active client count. They
+  exclude passwords, private tracker records and setup tokens. Pending invitation
+  counts exclude expired, cancelled, accepted and inactive-coach invitations.
+- `POST /api/admin/coaches` accepts `name`, unique `email` and required boolean
+  `is_bodybuilding_coach`. It always creates an active, non-admin coach with a
+  random initial password. The response contains limited account `data`,
+  `setup_url`, `expires_in_minutes` and `delivery` (`sent`, `local` or `failed`).
+  The welcome email lets the coach choose a password through the existing reset
+  flow. Default link lifetime is 60 minutes. Mail failure leaves the account
+  intact and returns a copyable setup link.
+- `POST /api/admin/coaches/{coach}/setup-link` issues a fresh password link for
+  an active, non-admin coach. Earlier password links become invalid.
+- `PATCH /api/admin/users/{user}/access` accepts only `is_active` for account
+  changes. It preserves role, discipline, administrator flags, assignments and
+  history. Administrator accounts cannot be deactivated through this endpoint.
+  Deactivation blocks sign-in and coaching access; it does not end coaching.
+
+Coach creation and password-link delivery share the invitation limit of ten
+requests per minute per signed-in account. No public admin registration or
+administrator privilege-management endpoint exists. Public paid signup grants
+coach access, while administrator deactivation remains a separate control.
 
 ### Ending coaching and handover PDFs
 
@@ -253,7 +334,7 @@ The assigned coach must have `is_bodybuilding_coach=true`; clients are eligible
 when at least one current active coach has that flag. A powerlifting coach cannot
 access photos through a client who also has a bodybuilding coach. Without this
 access, posing read/upload/remove/submit/review routes and private image URLs
-return 403. Stored photos and reviews are preserved.
+return 403. Access changes do not extend photo deadlines. Written reviews remain stored.
 
 `GET /api/clients/{client}/daily-check-ins` includes `posing_enabled` for the current
 viewer. Normal measurements and nutrition remain available for both disciplines.
@@ -262,34 +343,45 @@ viewer. Normal measurements and nutrition remain available for both disciplines.
 false means powerlifting. This is a fixed discipline assigned by trusted
 provisioning code. Neither coaches nor clients can change it through the API.
 
-Saving daily numbers creates or edits a draft. Submission requires the original
-eight bodybuilding poses plus `front_relaxed`, `rear_relaxed`, `left_side_relaxed`
-and `right_side_relaxed`: twelve required images. `favourite_classic_pose` is an
-optional thirteenth image. Catalogues are returned separately as `required_poses`
-and `optional_poses`; use their stable keys for uploads. An optional image cannot
-replace a missing required pose.
+Saving daily numbers creates or edits a draft. All 13 photos are optional: the
+eight bodybuilding poses, front/rear/left/right relaxed views, and favourite
+classic pose. Catalogues use `standard_poses` and `additional_poses`; use their
+stable keys for uploads. Blank and partial sets can be submitted and reviewed.
 
 The following routes extend
 `/api/clients/{client}/daily-check-ins/{checkIn}`:
 
-| Method | Suffix                  | Purpose                                                                 |
-| ------ | ----------------------- | ----------------------------------------------------------------------- |
-| GET    | `/posing`               | Photo set, required poses, submission state and coach reviews           |
-| POST   | `/posing/photos/{pose}` | Upload or replace one pose, using multipart `photo` and `photo_version` |
-| DELETE | `/posing/photos/{pose}` | Remove one pose, with JSON `photo_version`                              |
-| POST   | `/posing/submit`        | Submit all twelve required photos, with JSON `photo_version`            |
-| PUT    | `/posing/review`        | Save the signed-in coach's review of the submitted photo version        |
+| Method | Suffix                            | Purpose                                                                 |
+| ------ | --------------------------------- | ----------------------------------------------------------------------- |
+| GET    | `/posing`                         | Photo set, pose catalogue, submission state and coach reviews           |
+| POST   | `/posing/photos/{pose}`           | Upload or replace one pose, using multipart `photo` and `photo_version` |
+| GET    | `/posing/photos/{pose}`           | View an available private image; `?download=1` downloads an attachment  |
+| PUT    | `/posing/photos/{pose}/retention` | Coach choice: `retained` boolean and current `photo_version`            |
+| DELETE | `/posing/photos/{pose}`           | Remove one pose, with JSON `photo_version`                              |
+| POST   | `/posing/submit`                  | Submit the optional photo set, with JSON `photo_version`                |
+| PUT    | `/posing/review`                  | Save the signed-in coach's review of the submitted photo version        |
 
 All responses wrap the posing snapshot in `data`. It contains `check_in_id`,
-`photo_version`, `submitted_at`, `required_poses`, `optional_poses`, `photos`, and `reviews`. Each
-photo includes its ID, `pose_key`, authenticated `url`, and `updated_at`; private
-filesystem paths are never returned. The main check-in list also includes
+`photo_version`, `submitted_at`, `standard_poses`, `additional_poses`, `photos`,
+`retained_photo_limit` (4), and `reviews`. Each photo includes its numeric or
+temporary UUID ID, `pose_key`, authenticated `url`, `updated_at`, `expires_at`,
+`coach_viewed_at`, and `retained` flag. Private filesystem paths are never returned.
+The main check-in list also includes
 `photo_version`, `submitted_at`, and `pose_photos_count` for submission status.
 
-`GET /api/daily-check-in-photos/{photo}` serves a private image only to its owner
-or a currently assigned coach. It requires the same authenticated session and
-active-account checks as the other tracker endpoints, and is served with private,
-non-storing cache headers. Do not copy these files into public storage.
+`GET /api/daily-check-in-photos/{photo}` also serves a selected private image by
+its database ID. Both image routes require an eligible owner or assigned coach,
+use private non-storing cache headers, and reject expired images. Adding
+`?download=1` sends a downloadable image attachment. Do not copy files into public
+storage. Only coach image requests start the first-view clock; client views do not.
+
+All uploads initially use private temporary files and expire seven days after
+upload. Coaches can choose up to four photos from any of the 13 poses to keep in
+database photo records. That shared per-check-in limit is enforced with locks.
+Selected copies expire seven days after the first coach view; repeated views or
+saves cannot extend that date. Selection does not invalidate an existing review.
+Removing a selected copy frees its slot and leaves the original review copy
+available until its upload deadline. See [photo storage and cleanup](PHOTOS.md).
 
 Only the client can upload, remove, or submit photos. Uploads accept JPEG, PNG, or
 WebP images, at most 5 MB and 6,000 pixels in either dimension. One image is sent
@@ -313,13 +405,11 @@ They remain stored after coaching ends; reading posing history requires active
 bodybuilding photo access. A client cannot submit
 coach feedback or score fields through the metrics endpoint.
 
-The migration preserves legacy front/side/back/other progress-photo records.
-Only named pose photos are used in posing check-ins, and every photo is optional.
-Adding, replacing or deleting the optional classic photo also invalidates the
-submission and review version. Submission remains possible after removing it
-when all twelve required images are present. Existing photos and review history
-are preserved; new submissions and new reviews require all twelve required poses.
-Failed filesystem cleanup is retried through the application's queue.
+`photos:expire` runs every five minutes. It moves unexpired named legacy photos
+into temporary review storage and removes expired database records, manifests
+and files. API access ends at the deadline even if scheduled cleanup is delayed.
+Measurements, submissions and coach feedback survive photo expiry. Failed file
+cleanup is retried through the queue.
 
 ## Client onboarding and coaching management
 
@@ -354,7 +444,8 @@ email delivery; local development logs emails and offers copyable invitation lin
 - `POST /api/reset-password` takes `email`, `token`, `password`, and
   `password_confirmation`. Tokens expire after 60 minutes. Passwords require at
   least twelve characters, uppercase and lowercase letters, and a number.
-- Both endpoints are limited to five requests per minute per IP. Password changes
+- Each endpoint has its own limit of five requests per minute per IP. Email
+  requests also have the hourly limits listed above. Password changes
   rotate remember tokens and invalidate old authenticated sessions on their next
   protected request. Inactive accounts cannot reset their passwords.
 - `/forgot-password` requests a link, and `/reset-password/{token}?email=...`

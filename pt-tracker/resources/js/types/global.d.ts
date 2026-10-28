@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
 import type { Auth } from '@/types/auth';
+import type { CoachPlans } from '@/types/billing';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -19,6 +20,12 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            coachPlans: CoachPlans;
+            business: {
+                support_email: string | null;
+                privacy_url: string | null;
+                terms_url: string | null;
+            };
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

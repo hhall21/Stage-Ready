@@ -19,7 +19,7 @@ class OptionalCheckInTest extends TestCase
 
     public function test_a_client_can_save_a_blank_day_without_entering_a_date_or_measurements(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $this->actingAs($client)->postJson('/api/clients/'.$client->id.'/daily-check-ins', [])
             ->assertCreated()->assertJsonPath('data.bodyweight', null)->assertJsonPath('data.sleep_hours', null)
             ->assertJsonPath('data.steps', null)->assertJsonPath('data.notes', null);
@@ -28,7 +28,7 @@ class OptionalCheckInTest extends TestCase
 
     public function test_clearing_daily_answers_preserves_the_date_and_pose_submission(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $record = $client->dailyCheckIns()->create(['check_in_date' => '2026-10-18', 'bodyweight' => 80, 'steps' => 5000, 'notes' => 'Earlier details']);
         $record->forceFill(['submitted_at' => now(), 'photo_version' => 2])->save();
         $submittedAt = $record->submitted_at->toISOString();
@@ -43,7 +43,7 @@ class OptionalCheckInTest extends TestCase
 
     public function test_nutrition_accepts_blank_answers_and_defaults_a_blank_date_without_changing_other_data(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $url = '/api/clients/'.$client->id.'/end-of-day-nutrition';
         $this->actingAs($client)->putJson($url, [])->assertOk()->assertJsonPath('data', null);
         $this->assertDatabaseCount('daily_check_ins', 0);

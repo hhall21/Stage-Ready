@@ -1,12 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onUnmounted, ref } from 'vue';
 import AuthShell from '@/components/AuthShell.vue';
-import { api, message } from '@/lib/tracker-api';
+import { api, ApiError, message } from '@/lib/tracker-api';
 const email = ref(''),
     error = ref(''),
     success = ref('');
 const busy = ref(false);
+const retryIn = ref(0);
+let retryTimer: ReturnType<typeof setInterval> | undefined;
+function waitForRetry(seconds: number) {
+    const deadline = Date.now() + seconds * 1000;
+    retryIn.value = seconds;
+    clearInterval(retryTimer);
+    retryTimer = setInterval(() => {
+        retryIn.value = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        if (retryIn.value === 0) {
+            clearInterval(retryTimer);
+            error.value = '';
+        }
+    }, 1000);
+}
+onUnmounted(() => clearInterval(retryTimer));
 async function sendLink() {
+    if (busy.value || retryIn.value > 0) return;
     busy.value = true;
     error.value = '';
     success.value = '';
@@ -19,6 +35,8 @@ async function sendLink() {
         success.value = result.message;
     } catch (cause) {
         error.value = message(cause);
+        if (cause instanceof ApiError && cause.status === 429)
+            waitForRetry(cause.retryAfter ?? 60);
     } finally {
         busy.value = false;
     }
@@ -41,8 +59,14 @@ async function sendLink() {
                     maxlength="255"
                     required
             /></label>
-            <button class="button" :disabled="busy">
-                {{ busy ? 'Sending…' : 'Send reset link' }}
+            <button class="button" :disabled="busy || retryIn > 0">
+                {{
+                    busy
+                        ? 'Sending…'
+                        : retryIn > 0
+                          ? `Try again in ${retryIn}s`
+                          : 'Send reset link'
+                }}
                 <span aria-hidden="true">↗</span>
             </button>
         </form>

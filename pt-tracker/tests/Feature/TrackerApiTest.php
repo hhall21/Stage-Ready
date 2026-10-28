@@ -81,7 +81,7 @@ class TrackerApiTest extends TestCase
 
     public function test_clients_can_manage_check_ins_but_cannot_access_other_clients(): void
     {
-        $client = User::factory()->create();
+        $client = User::factory()->coached()->create();
         $other = User::factory()->create();
         $base = "/api/clients/{$client->id}/daily-check-ins";
         $this->actingAs($client)->postJson($base, ['check_in_date' => '2026-10-08', 'bodyweight' => 82.4])

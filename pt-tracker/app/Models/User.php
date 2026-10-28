@@ -5,11 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Support\DateBounds;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -22,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property string $password
  * @property string $role
  * @property bool $is_active
+ * @property bool $is_admin
+ * @property bool $billing_exempt
  * @property bool $is_bodybuilding_coach
  * @property Carbon|null $date_of_birth
  * @property string|null $phone
@@ -31,7 +36,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable(['name', 'email', 'password', 'date_of_birth', 'phone'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -39,6 +44,8 @@ class User extends Authenticatable
     /** @var array<string, mixed> */
     protected $attributes = [
         'is_active' => true,
+        'is_admin' => false,
+        'billing_exempt' => false,
         'is_bodybuilding_coach' => true,
     ];
 
@@ -54,6 +61,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
+            'is_admin' => 'boolean',
+            'billing_exempt' => 'boolean',
             'is_bodybuilding_coach' => 'boolean',
         ];
     }
@@ -82,11 +91,42 @@ class User extends Authenticatable
         return $this->activeCoaches()->exists();
     }
 
+    /** @return HasOne<CoachMembership, $this> */
+    public function coachMembership(): HasOne
+    {
+        return $this->hasOne(CoachMembership::class, 'user_id');
+    }
+
+    public function hasPaidCoachAccess(): bool
+    {
+        return $this->role === 'coach' && ($this->is_admin || $this->billing_exempt
+            || $this->coachMembership()->where('paid_through', '>', now())->exists());
+    }
+
+    /** @param Builder<User> $query */
+    public function scopeWithPaidCoachAccess(Builder $query): void
+    {
+        $query->where(fn ($query) => $query->where('is_admin', true)->orWhere('billing_exempt', true)
+            ->orWhereHas('coachMembership', fn ($query) => $query->where('paid_through', '>', now())));
+    }
+
+    public function hasSuspendedCoaching(): bool
+    {
+        return $this->role === 'client' && ! $this->hasActiveCoach() && $this->trainers()
+            ->where('users.role', 'coach')->where('users.is_admin', false)->where('users.billing_exempt', false)
+            ->whereDoesntHave('coachMembership', fn ($query) => $query->where('paid_through', '>', now()))
+            ->wherePivot('status', 'active')
+            ->where('trainer_clients.start_date', '<', DateBounds::after(today()))
+            ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')
+                ->orWhereDate('trainer_clients.end_date', '>=', today()))->exists();
+    }
+
     /** @return BelongsToMany<User, $this> */
     private function activeCoaches(): BelongsToMany
     {
         return $this->trainers()->where('users.role', 'coach')
             ->where('users.is_active', true)
+            ->withPaidCoachAccess()
             ->wherePivot('status', 'active')
             ->where('trainer_clients.start_date', '<', DateBounds::after(today()->toDateString()))
             ->where(fn ($query) => $query->whereNull('trainer_clients.end_date')

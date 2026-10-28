@@ -28,13 +28,17 @@ class DevelopmentSampleSeederTest extends TestCase
     public function test_samples_cover_every_application_table_and_preserve_database_rules(): void
     {
         $framework = ['migrations', 'sessions', 'password_reset_tokens', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs'];
-        $applicationTables = array_values(array_diff(Schema::getTableListing(schema: Schema::getCurrentSchemaName(), schemaQualified: false), $framework));
+        $billing = ['coach_memberships', 'coach_payments', 'stripe_webhook_events'];
+        $applicationTables = array_values(array_diff(Schema::getTableListing(schema: Schema::getCurrentSchemaName(), schemaQualified: false), $framework, $billing));
         $this->assertEqualsCanonicalizing($applicationTables, DevelopmentSampleSeeder::TABLES);
         $before = [];
         foreach ($framework as $table) {
             $before[$table] = DB::table($table)->count();
         }
         $this->seed(DevelopmentSampleSeeder::class);
+        foreach ($billing as $table) {
+            $this->assertDatabaseCount($table, 0);
+        }
         foreach (DevelopmentSampleSeeder::TABLES as $table) {
             $this->assertGreaterThanOrEqual(10, DB::table($table)->count(), $table.' needs sample records.');
         }

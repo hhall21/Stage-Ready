@@ -32,17 +32,20 @@ const themeLabel = computed(() =>
             <template v-if="!dashboard"
                 ><a href="/#features">Features</a
                 ><a href="/#how-it-works">How it works</a
+                ><Link v-if="!page.props.auth.user" href="/register"
+                    >Join as a coach</Link
                 ><Link
                     class="button button-small"
-                    :href="page.props.auth.user ? '/dashboard' : '/login'"
-                    >{{
-                        page.props.auth.user
-                            ? 'Open workspace'
-                            : 'Member sign in'
-                    }}</Link
+                    :href="page.props.auth.navigation.href"
+                    >{{ page.props.auth.navigation.label }}</Link
                 ></template
             >
-            <slot v-else />
+            <template v-else>
+                <Link v-if="page.props.auth.user?.is_admin" href="/admin"
+                    >Admin portal</Link
+                >
+                <slot />
+            </template>
         </nav>
         <button
             type="button"

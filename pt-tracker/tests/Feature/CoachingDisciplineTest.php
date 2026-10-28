@@ -140,7 +140,8 @@ class CoachingDisciplineTest extends TestCase
         $checkIn->forceFill(['submitted_at' => now()])->save();
         $path = $client->id.'/'.$checkIn->id.'/pose.png';
         Storage::disk('checkin_photos')->put($path, $this->image());
-        $photo = $checkIn->posePhotos()->create(['photo_type' => 'front', 'pose_key' => 'front_relaxed', 'file_path' => $path, 'mime_type' => 'image/png']);
+        $photo = $checkIn->posePhotos()->create(['photo_type' => 'front', 'pose_key' => 'front_relaxed', 'file_path' => $path, 'mime_type' => 'image/png',
+            'coach_viewed_at' => now(), 'retained_by_coach_id' => $coach->id]);
         $checkIn->posingReviews()->create(['coach_id' => $coach->id, 'photo_version' => 0, 'posing_rating' => 7, 'feedback' => 'Existing feedback', 'reviewed_at' => now()]);
 
         return [$checkIn, $photo];

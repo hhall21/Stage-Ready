@@ -55,6 +55,14 @@ return [
             'throw' => true,
         ],
 
+        'temporary_checkin_photos' => [
+            'driver' => 'local',
+            'root' => env('TEMPORARY_CHECKIN_PHOTOS_ROOT', storage_path('app/private/temporary-check-in-photos')),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

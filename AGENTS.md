@@ -2,6 +2,20 @@
 
 - The website's name is **Stage-Ready**. Always use this name in user-facing
   copy, navigation, page titles, and branding; never call the website PT Tracker.
+- Coach onboarding must be self-service: anyone can register and pay on the
+  website for coach access without an administrator invitation or approval.
+  Verify payment on the server before granting paid access. Keep billing state
+  separate from account activity. Powerlifting coach access costs £6 GBP per month;
+  bodybuilding coach access costs £8 GBP per month. Each plan
+  renews automatically. Record verified payment timestamps and paid-through dates.
+- When paid access expires, block coach and affected client coaching features
+  while keeping login, billing and handover access. Retain coaching data for
+  seven extra days. If still unpaid, create client handovers before deleting
+  eligible coaching records and media. Preserve client accounts and records
+  needed by another active coach. Recheck payment before destructive cleanup.
+  Keep billing-expiry handovers until clients deliberately open them, then
+  remove those handovers after the browser receives the document. Ordinary
+  coaching endings keep their existing history-preservation behaviour.
 - Before every push, review whether the changes are worth mentioning in the
   README. Update the root overview and/or application README when features,
   behaviour, setup, requirements or limitations change. Keep the wording natural
@@ -29,7 +43,8 @@
   only, with reading counts and comparison to seven days earlier.
 - Client onboarding starts coaching immediately when an invitation is accepted.
   Do not add assignment start/end date inputs or an upcoming-clients section.
-  Ending coaching must preserve the client's account and logged history.
+  Ending coaching manually must preserve the client's account and logged history;
+  unpaid billing expiry follows the separate retention policy above.
 - Clients without an active coach see only the Coaching handovers dashboard tab.
   They cannot create or change coaching records until active coaching resumes.
 - All client check-in measurements, notes and pose photos are optional. Clients
@@ -41,12 +56,20 @@
 - Posing check-ins offer the original eight poses plus front relaxed, rear
   relaxed, left side relaxed and right side relaxed. Favourite classic pose is
   a thirteenth option. None of the photos block submission or coach review.
+- All 13 poses upload to private temporary storage for coach review. A coach can
+  choose at most four photos per check-in, from any pose, to keep as database
+  photo records. Those copies expire seven days after a coach first views each
+  photo; viewing again or saving again must not extend that deadline. Unselected
+  review photos expire seven days after upload. Remove expired records and files
+  while preserving measurements and reviews. Coaches can download any available
+  check-in photo to their own device.
 - Diet prescriptions have separate training-day and rest-day meals with independent
   times. Rest-day copying defaults to a 60-minute delay and is coach-adjustable.
 - Coaches prescribe daily cardio, mandatory posing rounds and vacuum sets/holds.
   Future-dated versions allow planned posing increases approaching a show.
 - Written coach check-in reviews are weekly in prep and fortnightly off-season.
-  Plans and reviews remain stored when coaching ends.
+  Plans and reviews remain stored when coaching ends manually; unpaid billing
+  expiry follows the separate retention policy above.
 - Nutrition check-ins record optional hunger, appetite and digestive discomfort
   ratings (1-5), digestion notes and dietary difficulties. Coach review summaries
   exclude missing responses from averages and show reading counts.

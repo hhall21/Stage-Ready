@@ -84,7 +84,7 @@ class ClientInvitationController extends Controller
     public function show(Request $request, string $token): Response
     {
         $invite = ClientInvitation::with('trainer')->where('token_hash', hash('sha256', $token))->first();
-        $valid = $invite && $invite->isUsable() && $invite->trainer?->is_active && $invite->trainer->role === 'coach';
+        $valid = $invite && $invite->isUsable() && $invite->trainer?->is_active && $invite->trainer->hasPaidCoachAccess();
 
         return Inertia::render('JoinCoach', [
             'token' => $token,
@@ -100,7 +100,7 @@ class ClientInvitationController extends Controller
         abort_if($coachId === null, 410, 'This invitation is invalid or no longer available.');
         $client = DB::transaction(function () use ($request, $token, $coachId): User {
             $coach = User::whereKey($coachId)->lockForUpdate()->firstOrFail();
-            abort_unless($coach->role === 'coach' && $coach->is_active, 410, 'This coaching invitation is no longer available.');
+            abort_unless($coach->role === 'coach' && $coach->is_active && $coach->hasPaidCoachAccess(), 410, 'This coaching invitation is no longer available.');
             $invite = ClientInvitation::where('token_hash', hash('sha256', $token))->lockForUpdate()->first();
             abort_unless($invite?->isUsable(), 410, 'This invitation has expired, been cancelled, or already been accepted.');
             $client = User::where('email', $invite->email)->lockForUpdate()->first();

@@ -1,0 +1,2 @@
+# Install as /etc/cron.d/stage-ready. The final field is the command; www-data is the user.
+* * * * * www-data cd /var/www/stage-ready/pt-tracker && /usr/bin/php8.4 artisan schedule:run >> storage/logs/scheduler.log 2>&1

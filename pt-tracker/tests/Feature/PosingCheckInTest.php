@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\DailyCheckIn;
-use App\Models\ProgressPhoto;
 use App\Models\TrainerClient;
 use App\Models\User;
 use Illuminate\Filesystem\Filesystem;
@@ -19,9 +18,9 @@ class PosingCheckInTest extends TestCase
     use RefreshDatabase;
 
     private const POSES = [
+        'front_relaxed', 'left_side_relaxed', 'right_side_relaxed', 'rear_relaxed',
         'front_double_biceps', 'front_lat_spread', 'side_chest', 'back_double_biceps',
         'back_lat_spread', 'side_triceps', 'abdominals_and_thighs', 'most_muscular',
-        'front_relaxed', 'rear_relaxed', 'left_side_relaxed', 'right_side_relaxed',
     ];
 
     private string $photoStorageRoot;
@@ -35,6 +34,7 @@ class PosingCheckInTest extends TestCase
         $this->app->useStoragePath($this->photoStorageRoot);
         try {
             Storage::fake('checkin_photos');
+            Storage::fake('temporary_checkin_photos');
         } finally {
             $this->app->useStoragePath($originalStorage);
         }
@@ -105,19 +105,20 @@ class PosingCheckInTest extends TestCase
         $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 11])->assertOk()
             ->assertJsonCount(11, 'data.photos')->assertJsonPath('data.reviews.0.is_current', false);
         $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
-        $this->assertSame(11, $checkIn->progressPhotos()->count());
+        $this->assertSame(0, $checkIn->progressPhotos()->count());
         $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 12])->assertOk();
         $this->upload($client, $checkIn, self::POSES[11])->assertSuccessful();
         $this->postJson($this->base($client, $checkIn).'/submit', ['photo_version' => 13])->assertOk()
             ->assertJsonCount(12, 'data.photos')->assertJsonPath('data.photo_version', 13);
         $this->assertNotNull($checkIn->fresh()->getAttribute('submitted_at'));
-        $this->assertCount(12, Storage::disk('checkin_photos')->allFiles());
+        $this->assertCount(0, Storage::disk('checkin_photos')->allFiles());
+        $this->assertCount(24, Storage::disk('temporary_checkin_photos')->allFiles());
     }
 
     public function test_classic_and_relaxed_photos_can_be_independently_skipped(): void
     {
         [$client, $checkIn] = $this->clientCheckIn();
-        foreach (array_slice(self::POSES, 0, 11) as $pose) {
+        foreach (array_filter(self::POSES, fn (string $pose) => $pose !== 'right_side_relaxed') as $pose) {
             $this->upload($client, $checkIn, $pose)->assertSuccessful();
         }
         $this->upload($client, $checkIn, 'favourite_classic_pose')->assertSuccessful();
@@ -127,6 +128,9 @@ class PosingCheckInTest extends TestCase
         $this->submit($client, $checkIn)->assertJsonCount(13, 'data.photos');
         $this->deleteJson($this->base($client, $checkIn).'/photos/favourite_classic_pose', ['photo_version' => 13])->assertOk()->assertJsonPath('data.submitted_at', null);
         $this->submit($client, $checkIn)->assertJsonCount(12, 'data.photos');
+        foreach (array_slice(self::POSES, 0, 4) as $pose) {
+            $this->keep($client, $checkIn, $pose);
+        }
         $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'front_relaxed', 'photo_type' => 'front']);
         $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'rear_relaxed', 'photo_type' => 'back']);
         $this->assertDatabaseHas('progress_photos', ['check_in_id' => $checkIn->id, 'pose_key' => 'left_side_relaxed', 'photo_type' => 'side']);
@@ -179,11 +183,12 @@ class PosingCheckInTest extends TestCase
         $response = $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful()
             ->assertJsonMissingPath('data.photos.0.file_path');
         $url = $response->json('data.photos.0.url');
-        $this->assertStringContainsString('/api/daily-check-in-photos/', $url);
+        $this->assertStringContainsString('/posing/photos/', $url);
         $this->assertStringNotContainsString('/storage/', $url);
         $photo = $this->getJson($url)->assertOk()->assertHeader('Content-Type', 'image/jpeg');
         $this->assertStringContainsString('private', $photo->headers->get('Cache-Control'));
         $this->assertStringContainsString('no-store', $photo->headers->get('Cache-Control'));
+        $this->keep($client, $checkIn, self::POSES[0]);
         $storedPhoto = $checkIn->progressPhotos()->firstOrFail();
         $this->assertSame(Storage::disk('checkin_photos')->get($storedPhoto->file_path), $photo->streamedContent());
         $this->actingAs($coach)->getJson($url)->assertOk();
@@ -317,6 +322,7 @@ class PosingCheckInTest extends TestCase
         $this->submit($client, $checkIn);
         $base = $this->base($client, $checkIn);
         $this->actingAs($coach)->putJson($base.'/review', $this->reviewData($checkIn))->assertOk();
+        $this->keep($client, $checkIn, self::POSES[0]);
         $oldPhoto = $checkIn->progressPhotos()->where('pose_key', self::POSES[0])->firstOrFail();
         $oldPath = $oldPhoto->file_path;
         $this->upload($client, $checkIn, self::POSES[0], 12)->assertSuccessful()
@@ -334,7 +340,7 @@ class PosingCheckInTest extends TestCase
         $this->deleteJson($base.'/photos/'.self::POSES[0], ['photo_version' => 13])->assertOk()
             ->assertJsonPath('data.photo_version', 14)->assertJsonPath('data.submitted_at', null)
             ->assertJsonCount(11, 'data.photos')->assertJsonCount(1, 'data.reviews');
-        $this->assertCount(11, Storage::disk('checkin_photos')->allFiles());
+        $this->assertCount(0, Storage::disk('checkin_photos')->allFiles());
     }
 
     public function test_photo_mutations_require_an_explicit_current_version(): void
@@ -354,6 +360,7 @@ class PosingCheckInTest extends TestCase
             ->assertJsonValidationErrors('photo_version');
         $this->assertSame(0, $checkIn->fresh()->getAttribute('photo_version'));
         $this->assertSame([], Storage::disk('checkin_photos')->allFiles());
+        $this->assertSame([], Storage::disk('temporary_checkin_photos')->allFiles());
     }
 
     public function test_changing_the_check_in_date_invalidates_reviews_but_notes_only_edits_do_not(): void
@@ -394,10 +401,11 @@ class PosingCheckInTest extends TestCase
     {
         [$client, $checkIn] = $this->clientCheckIn();
         $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
+        $this->keep($client, $checkIn, self::POSES[0]);
         $oldPhoto = $checkIn->progressPhotos()->firstOrFail();
-        $originalDispatcher = ProgressPhoto::getEventDispatcher();
-        ProgressPhoto::setEventDispatcher(clone $originalDispatcher);
-        ProgressPhoto::saving(function (): void {
+        $originalDispatcher = DailyCheckIn::getEventDispatcher();
+        DailyCheckIn::setEventDispatcher(clone $originalDispatcher);
+        DailyCheckIn::saving(function (): void {
             throw new RuntimeException('Simulated photo database failure.');
         });
         $this->withoutExceptionHandling();
@@ -407,7 +415,7 @@ class PosingCheckInTest extends TestCase
         } catch (RuntimeException $error) {
             $this->assertSame('Simulated photo database failure.', $error->getMessage());
         } finally {
-            ProgressPhoto::setEventDispatcher($originalDispatcher);
+            DailyCheckIn::setEventDispatcher($originalDispatcher);
             $this->withExceptionHandling();
         }
         $this->assertSame($oldPhoto->file_path, $oldPhoto->fresh()->file_path);
@@ -419,6 +427,7 @@ class PosingCheckInTest extends TestCase
     {
         [$client, $checkIn] = $this->clientCheckIn();
         $this->upload($client, $checkIn, self::POSES[0])->assertSuccessful();
+        $this->keep($client, $checkIn, self::POSES[0]);
         $photo = $checkIn->progressPhotos()->firstOrFail();
         $originalDispatcher = DailyCheckIn::getEventDispatcher();
         DailyCheckIn::setEventDispatcher(clone $originalDispatcher);
@@ -484,6 +493,15 @@ class PosingCheckInTest extends TestCase
         foreach (self::POSES as $pose) {
             $this->upload($client, $checkIn, $pose)->assertSuccessful();
         }
+    }
+
+    private function keep(User $client, DailyCheckIn $checkIn, string $pose): void
+    {
+        $coach = $client->trainers()->where('is_bodybuilding_coach', true)->firstOrFail();
+        $this->actingAs($coach)->putJson($this->base($client, $checkIn).'/photos/'.$pose.'/retention', [
+            'photo_version' => $checkIn->fresh()->photo_version, 'retained' => true,
+        ])->assertOk();
+        $this->actingAs($client);
     }
 
     private function submit(User $client, DailyCheckIn $checkIn): TestResponse

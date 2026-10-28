@@ -33,7 +33,7 @@ class PasswordResetController extends Controller
         ]);
         $data['email'] = Str::lower($data['email']);
         $status = Password::reset([...$data, 'is_active' => true], function (User $user, string $password): void {
-            $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
+            $user->forceFill(['password' => $password, 'remember_token' => Str::random(60), 'email_verified_at' => $user->email_verified_at ?? now()])->save();
             event(new PasswordReset($user));
         });
         if ($status !== Password::PASSWORD_RESET) {
