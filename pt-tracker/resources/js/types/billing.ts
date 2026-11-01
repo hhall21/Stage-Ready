@@ -5,6 +5,7 @@ export type CoachPlan = {
     price_label: string;
     currency: 'gbp';
     interval: 'month';
+    client_limit: number;
 };
 
 export type CoachPlans = Record<'powerlifting' | 'bodybuilding', CoachPlan>;

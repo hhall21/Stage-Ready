@@ -57,6 +57,7 @@ async function register() {
             <p class="register-price">
                 {{ plan.price_label }} <span>per month · {{ plan.label }}</span>
             </p>
+            <p>Coach up to {{ plan.client_limit }} active clients.</p>
             <p>
                 {{ plans.powerlifting.label }}
                 {{ plans.powerlifting.price_label }}/month.

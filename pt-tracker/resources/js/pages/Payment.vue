@@ -49,6 +49,11 @@ function timestamp(value: string) {
 
 const features = computed(() => [
     {
+        title: `Up to ${plan.value?.client_limit ?? plans.value.powerlifting.client_limit} active clients`,
+        description:
+            'Keep each client’s plans, progress and feedback together.',
+    },
+    {
         title: 'Training with a plan',
         description:
             'Prescribed sessions, workout logs and progress in one place.',

@@ -418,6 +418,15 @@ on acceptance; no assignment date inputs or upcoming-client workflow is required
 Existing dated assignments remain compatible. Ending coaching removes the coach's
 access and preserves the client's account and all training/check-in records.
 
+Both coach plans include 20 coaching places. Ongoing assignments and unexpired,
+unaccepted, uncancelled invitations use places. Expired/cancelled invitations and
+ended coaching release places; deactivating a client account does not. Invitation
+creation, resending and acceptance check capacity under the coach row lock.
+Capacity failures return `422` without creating an account or consuming the link.
+`GET /api/client-invitations` includes a top-level `capacity` object with `limit`,
+`active_clients`, `pending_invitations` and `remaining`. Public pricing and coach
+billing responses include `client_limit` for the selected plan.
+
 | Method and path                            | Behaviour                                                                                              |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
 | `GET /api/client-invitations`              | Coach's unaccepted, uncancelled invitations, paginated.                                                |

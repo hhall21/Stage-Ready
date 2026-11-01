@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DropdownSelect from '@/components/DropdownSelect.vue';
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import { api, displayDate, localDate, message } from '@/lib/tracker-api';
 import type { TrainingSchedule, Workout } from '@/lib/tracker-api';
 
@@ -13,7 +13,9 @@ const loading = ref(false),
     error = ref(''),
     success = ref('');
 const selectedDay = ref<number | null>(null);
+const changingDay = ref(false);
 let version = 0;
+onBeforeUnmount(() => version++);
 function apply(data: TrainingSchedule) {
     state.value = data;
     selectedDay.value = data.selection ?? null;
@@ -37,26 +39,44 @@ async function load() {
         if (current === version) loading.value = false;
     }
 }
-async function select() {
+async function select(day: number | null | undefined) {
+    day ??= null;
+    if (
+        busy.value ||
+        loading.value ||
+        !props.canLog ||
+        !state.value?.split ||
+        state.value.history_locked
+    )
+        return;
+    if (day === (state.value.selection ?? null)) return;
     const clientId = props.clientId;
+    const current = ++version;
     busy.value = true;
+    changingDay.value = true;
     error.value = success.value = '';
     try {
         const result = await api<{ data: TrainingSchedule }>(
             `/api/clients/${clientId}/training-schedule/selection`,
             'PUT',
-            { date: state.value?.date, day_number: selectedDay.value },
+            { date: state.value.date, day_number: day },
         );
-        if (clientId === props.clientId) {
+        if (current === version) {
             apply(result.data);
             success.value =
                 'Split updated. The following days now continue from your choice.';
             emit('changed');
         }
     } catch (cause) {
-        if (clientId === props.clientId) error.value = message(cause);
+        if (current === version) {
+            selectedDay.value = state.value?.selection ?? null;
+            error.value = message(cause);
+        }
     } finally {
-        busy.value = false;
+        if (current === version) {
+            busy.value = false;
+            changingDay.value = false;
+        }
     }
 }
 async function saveSet(
@@ -92,6 +112,8 @@ watch(
     () => props.clientId,
     () => {
         state.value = null;
+        busy.value = false;
+        changingDay.value = false;
         date.value = localDate();
         success.value = '';
         void load();
@@ -160,15 +182,12 @@ defineExpose({ reload: load });
                     Next day: {{ state.tomorrow.split_name }} · Day
                     {{ state.tomorrow.day_number }} / {{ state.tomorrow.name }}
                 </p>
-                <form
-                    v-if="canLog"
-                    class="split-selection"
-                    @submit.prevent="select"
-                >
+                <div v-if="canLog" class="split-selection">
                     <label
                         >What did you complete on this day?<DropdownSelect
                             v-model="selectedDay"
-                            :disabled="busy || state.history_locked"
+                            :disabled="busy || loading || state.history_locked"
+                            @update:model-value="select"
                         >
                             <option :value="null">
                                 Planned split (Day
@@ -194,14 +213,15 @@ defineExpose({ reload: load });
                         This workout has logged performance and keeps its
                         original split day.
                     </p>
-                    <button v-else class="button button-small" :disabled="busy">
-                        {{ busy ? 'Updating…' : 'Update training day' }}
-                    </button>
                     <p v-if="!state.history_locked" class="form-help">
-                        Make your choice before entering performance.
+                        Your choice saves automatically. Choose before entering
+                        performance.
                     </p>
-                </form>
-                <template v-if="state.workout">
+                </div>
+                <p v-if="changingDay" class="loading-message" role="status">
+                    Updating training day…
+                </p>
+                <template v-else-if="state.workout">
                     <p class="status-pill">
                         {{
                             state.workout.completed

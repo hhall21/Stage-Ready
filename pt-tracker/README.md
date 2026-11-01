@@ -54,8 +54,14 @@ for **£6 GBP per month for powerlifting or £8 GBP per month for bodybuilding,
 with automatic renewal**. No administrator invitation or
 approval is required. Only server-verified payments grant paid access. Coaches
 then invite clients by email; coaching starts when an invitation is accepted.
+Both plans include up to 20 coaching clients. Pending invitations reserve places;
+expired or cancelled invitations and ended coaching free places. Capacity is
+checked on the server when sending, resending and accepting invitations.
 Coach navigation and sign-in lead to email verification or billing until paid
 access is verified; workspace links use the server's current access state.
+
+Clients' training-day choices save directly from the dropdown and refresh the
+scheduled workout. Logged performance continues to lock its original split day.
 
 Billing links to a cancellation page showing the paid-through date and retention
 deadline. Confirmation cancels renewal through Stripe, keeping the existing

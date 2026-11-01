@@ -8,6 +8,7 @@ use App\Models\TrainerClient;
 use App\Models\User;
 use App\Notifications\ClientInvitationNotification;
 use App\Rules\SafePassword;
+use App\Services\CoachCapacity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,9 +27,11 @@ class ClientInvitationController extends Controller
     {
         $coach = $this->coach($request);
 
-        return response()->json(ClientInvitation::where('trainer_id', $coach->id)
+        $invitations = ClientInvitation::where('trainer_id', $coach->id)
             ->whereNull('accepted_at')->whereNull('revoked_at')->latest()->paginate(30)
-            ->through(fn (ClientInvitation $invite) => $invite->only(['id', 'name', 'email', 'expires_at'])));
+            ->through(fn (ClientInvitation $invite) => $invite->only(['id', 'name', 'email', 'expires_at']));
+
+        return response()->json([...$invitations->toArray(), 'capacity' => app(CoachCapacity::class)->summary($coach)]);
     }
 
     public function store(Request $request): JsonResponse
@@ -46,6 +49,8 @@ class ClientInvitationController extends Controller
             if ($client && $coach->clients()->whereKey($client->id)->wherePivot('status', 'active')->exists()) {
                 throw ValidationException::withMessages(['email' => 'This client already has active coaching with you.']);
             }
+            $existing = ClientInvitation::where('trainer_id', $coach->id)->where('email', $data['email'])->first();
+            app(CoachCapacity::class)->ensureInvitationPlace($coach, $existing?->id);
 
             return ClientInvitation::updateOrCreate(['trainer_id' => $coach->id, 'email' => $data['email']],
                 ['name' => $data['name'], 'token_hash' => hash('sha256', $token), 'expires_at' => now()->addDays(7), 'accepted_at' => null, 'revoked_at' => null]);
@@ -61,6 +66,7 @@ class ClientInvitationController extends Controller
         $invite = DB::transaction(function () use ($coach, $invitation, $token): ClientInvitation {
             User::whereKey($coach->id)->lockForUpdate()->firstOrFail();
             $invite = ClientInvitation::where('trainer_id', $coach->id)->whereNull('accepted_at')->whereNull('revoked_at')->lockForUpdate()->findOrFail($invitation);
+            app(CoachCapacity::class)->ensureInvitationPlace($coach, $invite->id);
             $invite->update(['token_hash' => hash('sha256', $token), 'expires_at' => now()->addDays(7)]);
 
             return $invite;
@@ -104,6 +110,7 @@ class ClientInvitationController extends Controller
             $invite = ClientInvitation::where('token_hash', hash('sha256', $token))->lockForUpdate()->first();
             abort_unless($invite?->isUsable(), 410, 'This invitation has expired, been cancelled, or already been accepted.');
             $client = User::where('email', $invite->email)->lockForUpdate()->first();
+            app(CoachCapacity::class)->ensureClientPlace($coach, $client);
             if ($client) {
                 abort_unless($client->role === 'client' && $client->is_active && $request->user()?->is($client), 403, 'Sign in to the invited client account to accept.');
             } else {

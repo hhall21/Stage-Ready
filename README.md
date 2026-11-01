@@ -10,6 +10,7 @@ check-ins in the same platform.
 - Separate coach and client workspaces, with private records and role-based access.
 - Public coach registration and automatic monthly Stripe subscriptions: £6 GBP
   for powerlifting or £8 GBP for bodybuilding.
+  Both plans support up to 20 coaching clients.
   Coaches can cancel renewal from Billing and keep access until their paid
   period ends.
 - Client invitations, coaching handovers and an administrator portal.

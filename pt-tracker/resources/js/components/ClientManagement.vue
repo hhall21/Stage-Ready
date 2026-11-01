@@ -13,6 +13,13 @@ type Invitation = {
     expires_at: string;
 };
 type Delivery = { accept_url: string; delivery: 'sent' | 'local' | 'failed' };
+type Capacity = {
+    limit: number;
+    active_clients: number;
+    pending_invitations: number;
+    remaining: number;
+};
+const capacity = ref<Capacity | null>(null);
 const form = reactive({ name: '', email: '' });
 const handover = reactive({
     feedback: '',
@@ -44,6 +51,7 @@ async function refreshClientList(showStatus = true) {
     clientRefreshStatus.value = '';
     try {
         await props.refreshClients();
+        await loadInvitations();
         if (showStatus)
             clientRefreshStatus.value = `Client list refreshed. ${props.clients.length} active ${props.clients.length === 1 ? 'client' : 'clients'}.`;
     } catch (cause) {
@@ -55,11 +63,12 @@ async function refreshClientList(showStatus = true) {
 async function loadInvitations() {
     loading.value = true;
     try {
-        const result = await api<Page<Invitation>>(
+        const result = await api<Page<Invitation> & { capacity: Capacity }>(
             '/api/client-invitations?page=' + page.value,
         );
         invitations.value = result.data;
         lastPage.value = result.last_page;
+        capacity.value = result.capacity;
     } catch (cause) {
         error.value = message(cause);
     } finally {
@@ -229,7 +238,10 @@ onMounted(() => {
                 /></label>
             </div>
             <div class="form-actions">
-                <button class="button" :disabled="busy">
+                <button
+                    class="button"
+                    :disabled="busy || loading || capacity?.remaining === 0"
+                >
                     {{ busy ? 'Saving…' : 'Send invitation' }} ↗
                 </button>
             </div>
@@ -249,6 +261,11 @@ onMounted(() => {
                 }}
             </button>
         </div>
+        <p v-if="capacity" class="form-help">
+            {{ capacity.active_clients }} / {{ capacity.limit }} coaching places
+            in use. {{ capacity.pending_invitations }} pending invitations
+            reserve places. {{ capacity.remaining }} places available.
+        </p>
         <p class="client-refresh-status" role="status" aria-live="polite">
             {{
                 refreshingClients

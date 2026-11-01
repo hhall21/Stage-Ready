@@ -8,6 +8,13 @@
   separate from account activity. Powerlifting coach access costs £6 GBP per month;
   bodybuilding coach access costs £8 GBP per month. Each plan
   renews automatically. Record verified payment timestamps and paid-through dates.
+- Each coach has 20 coaching places. Active coaching relationships and unexpired
+  pending invitations use places. Ended coaching and expired/revoked invitations
+  free places. Enforce capacity on the server under the coach row lock.
+- Commit and push completed, verified changes after roughly every two substantive
+  user prompts, and whenever explicitly requested. Keep the repository public;
+  keep credentials, runtime data and the local launch plan excluded. Review the
+  README before each push and check GitHub Actions after pushing.
 - When paid access expires, block coach and affected client coaching features
   while keeping login, billing and handover access. Retain coaching data for
   seven extra days. If still unpaid, create client handovers before deleting
@@ -35,6 +42,9 @@
 - Clients can choose a different split day for special circumstances. Extra rest
   pauses the split; selecting a training or planned rest day makes tomorrow
   continue from the following split day. Changes must preserve logged history.
+- A training-day dropdown choice saves immediately and refreshes the displayed
+  workout. Do not require a separate update button. Preserve logged history and
+  restore the displayed selection when saving fails.
 - Coaches can edit workouts for injuries or other changes; updates apply to
   unlogged sessions from today onward and preserve past, completed and logged
   sessions. Changing the start date or length after recorded history requires a
